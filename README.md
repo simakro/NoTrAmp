@@ -1,2 +1,2 @@
 # NoTrAmp
-Normalization and Trimming of Amplicon NGS data
+Normalization and Trimming of long-read (ONT,PB) Amplicon data
