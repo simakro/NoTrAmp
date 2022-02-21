@@ -130,6 +130,8 @@ class Amp:
             [prim for prim in primers if prim.pos == "RIGHT"], key=lambda x: x.start
         ).start
         self.mappings = dict()
+        self.read_names = list()
+        self.reads = list()
         self.reads_dct = dict()
     
     
@@ -175,17 +177,18 @@ def generate_amps(primers):
 
 def name_out_paf(reads, reference, mod_name):
     read_dir, reads_file = os.path.split(reads)
-    reads_name = reads_file.split(".")[:-1]
-    ref_name = os.path.split(reference)[1].split(".")[:-1]
+    reads_name = ".".join(reads_file.split(".")[:-1])
+    ref_name =  ".".join(os.path.split(reference)[1].split(".")[:-1])
     paf_name = f"{reads_name}_mapto_{ref_name}.{mod_name}.paf"
     return os.path.join(read_dir, paf_name)
 
 
-def map_reads(reads, reference, out_paf, seq_tech="map-ont"):
-    try:
-        subprocess.run(["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], check=True, capture_output=True)
-    except subprocess.CalledProcessError as e:
-        log_sp_error(e, "Mapping of reads to reference failed")
+def map_reads(reads, reference, out_paf, seq_tech="ont"):
+    # try:
+    seq_tech = "map-" + seq_tech
+    subprocess.run(["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], check=True, capture_output=True)
+    # except subprocess.CalledProcessError as e:
+    #     log_sp_error(e, "Mapping of reads to reference failed")
     return out_paf
 
 
@@ -222,6 +225,7 @@ def create_read_mappings(mm2_paf):
 
 if __name__ == "__main__":
     logger = logging.getLogger(name='main')
+    logging.basicConfig(level=logging.DEBUG)
 
 
     args = get_arguments()
