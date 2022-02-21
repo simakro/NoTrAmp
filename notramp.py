@@ -4,7 +4,7 @@ import subprocess
 import random
 import sys
 import os
-
+from collections import defaultdict
 
 
     # mm2_paf = sys.argv[1]
