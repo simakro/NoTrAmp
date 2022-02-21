@@ -48,7 +48,7 @@ def get_arguments():
 
 def log_sp_error(error, message):
     logging.error(message)
-    print("Check intlog.log for error details")
+    print("Check notramp.log for error details")
     logging.error(error.stdout.decode('utf-8'))
     logging.info("Exiting integration locator")
     sys.exit()
@@ -221,12 +221,15 @@ def create_read_mappings(mm2_paf):
 
 
 if __name__ == "__main__":
+    logger = logging.getLogger(name='main')
+
+
     args = get_arguments()
 
     primer = args.primers
     reads = args.reads
-    ref = args.ref
-    out_dir = args.outdir
+    ref = args.reference
+    out_dir = args.out_dir
     seq_tec = args.seq_tec
 
     if args.cov:

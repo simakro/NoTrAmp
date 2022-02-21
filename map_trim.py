@@ -4,7 +4,7 @@
 
 # import subprocess
 import logging
-from notramp import *
+import notramp  as nta
 import os
 
 
@@ -287,11 +287,11 @@ def name_clipped(reads):
 
 
 def run_map_trim(primer_bed, reads, reference, seq_tech="map-ont"):
-    primers = create_primer_objs(primer_bed)
-    amps = generate_amps(primers)
-    out_paf = name_out_paf(reads, reference, "trim")
-    mm2_paf = map_reads(reads, reference, out_paf, seq_tech=seq_tech)
-    mappings = create_read_mappings(mm2_paf)
+    primers = nta.create_primer_objs(primer_bed)
+    amps = nta.generate_amps(primers)
+    out_paf = nta.name_out_paf(reads, reference, "trim")
+    mm2_paf = nta.map_reads(reads, reference, out_paf, seq_tech=seq_tech)
+    mappings = nta.create_read_mappings(mm2_paf)
     amps_bin_maps = bin_mappings(amps, mappings)
     amps_bin_reads = load_reads(reads, amps_bin_maps)
     clipped_out = name_clipped(reads)
