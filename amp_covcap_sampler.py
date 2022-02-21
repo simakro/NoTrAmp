@@ -178,32 +178,36 @@ def name_capped(reads):
     read_dir, reads_file = os.path.split(reads)
     rf_spl = reads_file.split(".")
     reads_name, ext = rf_spl[:-1], rf_spl[-1]
-    capped_name = f"{reads_name}.capped.{ext}"
+    capped_name = f"{reads_name}.cap.{ext}"
     return os.path.join(read_dir, capped_name)
 
 
 def run_amp_cov_cap(primer_bed, reads, reference, seq_tech="map-ont"):
     primers = create_primer_objs(primer_bed)
-    out_paf = name_capped(reads)
+    out_paf = name_out_paf(reads, reference, "cap")
     mm2_paf = map_reads(reads, reference, out_paf, seq_tech=seq_tech)
     amps = generate_amps(primers)
     mappings = create_read_mappings(mm2_paf)
     binned = bin_mappings(amps, mappings)
+    fa_out = name_capped(reads)
     write_capped_reads(binned, reads, fa_out)
     os.remove(out_paf)
+    return fa_out
 
 
 if __name__ == "__main__":
     import sys
 
-    mm2_paf = sys.argv[1]
-    primer_bed = sys.argv[2]
-    reads = sys.argv[3]
-    fa_out = reads + "_capped"
+    primer_bed = sys.argv[1]
+    reads = sys.argv[2]
+    reference = sys.argv[3]
+    # fa_out = reads + "_capped"
     # js_out = reads + "_capped.json"
 
-    primers = create_primer_objs(primer_bed)
-    amps = generate_amps(primers)
-    mappings = create_read_mappings(mm2_paf)
-    binned = bin_mappings(amps, mappings)
-    write_capped_reads(binned, reads, fa_out)
+    run_amp_cov_cap(primer_bed, reads, reference, seq_tech="map-ont")
+
+    # primers = create_primer_objs(primer_bed)
+    # amps = generate_amps(primers)
+    # mappings = create_read_mappings(mm2_paf)
+    # binned = bin_mappings(amps, mappings)
+    # write_capped_reads(binned, reads, fa_out)
