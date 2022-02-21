@@ -2,7 +2,6 @@
 # Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 # This file may not be copied, modified, or distributed except according to those terms.
 
-from collections import defaultdict
 # import subprocess
 import logging
 from notramp import *
@@ -271,12 +270,12 @@ def clip_and_write_out(amp_bins, clipped_out):
     )
 
 
-def name_out_paf(reads, reference):
-    read_dir, reads_file = os.path.split(reads)
-    reads_name = reads_file.split(".")[:-1]
-    ref_name = os.path.split(reference)[1].split(".")[:-1]
-    paf_name = f"{reads_name}_mapto_{ref_name}.paf"
-    return os.path.join(read_dir, paf_name)
+# def name_out_paf(reads, reference, mod_name):
+#     read_dir, reads_file = os.path.split(reads)
+#     reads_name = reads_file.split(".")[:-1]
+#     ref_name = os.path.split(reference)[1].split(".")[:-1]
+#     paf_name = f"{reads_name}_mapto_{ref_name}.{mod_name}.paf"
+#     return os.path.join(read_dir, paf_name)
 
 
 def name_clipped(reads):
@@ -290,7 +289,7 @@ def name_clipped(reads):
 def run_map_trim(primer_bed, reads, reference, seq_tech="map-ont"):
     primers = create_primer_objs(primer_bed)
     amps = generate_amps(primers)
-    out_paf = name_out_paf(reads, reference)
+    out_paf = name_out_paf(reads, reference, "trim")
     mm2_paf = map_reads(reads, reference, out_paf, seq_tech=seq_tech)
     mappings = create_read_mappings(mm2_paf)
     amps_bin_maps = bin_mappings(amps, mappings)

@@ -6,6 +6,9 @@ import sys
 import os
 from collections import defaultdict
 
+import map_trim
+import amp_cov
+
 
     # mm2_paf = sys.argv[1]
     # primer_bed = sys.argv[2]
@@ -23,14 +26,21 @@ def get_arguments():
     required_args.add_argument("-g", "--reference", required=True, help="Path to reference (genome)")
     
     read_input = required_args.add_mutually_exclusive_group(required=True)
-    read_input.add_argument("-a", "--all", help="Perform read depth normalization by coverage-capping/downsampling first, then clipp the normalized reads.", default=False)
-    read_input.add_argument("-c", "--cov", help="Perform only read-depth normalization/downsampling.")
-    read_input.add_argument("-t", "--trim", help="Perform only trimming to amplicon length (excluding primers).")
+    read_input.add_argument("-a", "--all", help="Perform read depth normalization by coverage-capping/downsampling first, then clipp the normalized reads.", 
+                            default=False,  action='store_true')
+    read_input.add_argument("-c", "--cov", help="Perform only read-depth normalization/downsampling.", 
+                            default=False, action='store_true')
+    read_input.add_argument("-t", "--trim", help="Perform only trimming to amplicon length (excluding primers).", 
+                            default=False, action='store_true')
 
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument("--o", dest='directory for outfiles', default=False, help="Optionally specify a directory for saving of outfiles. "
-    "If this argument is not given, out-files will be saved in the directory where the input reads are located.")
+    optional_args.add_argument("-o", dest='out_dir', default=False, help="Optionally specify a directory for saving of outfiles. "
+    "If this argument is not given, out-files will be saved in the directory where the input reads are located. [default=False]")
+    optional_args.add_argument("-m", dest='max_cov', default=200, help="Provide threshold for maximum read-depth per amplicon as integer value. [default=200]")
+    optional_args.add_argument("-s", dest='seq_tec', default="ont", help="Sepcify long-read sequencing technology (ont/pb). [default='ont']")
+
+
     args = parser.parse_args()
 
     return args
@@ -212,4 +222,25 @@ def create_read_mappings(mm2_paf):
 
 if __name__ == "__main__":
     args = get_arguments()
+
+    primer = args.primers
+    reads = args.reads
+    ref = args.ref
+    out_dir = args.outdir
+    seq_tec = args.seq_tec
+
+    if args.cov:
+        amp_cov.run_amp_cov_cap(primer, reads, ref, seq_tech=seq_tec)
+    elif args.trim:
+        map_trim.run_map_trim(primer, reads, ref, seq_tech=seq_tec)
+    elif args.all:
+        capped_reads = amp_cov.run_amp_cov_cap(primer, reads, ref, seq_tech=seq_tec)
+        map_trim.run_map_trim(primer, capped_reads, ref, seq_tech=seq_tec)
+    else:
+        print("Missing argument for notramp operation mode")
+
+
+
+
+
 
