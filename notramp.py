@@ -13,56 +13,24 @@ from collections import defaultdict
     # clipped_out = reads + "_primer_clipped"
 
 def get_arguments():
-    parser = argparse.ArgumentParser(description="This is a Tool to detect the number and location of integrations of a"
-                                                 " transgenic construct or other inserted DNA sequence in a genome from"
-                                                 " long-read whole-genome sequencing data.", add_help=True)
+    parser = argparse.ArgumentParser(description="NoTrAmp is a Tool for the preprocessing of long NGS reads (ONT/PacBio) generated with amplicon-tiling approaches. "
+                                                 " It can normalize read-depth by capping coverage of each amplicon to a provided threshold and trim amplicons to their "
+                                                 " appropriate length by removing primers, barcodes and adpaters in a single clipping step.", add_help=True)
 
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument("-c", "--construct", required=True, help="Path to fasta file containing the sequence"
-                               " of the integrating construct")
-    required_args.add_argument("-g", "--genome", required=True, help="Path to reference genome")
-    required_args.add_argument("-o", "--outdir", required=True, help="Path for output directory")
+    required_args.add_argument("-p", "--primers", required=True, help="Path to primer bed-file (primer-names must adhere to a consistent naming scheme see readme)")
+    required_args.add_argument("-r", "--reads", required=True, help="Path to sequencing reads fasta")
+    required_args.add_argument("-g", "--reference", required=True, help="Path to reference (genome)")
     
     read_input = required_args.add_mutually_exclusive_group(required=True)
-    read_input.add_argument("-f", "--reads_fasta", help="Path to a single fasta/q file containing "
-                            "the sequencing reads")
-    read_input.add_argument("-d", "--reads_dir", help="Path to a single fasta/q file containing the "
-                            "sequencing reads")
+    read_input.add_argument("-a", "--all", help="Perform read depth normalization by coverage-capping/downsampling first, then clipp the normalized reads.", default=False)
+    read_input.add_argument("-c", "--cov", help="Perform only read-depth normalization/downsampling.")
+    read_input.add_argument("-t", "--trim", help="Perform only trimming to amplicon length (excluding primers).")
+
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument("--min_read_supp", dest='min_supp', default=3, type=ranged_typechk(1,1000,int),
-                        help="Set threshold for minimum read support for integration validation")
-    optional_args.add_argument("--spec", dest='species', default=None, 
-                        help="Select species (e.g. \"human\") to enable output of species specific ideogram and annotations")
-    optional_args.add_argument("--ava_clust", dest='cluster_reads', default=False, action='store_true', 
-                        help="Cluster reads based on all-vs-all alignment. Comparison of read-clusters to integration-sites "
-                        "gained by  alignment of reads to the reference genome may enable identification of potential "
-                        "duplicates that could arise from integration into highly repetetive genomic loci.")
-    optional_args.add_argument("--verbosity", dest='verbosity', default=1, type=ranged_typechk(-1,100,int), 
-                        help="Adjust level of output to the terminal")
-    optional_args.add_argument("--file_check", dest='check_reads', default="quick",
-                        help="Adjust thoroughness of file-check; quick/extensive [quick]")
-    optional_args.add_argument("--include_Nx", dest='Nx', default=98, type=ranged_typechk(1,100,float),
-                        help="Choose cutoff for contigs to be included in figures in graphical report. "
-                        "Contigs comprising at least x percent of bases in RefGenome [98] will be included."
-                        "This parameter can be helpful to avoid graphs becoming overcrowded when working with "
-                        "reference genomes that contain large amounts of alternative loci or a high number of "
-                        "miniscule unplaced contigs. Don't worry, this applies only to the figures 1-3 in the "
-                        "pdf-report. Thus, no sequences will be ignored during integration search, i.e. there is no "
-                        "risk of missing out on integration sites. Species specific ideogram is not affected.")
-    optional_args.add_argument("--bait", dest='bait', default=False,
-                        help="This argument can be supplied in addition to the construct/-c argument. "
-                        "It is required if the integration construct shares partial similarity with the reference sequence. "
-                        "Intloc will inform you if the use of a bait sequence is necessary. "
-                        "Provide the path to a fasta file containing only part of the integrating construct as bait for "
-                        "identification of integration evidence reads."
-                        "The bait sequence must not share similarity with reference. [False]")
-    optional_args.add_argument("--cleanup", dest='cleanup_aux', default=True,
-                        help="Cleanup auxiliary files [True]. Relevant for debugging only.")
-    optional_args.add_argument("--override", dest='override', default=False, action='store_true', help=argparse.SUPPRESS)
-    optional_args.add_argument("--gui", dest='gui', default=False, action='store_true', help=argparse.SUPPRESS)
-    optional_args.add_argument("--testing", dest='testing', default=False, action='store_true', help=argparse.SUPPRESS)
-
+    optional_args.add_argument("--o", dest='directory for outfiles', default=False, help="Optionally specify a directory for saving of outfiles. "
+    "If this argument is not given, out-files will be saved in the directory where the input reads are located.")
     args = parser.parse_args()
 
     return args
@@ -243,3 +211,5 @@ def create_read_mappings(mm2_paf):
 
 
 if __name__ == "__main__":
+    args = get_arguments()
+
