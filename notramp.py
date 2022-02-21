@@ -2,6 +2,7 @@ import argparse
 import logging
 import subprocess
 import random
+import json
 import sys
 import os
 from collections import defaultdict
@@ -10,35 +11,46 @@ import map_trim
 import amp_cov
 
 
-    # mm2_paf = sys.argv[1]
-    # primer_bed = sys.argv[2]
-    # reads = sys.argv[3]
-    # clipped_out = reads + "_primer_clipped"
-
 def get_arguments():
-    parser = argparse.ArgumentParser(description="NoTrAmp is a Tool for the preprocessing of long NGS reads (ONT/PacBio) generated with amplicon-tiling approaches. "
-                                                 " It can normalize read-depth by capping coverage of each amplicon to a provided threshold and trim amplicons to their "
-                                                 " appropriate length by removing primers, barcodes and adpaters in a single clipping step.", add_help=True)
+    parser = argparse.ArgumentParser(description=
+        "NoTrAmp is a Tool for the preprocessing of long NGS reads (ONT/PacBio) generated with amplicon-tiling approaches. "
+        " It can normalize read-depth by capping coverage of each amplicon to a provided threshold and trim amplicons to their "
+        " appropriate length by removing primers, barcodes and adpaters in a single clipping step.", add_help=True)
 
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument("-p", "--primers", required=True, help="Path to primer bed-file (primer-names must adhere to a consistent naming scheme see readme)")
-    required_args.add_argument("-r", "--reads", required=True, help="Path to sequencing reads fasta")
-    required_args.add_argument("-g", "--reference", required=True, help="Path to reference (genome)")
+    required_args.add_argument("-p", "--primers", required=True, 
+        help="Path to primer bed-file (primer-names must adhere to a consistent naming scheme see readme)")
+    required_args.add_argument("-r", "--reads", required=True, 
+        help="Path to sequencing reads fasta")
+    required_args.add_argument("-g", "--reference", required=True, 
+        help="Path to reference (genome)")
     
     read_input = required_args.add_mutually_exclusive_group(required=True)
-    read_input.add_argument("-a", "--all", help="Perform read depth normalization by coverage-capping/downsampling first, then clipp the normalized reads.", 
-                            default=False,  action='store_true')
-    read_input.add_argument("-c", "--cov", help="Perform only read-depth normalization/downsampling.", 
-                            default=False, action='store_true')
-    read_input.add_argument("-t", "--trim", help="Perform only trimming to amplicon length (excluding primers).", 
-                            default=False, action='store_true')
+    read_input.add_argument("-a", "--all", 
+        help="Perform read depth normalization by coverage-capping/downsampling first, then clipp the normalized reads.", 
+        default=False,  action='store_true')
+    read_input.add_argument("-c", "--cov", 
+        help="Perform only read-depth normalization/downsampling.", 
+        default=False, action='store_true')
+    read_input.add_argument("-t", "--trim", 
+        help="Perform only trimming to amplicon length (excluding primers).", 
+        default=False, action='store_true')
 
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument("-o", dest='out_dir', default=False, help="Optionally specify a directory for saving of outfiles. "
-    "If this argument is not given, out-files will be saved in the directory where the input reads are located. [default=False]")
-    optional_args.add_argument("-m", dest='max_cov', default=200, help="Provide threshold for maximum read-depth per amplicon as integer value. [default=200]")
-    optional_args.add_argument("-s", dest='seq_tec', default="ont", help="Sepcify long-read sequencing technology (ont/pb). [default='ont']")
+    optional_args.add_argument("-o", dest='out_dir', 
+        default=False, 
+        help="Optionally specify a directory for saving of outfiles. If this argument is not given, "
+        "out-files will be saved in the directory where the input reads are located. [default=False]")
+    optional_args.add_argument("-m", dest='max_cov', 
+        default=200, 
+        help="Provide threshold for maximum read-depth per amplicon as integer value. [default=200]")
+    optional_args.add_argument("-s", dest='seq_tec', 
+        default="ont", 
+        help="Specify long-read sequencing technology (ont/pb). [default='ont']")
+    optional_args.add_argument("-n", dest='name_scheme', 
+        default="artic_nCoV_scheme", 
+        help="Provide a naming scheme which is consistently used for all primers. [default='artic_nCoV_scheme']")
 
 
     args = parser.parse_args()
@@ -99,7 +111,7 @@ class Mapping:
             return False
 
 class Primer:
-    def __init__(self, contig, start, end, name, score, strand):
+    def __init__(self, contig, start, end, name, score, strand, naming_scheme):
         self.contig = contig
         self.start = int(start)
         self.end = int(end)
@@ -107,14 +119,17 @@ class Primer:
         self.score = int(score)
         self.strand = strand
         self.type = "primary"
+        self.scheme = naming_scheme
         self.amp_no, self.pos = self.get_name_infos()
+        
 
     def get_name_infos(self):
-        ls = self.name.split("_")
-        if len(ls) == 4:
+        # ls = self.name.split("_")
+        ls = self.name.split(self.scheme["sep"])
+        if len(ls) == self.scheme["max_len"]:
             self.type = "alt"
-            self.alt_name = ls[3]
-        return ls[1], ls[2]
+            self.alt_name = ls[self.scheme["alt"]]
+        return ls[self.scheme["amp_num"]], ls[self.scheme["position"]]
 
 class Amp:
     def __init__(self, amp_no, primers):
@@ -157,11 +172,14 @@ class Amp:
         return clip_ct_left, clip_ct_right
 
 
-def create_primer_objs(primer_bed):
+def create_primer_objs(primer_bed, name_scheme="artic_nCov_scheme"):
+    with open(name_scheme, "r") as scheme:
+        pd = json.loads(scheme.read())
+
     with open(primer_bed, "r") as bed:
         primers = list()
         for line in bed:
-            prim = Primer(*line.strip().split("\t"))
+            prim = Primer(*line.strip().split("\t"), pd)
             primers.append(prim)
     return sorted(primers, key=lambda x: x.end)
 
@@ -227,22 +245,24 @@ if __name__ == "__main__":
     logger = logging.getLogger(name='main')
     logging.basicConfig(level=logging.DEBUG)
 
-
     args = get_arguments()
-
     primer = args.primers
     reads = args.reads
     ref = args.reference
     out_dir = args.out_dir
     seq_tec = args.seq_tec
+    pkg_dir = os.path.split(os.path.abspath(__file__))[0]
+    name_scheme = args.name_scheme
+    if name_scheme == 'artic_nCoV_scheme':
+        name_scheme = os.path.join(pkg_dir, "resources", name_scheme + ".json")
 
     if args.cov:
-        amp_cov.run_amp_cov_cap(primer, reads, ref, seq_tech=seq_tec)
+        amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, seq_tech=seq_tec)
     elif args.trim:
-        map_trim.run_map_trim(primer, reads, ref, seq_tech=seq_tec)
+        map_trim.run_map_trim(primer, name_scheme, reads, ref, seq_tech=seq_tec)
     elif args.all:
-        capped_reads = amp_cov.run_amp_cov_cap(primer, reads, ref, seq_tech=seq_tec)
-        map_trim.run_map_trim(primer, capped_reads, ref, seq_tech=seq_tec)
+        capped_reads = amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, seq_tech=seq_tec)
+        map_trim.run_map_trim(primer, name_scheme, capped_reads, ref, seq_tech=seq_tec)
     else:
         print("Missing argument for notramp operation mode")
 

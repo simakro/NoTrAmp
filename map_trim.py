@@ -2,7 +2,6 @@
 # Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 # This file may not be copied, modified, or distributed except according to those terms.
 
-# import subprocess
 import logging
 import notramp  as nta
 import os
@@ -126,8 +125,8 @@ def name_clipped(reads):
     return os.path.join(read_dir, clipped_name)
 
 
-def run_map_trim(primer_bed, reads, reference, seq_tech="map-ont"):
-    primers = nta.create_primer_objs(primer_bed)
+def run_map_trim(primer_bed, name_scheme, reads, reference, seq_tech="map-ont"):
+    primers = nta.create_primer_objs(primer_bed, name_scheme=name_scheme)
     amps = nta.generate_amps(primers)
     out_paf = nta.name_out_paf(reads, reference, "trim")
     mm2_paf = nta.map_reads(reads, reference, out_paf, seq_tech=seq_tech)

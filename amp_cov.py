@@ -53,8 +53,8 @@ def name_capped(reads):
     return os.path.join(read_dir, capped_name)
 
 
-def run_amp_cov_cap(primer_bed, reads, reference, seq_tech="map-ont"):
-    primers = nta.create_primer_objs(primer_bed)
+def run_amp_cov_cap(primer_bed, name_scheme, reads, reference, seq_tech="map-ont"):
+    primers = nta.create_primer_objs(primer_bed, name_scheme=name_scheme)
     out_paf = nta.name_out_paf(reads, reference, "cap")
     mm2_paf = nta.map_reads(reads, reference, out_paf, seq_tech=seq_tech)
     amps = nta.generate_amps(primers)
