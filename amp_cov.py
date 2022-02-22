@@ -51,8 +51,6 @@ def write_capped_from_file(binned, reads, fa_out):
 
 
 def write_capped_from_loaded(binned, loaded_reads, fa_out):
-    # fastq = nta.fastq_autoscan(reads)
-    # hi = "@" if fastq else ">"
     all_picks = [name for amp in binned for name in amp.selected]
     with open(fa_out, "w") as fa:
         for name in all_picks:
@@ -63,18 +61,24 @@ def write_capped_from_loaded(binned, loaded_reads, fa_out):
                 fa.write(seq)
             except KeyError as e:
                 print(f"Error: read {name} was not found in loaded reads")
+
     
-
-
-
-
-
 def name_capped(reads):
     read_dir, reads_file = os.path.split(reads)
     rf_spl = reads_file.split(".")
-    reads_name = ".".join(rf_spl[:-1]) # ext = rf_spl[-1]
+    reads_name = ".".join(rf_spl[:-1])
     capped_name = f"{reads_name}.cap.fasta"
     return os.path.join(read_dir, capped_name)
+
+def chk_mem_fit(read_path):
+    fastq = nta.fastq_autoscan(reads)
+    rf_size = os.path.getsize(read_path)
+    load_size = rf_size if not fastq else rf_size/2
+    avail_mem = psutil.virtual_memory()[1]
+    if avail_mem / load_size > 4:
+        return True
+    else:
+        return False
 
 
 def run_amp_cov_cap(primer_bed, name_scheme, reads, reference, seq_tech="map-ont"):
@@ -89,6 +93,7 @@ def run_amp_cov_cap(primer_bed, name_scheme, reads, reference, seq_tech="map-ont
     if mem_fit:
         loaded_reads = nta.load_reads(reads)
         write_capped_from_loaded(binned, loaded_reads, fa_out)
+        del(loaded_reads)
     else:
         write_capped_from_file(binned, reads, fa_out)
     os.remove(out_paf)
