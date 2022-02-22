@@ -7,62 +7,6 @@ import notramp  as nta
 import os
 
 
-
-# class Read:
-#     def __init__(self, header, seq):
-#         self.header = header
-#         self.name = self.header.split(">")[1]
-#         self.seq = seq
-
-
-#     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
-#         qlen, samestrand = mapping.qlen, mapping.samestrand
-#         qstart, qend = mapping.qstart, mapping.qend
-#         tstart, tend = mapping.tstart, mapping.tend
-
-#         if samestrand:
-#             clip_left = 0
-#             if tstart <= fwp_boundary:
-#                 add_clip = fwp_boundary - tstart
-#                 clip_left = qstart + add_clip
-#             else:
-#                 ldiff = tstart - fwp_boundary
-#                 if qstart >= ldiff:
-#                     clip_left = qstart - ldiff
-
-#             clip_right = qlen
-#             if tend >= revp_boundary:
-#                 sub_clip = tend - revp_boundary
-#                 clip_right = qend - sub_clip
-#             else:
-#                 rdiff = revp_boundary - tend
-#                 if qlen - qend >= rdiff:
-#                     clip_right = qend + rdiff
-
-#         else:
-#             clip_right = qlen
-#             if tstart <= fwp_boundary:
-#                 add_clip = fwp_boundary - tstart
-#                 clip_right = qend - add_clip
-#             else:
-#                 rdiff = tstart - fwp_boundary
-#                 if qlen - qend >= rdiff:
-#                     clip_right = qend + rdiff
-
-#             clip_left = 0
-#             if tend >= revp_boundary:
-#                 sub_clip = tend - revp_boundary
-#                 clip_left = qstart + sub_clip
-#             else:
-#                 ldiff = revp_boundary - tend
-#                 if qstart >= ldiff:
-#                     clip_left = qstart - ldiff
-
-#         self.seq = self.seq[clip_left:clip_right]
-
-#         return clip_left, qlen - clip_right
-
-
 def bin_mappings(amp_bins, mappings):
     binned = list()
     na = list()
@@ -83,27 +27,11 @@ def bin_mappings(amp_bins, mappings):
     return binned
 
 
-# def load_reads(read_file, amp_bins):
-#     reads = dict()
-#     fastq = nta.fastq_autoscan(read_file)
-#     header_ind = "@" if fastq else ">"
-#     with open(read_file, "r") as rfa:
-#         for line in rfa:
-#             if line.startswith(header_ind):
-#                 # print(line)
-#                 header = line.strip().split(" ")[0]
-#                 seq = next(rfa)
-#                 read = nta.Read(header, seq.strip())
-#                 reads[read.name] = read
-
-#     for amp in amp_bins:
-#         amp.reads_dct = {k: v for k, v in reads.items() if k in amp.mappings}
-
-#     return amp_bins
-
 def load_amps_with_reads(amp_bins, loaded_reads):
     for amp in amp_bins:
         amp.reads_dct = {k: v for k, v in loaded_reads.items() if k in amp.mappings}
+    return amp_bins
+
 
 def clip_and_write_out(amp_bins, clipped_out):
     with open(clipped_out, "w") as out:
