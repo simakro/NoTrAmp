@@ -23,6 +23,7 @@ def bin_mappings(amp_bins, mappings):
                 binned.append(amp_bins[0])
                 amp_bins.pop(0)
         else:
+            binned.append(amp_bins[0])
             break
     return binned
 
@@ -36,6 +37,7 @@ def load_amps_with_reads(amp_bins, loaded_reads):
 def clip_and_write_out(amp_bins, clipped_out):
     with open(clipped_out, "w") as out:
         clip_ct = {"left": 0, "right": 0}
+        clipped_out = 0
         for amp in amp_bins:
             left, right = amp.primer_clipping_all()
             clip_ct["left"] += left
@@ -43,6 +45,8 @@ def clip_and_write_out(amp_bins, clipped_out):
             for read in amp.reads_dct:
                 out.write(amp.reads_dct[read].header + "\n")
                 out.write(amp.reads_dct[read].seq + "\n")
+                clipped_out += 1
+    print(f"{clipped_out} reads were processed for clipping")
     print(
         f"{clip_ct['left']} bases were clipped from the fw/left-primer side of reads and "
         f"{clip_ct['right']} bases were clipped from the rev/right-primer side of reads"

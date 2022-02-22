@@ -286,11 +286,11 @@ def name_out_paf(reads, reference, mod_name):
 
 
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
-    # try:
-    seq_tech = "map-" + seq_tech
-    subprocess.run(["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], check=True, capture_output=True)
-    # except subprocess.CalledProcessError as e:
-    #     log_sp_error(e, "Mapping of reads to reference failed")
+    try:
+        seq_tech = "map-" + seq_tech
+        subprocess.run(["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], check=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        log_sp_error(e, "Mapping of reads to reference failed")
     return out_paf
 
 
@@ -321,8 +321,6 @@ def create_read_mappings(mm2_paf):
         mono_mappings.extend(incl_max)
         mappings = mono_mappings
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
-
-
 
 
 if __name__ == "__main__":

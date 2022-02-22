@@ -25,12 +25,17 @@ def bin_mappings(amp_bins, mappings):
                 binned.append(amp_bins[0])
                 amp_bins.pop(0)
         else:
+            binned.append(amp_bins[0])
             break
+    
 
+    num_selected = 0
     for bin in binned:
         bin.random_sample(200)
-    #     print(bin.name, len(bin.read_names), "selected:", len(bin.selected))
-    # print("na", len(na))
+        print(bin.name, len(bin.read_names), "selected:", len(bin.selected))
+        num_selected += len(bin.selected)
+    print("na", len(na))
+    print("Total reads selected:", num_selected)
 
     return binned
 
