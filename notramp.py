@@ -139,10 +139,12 @@ class Amp:
         self.end = max([primer.end for primer in primers])
         self.max_len = self.end - self.start
         self.fwp_boundary = max(
-            [prim for prim in primers if prim.pos == "LEFT"], key=lambda x: x.end
+            [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]], 
+            key=lambda x: x.end
         ).end
         self.revp_boundary = min(
-            [prim for prim in primers if prim.pos == "RIGHT"], key=lambda x: x.start
+            [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]], 
+            key=lambda x: x.start
         ).start
         self.mappings = dict()
         self.read_names = list()
