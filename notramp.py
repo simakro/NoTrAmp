@@ -1,6 +1,7 @@
 import argparse
 import logging
 import subprocess
+from time import perf_counter
 import random
 import json
 import sys
@@ -58,14 +59,60 @@ def get_arguments():
     return args
 
 
-def log_sp_error(error, message):
-    logging.error(message)
-    print("Check notramp.log for error details")
-    logging.error(error.stdout.decode('utf-8'))
-    logging.info("Exiting integration locator")
-    sys.exit()
+class Read:
+    def __init__(self, header, seq, fastq=False):
+        self.header = header
+        self.fastq = fastq
+        self.name = self.header.split("@")[1] if self.fastq else self.header.split(">")[1]
+        self.seq = seq
 
 
+    def clip_primers(self, fwp_boundary, revp_boundary, mapping):
+        qlen, samestrand = mapping.qlen, mapping.samestrand
+        qstart, qend = mapping.qstart, mapping.qend
+        tstart, tend = mapping.tstart, mapping.tend
+
+        if samestrand:
+            clip_left = 0
+            if tstart <= fwp_boundary:
+                add_clip = fwp_boundary - tstart
+                clip_left = qstart + add_clip
+            else:
+                ldiff = tstart - fwp_boundary
+                if qstart >= ldiff:
+                    clip_left = qstart - ldiff
+
+            clip_right = qlen
+            if tend >= revp_boundary:
+                sub_clip = tend - revp_boundary
+                clip_right = qend - sub_clip
+            else:
+                rdiff = revp_boundary - tend
+                if qlen - qend >= rdiff:
+                    clip_right = qend + rdiff
+
+        else:
+            clip_right = qlen
+            if tstart <= fwp_boundary:
+                add_clip = fwp_boundary - tstart
+                clip_right = qend - add_clip
+            else:
+                rdiff = tstart - fwp_boundary
+                if qlen - qend >= rdiff:
+                    clip_right = qend + rdiff
+
+            clip_left = 0
+            if tend >= revp_boundary:
+                sub_clip = tend - revp_boundary
+                clip_left = qstart + sub_clip
+            else:
+                ldiff = revp_boundary - tend
+                if qstart >= ldiff:
+                    clip_left = qstart - ldiff
+
+        self.seq = self.seq[clip_left:clip_right]
+
+        return clip_left, qlen - clip_right
 
 class Mapping:
     def __init__(
@@ -174,6 +221,27 @@ class Amp:
         return clip_ct_left, clip_ct_right
 
 
+def log_sp_error(error, message):
+    logging.error(message)
+    print("Check notramp.log for error details")
+    logging.error(error.stdout.decode('utf-8'))
+    logging.info("Exiting integration locator")
+    sys.exit()
+
+
+def fastq_autoscan(read_file):
+    with open(read_file, "r") as rf:
+        line_ct = 0
+        fastq = False
+        while line_ct < 100:
+            for line in rf:
+                line_ct += 1
+                if line.startswith("@"):
+                    fastq = True
+                    break
+    return fastq
+
+        
 def create_primer_objs(primer_bed, name_scheme="artic_nCov_scheme"):
     with open(name_scheme, "r") as scheme:
         pd = json.loads(scheme.read())
@@ -193,6 +261,20 @@ def generate_amps(primers):
         ao = Amp(num, [primer for primer in primers if primer.amp_no == num])
         amps.append(ao)
     return sorted(amps, key=lambda x: x.name)
+
+
+def load_reads(read_file):
+    reads = dict()
+    fastq = fastq_autoscan(read_file)
+    header_ind = "@" if fastq else ">"
+    with open(read_file, "r") as rfa:
+        for line in rfa:
+            if line.startswith(header_ind):
+                header = line.strip().split(" ")[0]
+                seq = next(rfa)
+                read = Read(header, seq.strip(), fastq=fastq)
+                reads[read.name] = read
+    return reads
 
 
 def name_out_paf(reads, reference, mod_name):
@@ -247,6 +329,8 @@ if __name__ == "__main__":
     logger = logging.getLogger(name='main')
     logging.basicConfig(level=logging.DEBUG)
 
+    start = perf_counter()
+
     args = get_arguments()
     primer = args.primers
     reads = args.reads
@@ -267,7 +351,10 @@ if __name__ == "__main__":
         map_trim.run_map_trim(primer, name_scheme, capped_reads, ref, seq_tech=seq_tec)
     else:
         print("Missing argument for notramp operation mode")
-
+    
+    end = perf_counter()
+    runtime = end-start
+    print("runtime", runtime)
 
 
 
