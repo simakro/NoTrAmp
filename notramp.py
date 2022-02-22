@@ -44,14 +44,24 @@ def get_arguments():
         help="Optionally specify a directory for saving of outfiles. If this argument is not given, "
         "out-files will be saved in the directory where the input reads are located. [default=False]")
     optional_args.add_argument("-m", dest='max_cov', 
-        default=200, 
+        default=200, type=int,
         help="Provide threshold for maximum read-depth per amplicon as integer value. [default=200]")
     optional_args.add_argument("-s", dest='seq_tec', 
         default="ont", 
         help="Specify long-read sequencing technology (ont/pb). [default='ont']")
     optional_args.add_argument("-n", dest='name_scheme', 
         default="artic_nCoV_scheme", 
-        help="Provide a naming scheme which is consistently used for all primers. [default='artic_nCoV_scheme']")
+        help="Provide path to json-file containing a naming scheme which is consistently used for all primers. [default='artic_nCoV_scheme']")
+    optional_args.add_argument("--set_min_len", dest='set_min_len', 
+        default=False, type=int,
+        help="Set a minimum required length for alignments of reads to amplicon. "
+        "If this is not set the min_len will be 0.5 * average_amp_len. "
+        "If amplicon sizes are relatively homogenous this parameter is not required [default=False]")
+    optional_args.add_argument("--set_max_len", dest='set_max_len', 
+        default=False, type=int,
+        help="Set a maximum required length for alignments of reads to amplicon. "
+        "If this is not set the max_len will be 1.5 * average_amp_len. "
+        "If amplicon sizes are relatively homogenous this parameter is not required [default=False]")
 
 
     args = parser.parse_args()
@@ -257,10 +267,13 @@ def create_primer_objs(primer_bed, name_scheme="artic_nCov_scheme"):
 def generate_amps(primers):
     amp_nums = set([primer.amp_no for primer in primers])
     amps = list()
+    amp_lens = list()
     for num in amp_nums:
         ao = Amp(num, [primer for primer in primers if primer.amp_no == num])
         amps.append(ao)
-    return sorted(amps, key=lambda x: x.name)
+        amp_lens.append(ao.max_len)
+    av_amp_len = sum(amp_lens) / len(amp_lens)
+    return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
 def load_reads(read_file):
@@ -294,13 +307,15 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     return out_paf
 
 
-def filter_read_mappings(mappings):
-    mappings = [m for m in mappings if 300 < m.qlen < 600]
+def filter_read_mappings(mappings, min_len, max_len):
+    mappings = [m for m in mappings if min_len < m.qlen < max_len]
     mappings = [m for m in mappings if m.qual == 60]
     return mappings
 
 
-def create_read_mappings(mm2_paf):
+def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
+    min_len = av_amp_len*0.5 if not set_min_len else set_min_len
+    max_len = av_amp_len*1.5 if not set_max_len else set_max_len
     with open(mm2_paf, "r") as paf:
         map_dct = defaultdict(list)
         for line in paf:
@@ -310,14 +325,14 @@ def create_read_mappings(mm2_paf):
                 map_dct[mapping.qname].append(mapping)
         mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
         mappings = [m for k, l in map_dct.items() for m in l]
-        mappings = filter_read_mappings(mappings)
+        mappings = filter_read_mappings(mappings, min_len, max_len)
         mono_mappings = [m for m in mappings if m.qname not in mult_maps]
         dual_mappings = {k: v for k, v in mult_maps.items() if len(v) == 2}
         incl_max = [
             max(dual_mappings[mname], key=lambda x: x.matches)
             for mname in dual_mappings
         ]
-        incl_max = filter_read_mappings(incl_max)
+        incl_max = filter_read_mappings(incl_max, min_len, max_len)
         mono_mappings.extend(incl_max)
         mappings = mono_mappings
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
@@ -330,23 +345,29 @@ if __name__ == "__main__":
     start = perf_counter()
 
     args = get_arguments()
+    print(args)
     primer = args.primers
     reads = args.reads
     ref = args.reference
+    max_cov = args.max_cov
     out_dir = args.out_dir
     seq_tec = args.seq_tec
     pkg_dir = os.path.split(os.path.abspath(__file__))[0]
     name_scheme = args.name_scheme
     if name_scheme == 'artic_nCoV_scheme':
         name_scheme = os.path.join(pkg_dir, "resources", name_scheme + ".json")
+    # set_min_len = int(args.set_min_len) if args.set_min_len else args.set_min_len
+    # set_max_len = int(args.set_max_len) if args.set_max_len else args.set_max_len
+    set_min_len = args.set_min_len
+    set_max_len = args.set_max_len
 
     if args.cov:
-        amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, seq_tech=seq_tec)
+        amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, max_cov, set_min_len, set_max_len, seq_tech=seq_tec)
     elif args.trim:
-        map_trim.run_map_trim(primer, name_scheme, reads, ref, seq_tech=seq_tec)
+        map_trim.run_map_trim(primer, name_scheme, reads, ref, set_min_len, set_max_len, seq_tech=seq_tec)
     elif args.all:
-        capped_reads = amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, seq_tech=seq_tec)
-        map_trim.run_map_trim(primer, name_scheme, capped_reads, ref, seq_tech=seq_tec)
+        capped_reads = amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, max_cov, set_min_len, set_max_len, seq_tech=seq_tec)
+        map_trim.run_map_trim(primer, name_scheme, capped_reads, ref, set_min_len, set_max_len, seq_tech=seq_tec)
     else:
         print("Missing argument for notramp operation mode")
     

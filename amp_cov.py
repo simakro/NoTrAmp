@@ -8,8 +8,7 @@ import os
 import psutil
 
 
-
-def bin_mappings(amp_bins, mappings):
+def bin_mappings(amp_bins, mappings, max_cov):
     binned = list()
     na = list()
     while len(amp_bins) > 0:
@@ -31,7 +30,7 @@ def bin_mappings(amp_bins, mappings):
 
     num_selected = 0
     for bin in binned:
-        bin.random_sample(200)
+        bin.random_sample(max_cov)
         print(bin.name, len(bin.read_names), "selected:", len(bin.selected))
         num_selected += len(bin.selected)
     print("na", len(na))
@@ -68,7 +67,7 @@ def write_capped_from_loaded(binned, loaded_reads, fa_out):
                 print(f"Error: read {name} was not found in loaded reads")
 
     
-def name_capped(reads):
+def name_capped(reads): # outdir=outdir
     read_dir, reads_file = os.path.split(reads)
     rf_spl = reads_file.split(".")
     reads_name = ".".join(rf_spl[:-1])
@@ -86,13 +85,13 @@ def chk_mem_fit(read_path):
         return False
 
 
-def run_amp_cov_cap(primer_bed, name_scheme, reads, reference, seq_tech="map-ont"):
+def run_amp_cov_cap(primer_bed, name_scheme, reads, reference, max_cov, set_min_len, set_max_len, seq_tech="map-ont"):
     primers = nta.create_primer_objs(primer_bed, name_scheme=name_scheme)
     out_paf = nta.name_out_paf(reads, reference, "cap")
     mm2_paf = nta.map_reads(reads, reference, out_paf, seq_tech=seq_tech)
-    amps = nta.generate_amps(primers)
-    mappings = nta.create_read_mappings(mm2_paf)
-    binned = bin_mappings(amps, mappings)
+    amps, av_amp_len = nta.generate_amps(primers)
+    mappings = nta.create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len)
+    binned = bin_mappings(amps, mappings, max_cov)
     fa_out = name_capped(reads)
     mem_fit = True
     if mem_fit:
