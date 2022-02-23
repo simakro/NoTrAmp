@@ -67,16 +67,16 @@ def write_capped_from_loaded(binned, loaded_reads, fa_out):
                 print(f"Error: read {name} was not found in loaded reads")
 
     
-def name_capped(reads): # outdir=outdir
-    read_dir, reads_file = os.path.split(reads)
-    rf_spl = reads_file.split(".")
-    reads_name = ".".join(rf_spl[:-1])
-    capped_name = f"{reads_name}.cap.fasta"
-    return os.path.join(read_dir, capped_name)
+# def name_capped(reads): # outdir=outdir
+#     read_dir, reads_file = os.path.split(reads)
+#     rf_spl = reads_file.split(".")
+#     reads_name = ".".join(rf_spl[:-1])
+#     capped_name = f"{reads_name}.cap.fasta"
+#     return os.path.join(read_dir, capped_name)
 
 
 def chk_mem_fit(read_path):
-    fastq = nta.fastq_autoscan(reads)
+    fastq = nta.fastq_autoscan(read_path)
     rf_size = os.path.getsize(read_path)
     load_size = rf_size if not fastq else rf_size/2
     avail_mem = psutil.virtual_memory()[1]
@@ -93,8 +93,9 @@ def run_amp_cov_cap(**kw):
     amps, av_amp_len = nta.generate_amps(primers)
     mappings = nta.create_read_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     binned = bin_mappings(amps, mappings, kw["max_cov"])
-    fa_out = name_capped(kw["reads"])
-    mem_fit = True
+    # fa_out = name_capped(kw["reads"])
+    fa_out = nta.name_out_reads(kw["reads"], "cap", kw["out_dir"])
+    mem_fit = chk_mem_fit(kw["reads"])
     if mem_fit:
         loaded_reads = nta.load_reads(kw["reads"])
         write_capped_from_loaded(binned, loaded_reads, fa_out)
@@ -103,15 +104,3 @@ def run_amp_cov_cap(**kw):
         write_capped_from_file(binned, kw["reads"], fa_out)
     os.remove(out_paf)
     return fa_out
-
-
-if __name__ == "__main__":
-    import sys
-
-    primer_bed = sys.argv[1]
-    reads = sys.argv[2]
-    reference = sys.argv[3]
-  
-    run_amp_cov_cap(primer_bed, reads, reference, seq_tech="map-ont")
-
-

@@ -297,6 +297,32 @@ def name_out_paf(reads, reference, mod_name):
     return os.path.join(read_dir, paf_name)
 
 
+# def name_capped(reads): # outdir=outdir
+#     read_dir, reads_file = os.path.split(reads)
+#     rf_spl = reads_file.split(".")
+#     reads_name = ".".join(rf_spl[:-1])
+#     capped_name = f"{reads_name}.cap.fasta"
+#     return os.path.join(read_dir, capped_name)
+
+# def name_clipped(reads):
+#     read_dir, reads_file = os.path.split(reads)
+#     rf_spl = reads_file.split(".")
+#     reads_name, ext = ".".join(rf_spl[:-1]), rf_spl[-1]
+#     clipped_name = f"{reads_name}.clip.{ext}"
+#     return os.path.join(read_dir, clipped_name)
+
+def name_out_reads(reads, suffix, outdir): # outdir=outdir
+    read_dir, reads_file = os.path.split(reads)
+    rf_spl = reads_file.split(".")
+    reads_name = ".".join(rf_spl[:-1])
+    out_name = f"{reads_name}.{suffix}.fasta"
+    if outdir:
+        out_path = os.path.join(outdir, out_name)
+    else:
+        out_path = os.path.join(read_dir, out_name)
+    return out_path
+
+
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
     try:
         seq_tech = "map-" + seq_tech
@@ -363,8 +389,3 @@ if __name__ == "__main__":
     end = perf_counter()
     runtime = end-start
     print("runtime", runtime)
-
-
-
-
-

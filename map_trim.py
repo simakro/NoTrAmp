@@ -53,12 +53,12 @@ def clip_and_write_out(amp_bins, clipped_out):
     )
 
 
-def name_clipped(reads):
-    read_dir, reads_file = os.path.split(reads)
-    rf_spl = reads_file.split(".")
-    reads_name, ext = ".".join(rf_spl[:-1]), rf_spl[-1]
-    clipped_name = f"{reads_name}.clip.{ext}"
-    return os.path.join(read_dir, clipped_name)
+# def name_clipped(reads):
+#     read_dir, reads_file = os.path.split(reads)
+#     rf_spl = reads_file.split(".")
+#     reads_name, ext = ".".join(rf_spl[:-1]), rf_spl[-1]
+#     clipped_name = f"{reads_name}.clip.{ext}"
+#     return os.path.join(read_dir, clipped_name)
 
 
 def run_map_trim(**kw):
@@ -70,21 +70,9 @@ def run_map_trim(**kw):
     amps_bin_maps = bin_mappings(amps, mappings)
     loaded_reads = nta.load_reads(kw["reads"])
     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
-    clipped_out = name_clipped(kw["reads"])
+    # clipped_out = name_clipped(kw["reads"])
+    clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])
     clip_and_write_out(amps_bin_reads, clipped_out)
     os.remove(out_paf)
     return clipped_out
     
-
-if __name__ == "__main__":
-    import sys
-
-    primer_bed = sys.argv[1]
-    reads = sys.argv[2]
-    reference = sys.argv[3]
-
-    run_map_trim(primer_bed, reads, reference, seq_tech="map-ont")
-
-
-
-
