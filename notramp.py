@@ -37,7 +37,6 @@ def get_arguments():
         help="Perform only trimming to amplicon length (excluding primers).", 
         default=False, action='store_true')
 
-
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument("-o", dest='out_dir', 
         default=False, 
@@ -62,10 +61,12 @@ def get_arguments():
         help="Set a maximum required length for alignments of reads to amplicon. "
         "If this is not set the max_len will be 1.5 * average_amp_len. "
         "If amplicon sizes are relatively homogenous this parameter is not required [default=False]")
-
-
+    optional_args.add_argument("--incl_prim", dest='incl_prim', 
+        default=False, action='store_true',
+        help="Set to False if you want to include the primer sequences in the trimmed reads. "
+        "By default primers are removed together with all overhanging sequences. [default=False]")
+    
     args = parser.parse_args()
-
     return args
 
 
@@ -224,6 +225,7 @@ class Primer:
             self.alt_name = ls[self.scheme["alt"]]
         return ls[self.scheme["amp_num"]], ls[self.scheme["position"]]
 
+
 class Amp:
     def __init__(self, amp_no, primers):
         self.name = int(amp_no)
@@ -251,19 +253,27 @@ class Amp:
         else:
             self.selected = self.read_names
 
-    def primer_clipping_all(self):
+    def trim_clip_all(self, incl_prim):
+        print("incl_prim", incl_prim, type(incl_prim))
         clip_ct_left = 0
         clip_ct_right = 0
         for read in self.reads_dct:
             try:
                 mapping = self.mappings[read]
-                left, right = self.reads_dct[read].clip_primers(
-                    self.fwp_boundary, self.revp_boundary, mapping
-                )
+                if incl_prim:
+                    # print("including primers")
+                    left, right = self.reads_dct[read].trim_to_amp(
+                        self.start, self.end, mapping
+                    )
+                else:
+                    # print("excluding primers")
+                    left, right = self.reads_dct[read].clip_primers(
+                        self.fwp_boundary, self.revp_boundary, mapping
+                    )
                 clip_ct_left += left
                 clip_ct_right += right
             except KeyError as e:
-                print(f"KeyError in primer_clipping_all: {e}")
+                print(f"KeyError in trim_clip_all: {e}")
         return clip_ct_left, clip_ct_right
 
 
@@ -363,7 +373,10 @@ def name_out_reads(reads, suffix, outdir): # outdir=outdir
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
     try:
         seq_tech = "map-" + seq_tech
-        subprocess.run(["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], check=True, capture_output=True)
+        subprocess.run(
+        ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], 
+        check=True, capture_output=True
+        )
     except subprocess.CalledProcessError as e:
         log_sp_error(e, "Mapping of reads to reference failed")
     return out_paf

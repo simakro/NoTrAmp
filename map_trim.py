@@ -34,12 +34,12 @@ def load_amps_with_reads(amp_bins, loaded_reads):
     return amp_bins
 
 
-def clip_and_write_out(amp_bins, clipped_out):
+def clip_and_write_out(amp_bins, clipped_out, incl_prim):
     with open(clipped_out, "w") as out:
         clip_ct = {"left": 0, "right": 0}
         clipped_out = 0
         for amp in amp_bins:
-            left, right = amp.primer_clipping_all()
+            left, right = amp.trim_clip_all(incl_prim)
             clip_ct["left"] += left
             clip_ct["right"] += right
             for read in amp.reads_dct:
@@ -72,7 +72,7 @@ def run_map_trim(**kw):
     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
     # clipped_out = name_clipped(kw["reads"])
     clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])
-    clip_and_write_out(amps_bin_reads, clipped_out)
+    clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
     os.remove(out_paf)
     return clipped_out
     
