@@ -74,6 +74,7 @@ def name_capped(reads): # outdir=outdir
     capped_name = f"{reads_name}.cap.fasta"
     return os.path.join(read_dir, capped_name)
 
+
 def chk_mem_fit(read_path):
     fastq = nta.fastq_autoscan(reads)
     rf_size = os.path.getsize(read_path)
@@ -85,30 +86,7 @@ def chk_mem_fit(read_path):
         return False
 
 
-# def run_amp_cov_cap(**kw): # primer_bed, name_scheme, reads, reference, max_cov, set_min_len, set_max_len, seq_tech="map-ont"):
-#     # print(locals())
-#     # {'primers': '/Users/simon/Documents/testing/primer-schemes/sars-cov-2/V1/sars-cov-2.scheme.bed', 'reads': '/Users/simon/Documents/IKIM_Experiments/SM0005_GridION_UnCoVar-Core-Data-Set_Sequenzieren/Batch-II/UnCoVar_RefDataSet_Batch2_BC03_cat.fastq', 'reference': '/Users/simon/Documents/reference_genomes/SARS-Cov2/MN908947.3_SARS-CoV2_Wuhan-reference.fasta', 'all': False, 'cov': True, 'trim': False, 'out_dir': False, 'max_cov': 150, 'seq_tec': 'ont', 'name_scheme': 'artic_nCoV_scheme', 'set_min_len': 400, 'set_max_len': False, 'artic_nCoV_scheme': '/Users/simon/Documents/GitHub/NoTrAmp/resources/artic_nCoV_scheme.json'}
-#     print(run_amp_cov_cap.__namespace__)
-#     primers = nta.create_primer_objs(primer_bed, name_scheme=name_scheme)
-#     out_paf = nta.name_out_paf(reads, reference, "cap")
-#     mm2_paf = nta.map_reads(reads, reference, out_paf, seq_tech=seq_tech)
-#     amps, av_amp_len = nta.generate_amps(primers)
-#     mappings = nta.create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len)
-#     binned = bin_mappings(amps, mappings, max_cov)
-#     fa_out = name_capped(reads)
-#     mem_fit = True
-#     if mem_fit:
-#         loaded_reads = nta.load_reads(reads)
-#         write_capped_from_loaded(binned, loaded_reads, fa_out)
-#         del(loaded_reads)
-#     else:
-#         write_capped_from_file(binned, reads, fa_out)
-#     os.remove(out_paf)
-#     return fa_out
-
-def run_amp_cov_cap(**kw): # primer_bed, name_scheme, reads, reference, max_cov, set_min_len, set_max_len, seq_tech="map-ont"):
-    # print(locals())
-    # {'primers': val, 'reads': val, 'reference': val, 'all': False, 'cov': True, 'trim': False, 'out_dir': False, 'max_cov': 150, 'seq_tec': 'ont', 'name_scheme': 'artic_nCoV_scheme', 'set_min_len': 400, 'set_max_len': False, 'artic_nCoV_scheme': '/Users/simon/Documents/GitHub/NoTrAmp/resources/artic_nCoV_scheme.json'}
+def run_amp_cov_cap(**kw):
     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
@@ -125,7 +103,6 @@ def run_amp_cov_cap(**kw): # primer_bed, name_scheme, reads, reference, max_cov,
         write_capped_from_file(binned, kw["reads"], fa_out)
     os.remove(out_paf)
     return fa_out
-
 
 
 if __name__ == "__main__":

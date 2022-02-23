@@ -181,7 +181,6 @@ class Primer:
         
 
     def get_name_infos(self):
-        # ls = self.name.split("_")
         ls = self.name.split(self.scheme["sep"])
         if len(ls) == self.scheme["max_len"]:
             self.type = "alt"
@@ -344,33 +343,20 @@ if __name__ == "__main__":
 
     start = perf_counter()
 
-    pkg_dir = os.path.split(os.path.abspath(__file__))[0]
-
     kwargs = vars(get_arguments())
-    
-    # primer = args.primers
-    # reads = args.reads
-    # ref = args.reference
-    # max_cov = args.max_cov
-    # out_dir = args.out_dir
-    # seq_tec = args.seq_tec
 
-
+    pkg_dir = os.path.split(os.path.abspath(__file__))[0]
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
         kwargs["name_scheme"] = os.path.join(pkg_dir, "resources", kwargs["name_scheme"] + ".json")
    
-
-    # set_min_len = args.set_min_len
-    # set_max_len = args.set_max_len
-
     if kwargs["cov"]:
         amp_cov.run_amp_cov_cap(**kwargs)
     elif kwargs["trim"]:
-        map_trim.run_map_trim(**kwargs) # primer, name_scheme, reads, ref, set_min_len, set_max_len, seq_tech=seq_tec
+        map_trim.run_map_trim(**kwargs)
     elif kwargs["all"]:
-        capped_reads = amp_cov.run_amp_cov_cap(**kwargs) # primer, name_scheme, reads, ref, max_cov, set_min_len, set_max_len, seq_tech=seq_tec
+        capped_reads = amp_cov.run_amp_cov_cap(**kwargs)
         kwargs["reads"] = capped_reads
-        map_trim.run_map_trim(**kwargs) # primer, name_scheme, capped_reads, ref, set_min_len, set_max_len, seq_tech=seq_tec
+        map_trim.run_map_trim(**kwargs)
     else:
         print("Missing argument for notramp operation mode")
     

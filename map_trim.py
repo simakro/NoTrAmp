@@ -61,31 +61,6 @@ def name_clipped(reads):
     return os.path.join(read_dir, clipped_name)
 
 
-# def run_map_trim(primer_bed, name_scheme, reads, reference, set_min_len, set_max_len, seq_tech="map-ont"):
-#     primers = nta.create_primer_objs(primer_bed, name_scheme=name_scheme)
-#     amps, av_amp_len = nta.generate_amps(primers)
-#     out_paf = nta.name_out_paf(reads, reference, "trim")
-#     mm2_paf = nta.map_reads(reads, reference, out_paf, seq_tech=seq_tech)
-#     mappings = nta.create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len)
-#     amps_bin_maps = bin_mappings(amps, mappings)
-#     loaded_reads = nta.load_reads(reads)
-#     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
-#     clipped_out = name_clipped(reads)
-#     clip_and_write_out(amps_bin_reads, clipped_out)
-#     os.remove(out_paf)
-#     return clipped_out
-
-    # primer = args.primers
-    # reads = args.reads
-    # ref = args.reference
-    # max_cov = args.max_cov
-    # out_dir = args.out_dir
-    # seq_tec = args.seq_tec
-    # set_min_len = args.set_min_len
-    # set_max_len = args.set_max_len
-
-
-
 def run_map_trim(**kw):
     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
     amps, av_amp_len = nta.generate_amps(primers)
