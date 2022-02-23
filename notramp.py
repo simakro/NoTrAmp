@@ -109,6 +109,9 @@ class Read:
             else:
                 rdiff = amp_start - tstart
                 clip_right = qend - rdiff
+        
+        self.seq = self.seq[clip_left:clip_right]
+        return clip_left, qlen - clip_right
 
 
     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
@@ -155,8 +158,8 @@ class Read:
                     clip_left = qstart - ldiff
 
         self.seq = self.seq[clip_left:clip_right]
-
         return clip_left, qlen - clip_right
+
 
 class Mapping:
     def __init__(
