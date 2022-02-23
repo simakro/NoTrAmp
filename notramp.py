@@ -76,6 +76,40 @@ class Read:
         self.name = self.header.split("@")[1] if self.fastq else self.header.split(">")[1]
         self.seq = seq
 
+    def trim_to_amp(self, amp_start, amp_end, mapping):
+        qlen, samestrand = mapping.qlen, mapping.samestrand
+        qstart, qend = mapping.qstart, mapping.qend
+        tstart, tend = mapping.tstart, mapping.tend
+
+        if samestrand:
+            clip_left = 0
+            if tstart >= amp_start:
+                clip_left = qstart
+            else:
+                ldiff = amp_start - tstart
+                clip_left = qstart + ldiff
+
+            clip_right = qlen
+            if tend <= amp_end:
+                clip_right = qend
+            else:
+                rdiff = tend - amp_end
+                clip_right = qend - rdiff
+        else:
+            clip_left = 0
+            if tend <= amp_end:
+                    clip_left = qstart
+            else:
+                ldiff = tend - amp_end
+                clip_left = qstart + ldiff
+            
+            clip_right = qlen
+            if tstart >= amp_start:
+                clip_right = qend
+            else:
+                rdiff = amp_start - tstart
+                clip_right = qend - rdiff
+
 
     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
         qlen, samestrand = mapping.qlen, mapping.samestrand
