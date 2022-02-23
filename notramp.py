@@ -252,7 +252,7 @@ def fastq_autoscan(read_file):
     return fastq
 
         
-def create_primer_objs(primer_bed, name_scheme="artic_nCov_scheme"):
+def create_primer_objs(primer_bed, name_scheme):
     with open(name_scheme, "r") as scheme:
         pd = json.loads(scheme.read())
 
@@ -344,30 +344,33 @@ if __name__ == "__main__":
 
     start = perf_counter()
 
-    args = get_arguments()
-    print(args)
-    primer = args.primers
-    reads = args.reads
-    ref = args.reference
-    max_cov = args.max_cov
-    out_dir = args.out_dir
-    seq_tec = args.seq_tec
     pkg_dir = os.path.split(os.path.abspath(__file__))[0]
-    name_scheme = args.name_scheme
-    if name_scheme == 'artic_nCoV_scheme':
-        name_scheme = os.path.join(pkg_dir, "resources", name_scheme + ".json")
-    # set_min_len = int(args.set_min_len) if args.set_min_len else args.set_min_len
-    # set_max_len = int(args.set_max_len) if args.set_max_len else args.set_max_len
-    set_min_len = args.set_min_len
-    set_max_len = args.set_max_len
 
-    if args.cov:
-        amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, max_cov, set_min_len, set_max_len, seq_tech=seq_tec)
-    elif args.trim:
-        map_trim.run_map_trim(primer, name_scheme, reads, ref, set_min_len, set_max_len, seq_tech=seq_tec)
-    elif args.all:
-        capped_reads = amp_cov.run_amp_cov_cap(primer, name_scheme, reads, ref, max_cov, set_min_len, set_max_len, seq_tech=seq_tec)
-        map_trim.run_map_trim(primer, name_scheme, capped_reads, ref, set_min_len, set_max_len, seq_tech=seq_tec)
+    kwargs = vars(get_arguments())
+    
+    # primer = args.primers
+    # reads = args.reads
+    # ref = args.reference
+    # max_cov = args.max_cov
+    # out_dir = args.out_dir
+    # seq_tec = args.seq_tec
+
+
+    if kwargs["name_scheme"] == 'artic_nCoV_scheme':
+        kwargs["name_scheme"] = os.path.join(pkg_dir, "resources", kwargs["name_scheme"] + ".json")
+   
+
+    # set_min_len = args.set_min_len
+    # set_max_len = args.set_max_len
+
+    if kwargs["cov"]:
+        amp_cov.run_amp_cov_cap(**kwargs)
+    elif kwargs["trim"]:
+        map_trim.run_map_trim(**kwargs) # primer, name_scheme, reads, ref, set_min_len, set_max_len, seq_tech=seq_tec
+    elif kwargs["all"]:
+        capped_reads = amp_cov.run_amp_cov_cap(**kwargs) # primer, name_scheme, reads, ref, max_cov, set_min_len, set_max_len, seq_tech=seq_tec
+        kwargs["reads"] = capped_reads
+        map_trim.run_map_trim(**kwargs) # primer, name_scheme, capped_reads, ref, set_min_len, set_max_len, seq_tech=seq_tec
     else:
         print("Missing argument for notramp operation mode")
     
