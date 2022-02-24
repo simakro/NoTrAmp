@@ -74,7 +74,128 @@ def get_arguments():
     return args
 
 
+class Mapping:
+    """class for storage and handling of mapping information"""
+
+    def __init__(
+        self,
+        qname,
+        qlen,
+        qstart,
+        qend,
+        samestrand,
+        tname,
+        tlen,
+        tstart,
+        tend,
+        matches,
+        total_bp,
+        qual,
+        kwattr,
+    ):
+        self.qname = qname
+        self.qlen = int(qlen)
+        self.qstart = int(qstart)
+        self.qend = int(qend)
+        self.samestrand = self.eval_strand(samestrand)
+        self.tname = tname
+        self.tlen = int(tlen)
+        self.tstart = int(tstart)
+        self.tend = int(tend)
+        self.matches = int(matches)
+        self.total_bp = int(total_bp)
+        self.qual = int(qual)
+        self.kwattr = kwattr
+        self.gen_kw_attr()
+
+    def gen_kw_attr(self):
+        kwattr_dict = {kw.split(":")[0]: kw.split(":")[-1] for kw in self.kwattr}
+        for key in kwattr_dict:
+            self.__dict__[key] = kwattr_dict[key]
+
+    def eval_strand(self, strand_info):
+        if strand_info == "+":
+            return True
+        else:
+            return False
+
+class Primer:
+    """class for storage and handling of primer information"""
+
+    def __init__(self, contig, start, end, name, score, strand, naming_scheme):
+        self.contig = contig
+        self.start = int(start)
+        self.end = int(end)
+        self.name = name
+        self.score = int(score)
+        self.strand = strand
+        self.type = "primary"
+        self.scheme = naming_scheme
+        self.amp_no, self.pos = self.get_name_infos()
+        
+
+    def get_name_infos(self):
+        ls = self.name.split(self.scheme["sep"])
+        if len(ls) == self.scheme["max_len"]:
+            self.type = "alt"
+            self.alt_name = ls[self.scheme["alt"]]
+        return ls[self.scheme["amp_num"]], ls[self.scheme["position"]]
+
+
+class Amp:
+    """class for generation of amplicon objects, able to extract, store, \
+    handle and process data of attached Primer, Mapping and Read objects"""
+
+    def __init__(self, amp_no, primers):
+        self.name = int(amp_no)
+        self.primers = primers
+        self.start = min([primer.start for primer in primers])
+        self.end = max([primer.end for primer in primers])
+        self.max_len = self.end - self.start
+        self.fwp_boundary = max(
+            [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]], 
+            key=lambda x: x.end
+        ).end
+        self.revp_boundary = min(
+            [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]], 
+            key=lambda x: x.start
+        ).start
+        self.mappings = dict()
+        self.read_names = list()
+        self.reads = list()
+        self.reads_dct = dict()
+    
+    
+    def random_sample(self, cutoff):
+        if len(self.read_names) > cutoff:
+            self.selected = random.choices(self.read_names, k=cutoff)
+        else:
+            self.selected = self.read_names
+
+    def trim_clip_all(self, incl_prim):
+        clip_ct_left = 0
+        clip_ct_right = 0
+        for read in self.reads_dct:
+            try:
+                mapping = self.mappings[read]
+                if incl_prim:
+                    left, right = self.reads_dct[read].trim_to_amp(
+                        self.start, self.end, mapping
+                    )
+                else:
+                    left, right = self.reads_dct[read].clip_primers(
+                        self.fwp_boundary, self.revp_boundary, mapping
+                    )
+                clip_ct_left += left
+                clip_ct_right += right
+            except KeyError as e:
+                logging.exception(e)
+        return clip_ct_left, clip_ct_right
+
+
 class Read:
+    """class for generation of read objects, and clipping/trimming"""
+
     def __init__(self, header, seq, fastq=False):
         self.header = header
         self.fastq = fastq
@@ -166,119 +287,9 @@ class Read:
         return clip_left, qlen - clip_right
 
 
-class Mapping:
-    def __init__(
-        self,
-        qname,
-        qlen,
-        qstart,
-        qend,
-        samestrand,
-        tname,
-        tlen,
-        tstart,
-        tend,
-        matches,
-        total_bp,
-        qual,
-        kwattr,
-    ):
-        self.qname = qname
-        self.qlen = int(qlen)
-        self.qstart = int(qstart)
-        self.qend = int(qend)
-        self.samestrand = self.eval_strand(samestrand)
-        self.tname = tname
-        self.tlen = int(tlen)
-        self.tstart = int(tstart)
-        self.tend = int(tend)
-        self.matches = int(matches)
-        self.total_bp = int(total_bp)
-        self.qual = int(qual)
-        self.kwattr = kwattr
-        self.gen_kw_attr()
-
-    def gen_kw_attr(self):
-        kwattr_dict = {kw.split(":")[0]: kw.split(":")[-1] for kw in self.kwattr}
-        for key in kwattr_dict:
-            self.__dict__[key] = kwattr_dict[key]
-
-    def eval_strand(self, strand_info):
-        if strand_info == "+":
-            return True
-        else:
-            return False
-
-class Primer:
-    def __init__(self, contig, start, end, name, score, strand, naming_scheme):
-        self.contig = contig
-        self.start = int(start)
-        self.end = int(end)
-        self.name = name
-        self.score = int(score)
-        self.strand = strand
-        self.type = "primary"
-        self.scheme = naming_scheme
-        self.amp_no, self.pos = self.get_name_infos()
-        
-
-    def get_name_infos(self):
-        ls = self.name.split(self.scheme["sep"])
-        if len(ls) == self.scheme["max_len"]:
-            self.type = "alt"
-            self.alt_name = ls[self.scheme["alt"]]
-        return ls[self.scheme["amp_num"]], ls[self.scheme["position"]]
-
-
-class Amp:
-    def __init__(self, amp_no, primers):
-        self.name = int(amp_no)
-        self.primers = primers
-        self.start = min([primer.start for primer in primers])
-        self.end = max([primer.end for primer in primers])
-        self.max_len = self.end - self.start
-        self.fwp_boundary = max(
-            [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]], 
-            key=lambda x: x.end
-        ).end
-        self.revp_boundary = min(
-            [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]], 
-            key=lambda x: x.start
-        ).start
-        self.mappings = dict()
-        self.read_names = list()
-        self.reads = list()
-        self.reads_dct = dict()
-    
-    
-    def random_sample(self, cutoff):
-        if len(self.read_names) > cutoff:
-            self.selected = random.choices(self.read_names, k=cutoff)
-        else:
-            self.selected = self.read_names
-
-    def trim_clip_all(self, incl_prim):
-        clip_ct_left = 0
-        clip_ct_right = 0
-        for read in self.reads_dct:
-            try:
-                mapping = self.mappings[read]
-                if incl_prim:
-                    left, right = self.reads_dct[read].trim_to_amp(
-                        self.start, self.end, mapping
-                    )
-                else:
-                    left, right = self.reads_dct[read].clip_primers(
-                        self.fwp_boundary, self.revp_boundary, mapping
-                    )
-                clip_ct_left += left
-                clip_ct_right += right
-            except KeyError as e:
-                logging.exception(e)
-        return clip_ct_left, clip_ct_right
-
 
 def log_sp_error(error, message):
+    """custom logging of subprocess errors"""
     logging.error(message)
     print("Check notramp.log for error details")
     logging.error(error.stdout.decode('utf-8'))
@@ -417,15 +428,6 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
         mappings = mono_mappings
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
 
-# def create_logger():
-#     logger = logging.getLogger(name=__file__)
-#     logger.setLevel(logging.INFO)
-#     filehandler = logging.FileHandler('notramp.log')
-#     formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s:%(lineno)s')
-#     filehandler.setFormatter(formatter)
-#     logger.addHandler(filehandler)
-#     return logger
-
 
 if __name__ == "__main__":
     start = perf_counter()
@@ -451,4 +453,4 @@ if __name__ == "__main__":
     
     end = perf_counter()
     runtime = end-start
-    print("runtime", runtime)
+    logger.info("finished notramp after {runtime} seconds of runtime")

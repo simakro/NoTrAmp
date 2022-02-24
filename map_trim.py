@@ -45,7 +45,7 @@ def load_amps_with_reads(amp_bins, loaded_reads):
 def clip_and_write_out(amp_bins, clipped_out, incl_prim):
     """Trim reads to amplicon boundaries (including/excluding primers)"""
     incl_excl = "excluding" if not incl_prim else "including" 
-    logger.info(f"Trim reads to amplicons boundaries {incl_excl} primers")
+    logger.info(f"Trimming reads to amplicons boundaries {incl_excl} primers")
     with open(clipped_out, "w") as out:
         clip_ct = {"left": 0, "right": 0}
         clipped_out = 0

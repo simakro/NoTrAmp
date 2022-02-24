@@ -11,8 +11,6 @@ import logging.config
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
-# logger.info("from cap")
-# logger.warning("from cap")
 
 def bin_mappings(amp_bins, mappings, max_cov):
     """sort mappings to amplicons"""
@@ -38,9 +36,10 @@ def bin_mappings(amp_bins, mappings, max_cov):
     num_selected = 0
     for bin in binned:
         bin.random_sample(max_cov)
-        logging.info(bin.name, len(bin.read_names), "selected:", len(bin.selected))
+        # logging.info(bin.name, len(bin.read_names), "selected:", len(bin.selected))
+        logger.info(f"Amp_{bin.name} {str(len(bin.read_names))} selected: {str(len(bin.selected))}")
         num_selected += len(bin.selected)
-
+        
     return binned
 
 
@@ -63,7 +62,7 @@ def write_capped_from_file(binned, reads, fa_out):
 
 def write_capped_from_loaded(binned, loaded_reads, fa_out):
     """write subsample to outfile using loaded reads as source"""
-    logger.info("writing subsample to outfile using loaded as source")
+    logger.info("writing subsample to outfile using loaded reads as source")
     all_picks = [name for amp in binned for name in amp.selected]
     with open(fa_out, "w") as fa:
         for name in all_picks:
