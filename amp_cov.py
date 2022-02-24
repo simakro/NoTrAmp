@@ -7,15 +7,16 @@ import notramp as nta
 import os
 import psutil
 import logging
+import logging.config
 
-logger = logging.getLogger(name=__name__)
-# logger.setLevel(logging.INFO)
-# # logging.basicConfig(filename='notramp.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s:%(lineno)s')
-# # logger = nta.create_logger()
-logger.info("From amp_cov")
-logger.warning("From amp_cov")
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
+# logger.info("from cap")
+# logger.warning("from cap")
 
 def bin_mappings(amp_bins, mappings, max_cov):
+    """sort mappings to amplicons"""
+    logger.info("sorting mappings to amplicons")
     binned = list()
     na = list()
     while len(amp_bins) > 0:
@@ -34,19 +35,18 @@ def bin_mappings(amp_bins, mappings, max_cov):
             binned.append(amp_bins[0])
             break
     
-
     num_selected = 0
     for bin in binned:
         bin.random_sample(max_cov)
-        print(bin.name, len(bin.read_names), "selected:", len(bin.selected))
+        logging.info(bin.name, len(bin.read_names), "selected:", len(bin.selected))
         num_selected += len(bin.selected)
-    print("na", len(na))
-    print("Total reads selected:", num_selected)
 
     return binned
 
 
 def write_capped_from_file(binned, reads, fa_out):
+    """write subsample to outfile using reads-file as source"""
+    logger.info("writing subsample to outfile using reads-file as source")
     fastq = nta.fastq_autoscan(reads)
     hi = "@" if fastq else ">"
     all_picks = [hi + name for amp in binned for name in amp.selected]
@@ -62,6 +62,8 @@ def write_capped_from_file(binned, reads, fa_out):
 
 
 def write_capped_from_loaded(binned, loaded_reads, fa_out):
+    """write subsample to outfile using loaded reads as source"""
+    logger.info("writing subsample to outfile using loaded as source")
     all_picks = [name for amp in binned for name in amp.selected]
     with open(fa_out, "w") as fa:
         for name in all_picks:
@@ -71,10 +73,12 @@ def write_capped_from_loaded(binned, loaded_reads, fa_out):
                 fa.write(header)
                 fa.write(seq)
             except KeyError as e:
-                print(f"Error: read {name} was not found in loaded reads")
+                logging.exception(f"Error: read {name} was not found in loaded reads")
 
 
 def chk_mem_fit(read_path):
+    """Check for available memory"""
+    logger.info("Checking for available memory")
     fastq = nta.fastq_autoscan(read_path)
     rf_size = os.path.getsize(read_path)
     load_size = rf_size if not fastq else rf_size/2
@@ -86,6 +90,8 @@ def chk_mem_fit(read_path):
 
 
 def run_amp_cov_cap(**kw):
+    """Cap coverage per amplicon and return subsampled reads"""
+    logger.info("Start capping of read-depths per amplicon")
     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])

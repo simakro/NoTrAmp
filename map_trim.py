@@ -2,20 +2,18 @@
 # Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 # This file may not be copied, modified, or distributed except according to those terms.
 
-import logging
+
 import notramp  as nta
 import os
+import logging
+import logging.config
 
-# logger = logging.getLogger(name=__name__)
-# logging.basicConfig(filename='notramp.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s:%(lineno)s')
-logger = logging.getLogger(name=__name__)
-# logger.setLevel(logging.INFO)
-# logging.basicConfig(filename='notramp.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s:%(lineno)s')
-# logger = nta.create_logger()
-logger.info("From map_trim")
-logger.warning("From map_trim")
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
 
 def bin_mappings(amp_bins, mappings):
+    """sort mappings to amplicons"""
+    logger.info("sorting mappings to amplicons")
     binned = list()
     na = list()
     while len(amp_bins) > 0:
@@ -37,12 +35,17 @@ def bin_mappings(amp_bins, mappings):
 
 
 def load_amps_with_reads(amp_bins, loaded_reads):
+    """load amplicon objects with reads"""
+    logger.info("loading amplicon objects with reads")
     for amp in amp_bins:
         amp.reads_dct = {k: v for k, v in loaded_reads.items() if k in amp.mappings}
     return amp_bins
 
 
 def clip_and_write_out(amp_bins, clipped_out, incl_prim):
+    """Trim reads to amplicon boundaries (including/excluding primers)"""
+    incl_excl = "excluding" if not incl_prim else "including" 
+    logger.info(f"Trim reads to amplicons boundaries {incl_excl} primers")
     with open(clipped_out, "w") as out:
         clip_ct = {"left": 0, "right": 0}
         clipped_out = 0
@@ -62,6 +65,8 @@ def clip_and_write_out(amp_bins, clipped_out, incl_prim):
 
 
 def run_map_trim(**kw):
+    """trimming/clipping of reads"""
+    logger.info("Start trimming/clipping of reads")
     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
     amps, av_amp_len = nta.generate_amps(primers)
     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "trim")

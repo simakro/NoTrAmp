@@ -13,7 +13,7 @@ import amp_cov
 import map_trim
 
 
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 def get_arguments():
@@ -274,7 +274,7 @@ class Amp:
                 clip_ct_left += left
                 clip_ct_right += right
             except KeyError as e:
-                print(f"KeyError in trim_clip_all: {e}")
+                logging.exception(e)
         return clip_ct_left, clip_ct_right
 
 
@@ -282,11 +282,13 @@ def log_sp_error(error, message):
     logging.error(message)
     print("Check notramp.log for error details")
     logging.error(error.stdout.decode('utf-8'))
-    logging.info("Exiting integration locator")
+    logging.error("Exiting notramp")
     sys.exit()
 
 
 def fastq_autoscan(read_file):
+    """Scanning readfile to determine filetype"""
+    logger.debug("Scanning readfile to determine filetype")
     with open(read_file, "r") as rf:
         line_ct = 0
         fastq = False
@@ -300,6 +302,8 @@ def fastq_autoscan(read_file):
 
         
 def create_primer_objs(primer_bed, name_scheme):
+    """generate primer objects"""
+    logger.info("generating primer objects")
     with open(name_scheme, "r") as scheme:
         pd = json.loads(scheme.read())
 
@@ -312,6 +316,8 @@ def create_primer_objs(primer_bed, name_scheme):
 
 
 def generate_amps(primers):
+    """generate amplicon objects"""
+    logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
     amps = list()
     amp_lens = list()
@@ -324,6 +330,8 @@ def generate_amps(primers):
 
 
 def load_reads(read_file):
+    """load reads into memory"""
+    logger.info("loading reads")
     reads = dict()
     fastq = fastq_autoscan(read_file)
     header_ind = "@" if fastq else ">"
@@ -338,6 +346,8 @@ def load_reads(read_file):
 
 
 def name_out_paf(reads, reference, mod_name):
+    """construct name for output reads-file"""
+    logger.debug("naming mapping file")
     read_dir, reads_file = os.path.split(reads)
     reads_name = ".".join(reads_file.split(".")[:-1])
     ref_name =  ".".join(os.path.split(reference)[1].split(".")[:-1])
@@ -346,6 +356,8 @@ def name_out_paf(reads, reference, mod_name):
 
 
 def name_out_reads(reads, suffix, outdir):
+    """construct name for output reads-file"""
+    logger.debug("naming output reads-file")
     read_dir, reads_file = os.path.split(reads)
     rf_spl = reads_file.split(".")
     reads_name = ".".join(rf_spl[:-1])
@@ -358,6 +370,8 @@ def name_out_reads(reads, suffix, outdir):
 
 
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
+    """mapping reads"""
+    logger.info("mapping reads")
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
@@ -370,12 +384,16 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
 
 
 def filter_read_mappings(mappings, min_len, max_len):
+    """filter reads"""
+    logger.info("filtering reads")
     mappings = [m for m in mappings if min_len < m.qlen < max_len]
     mappings = [m for m in mappings if m.qual == 60]
     return mappings
 
 
 def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
+    """create mapping objects"""
+    logger.info("creating mapping objects")
     min_len = av_amp_len*0.5 if not set_min_len else set_min_len
     max_len = av_amp_len*1.5 if not set_max_len else set_max_len
     with open(mm2_paf, "r") as paf:
@@ -410,16 +428,15 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
 
 
 if __name__ == "__main__":
-    # logger = create_logger()
-    logger.info("From main")
-
     start = perf_counter()
-
     kwargs = vars(get_arguments())
 
     pkg_dir = os.path.split(os.path.abspath(__file__))[0]
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
         kwargs["name_scheme"] = os.path.join(pkg_dir, "resources", kwargs["name_scheme"] + ".json")
+
+    logger.info("notramp started with following arguments:")
+    logger.info(kwargs)
    
     if kwargs["cov"]:
         amp_cov.run_amp_cov_cap(**kwargs)
