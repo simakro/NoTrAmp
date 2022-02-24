@@ -201,6 +201,13 @@ class Read:
         self.fastq = fastq
         self.name = self.header.split("@")[1] if self.fastq else self.header.split(">")[1]
         self.seq = seq
+    
+
+    def non_neg(self, num):
+        if num < 0:
+            return 0
+        else:
+            return num
 
     def trim_to_amp(self, amp_start, amp_end, mapping):
         qlen, samestrand = mapping.qlen, mapping.samestrand
@@ -209,18 +216,22 @@ class Read:
 
         if samestrand:
             clip_left = 0
+            ldiff = abs(amp_start - tstart)
             if tstart >= amp_start:
-                clip_left = qstart
+                logger.info("tstart >= amp_start")
+                clip_left = self.non_neg(qstart - ldiff)
             else:
-                ldiff = amp_start - tstart
+                logger.info(f"tstart smaller {self.name}")
                 clip_left = qstart + ldiff
 
             clip_right = qlen
+            rdiff = abs(tend - amp_end)
             if tend <= amp_end:
-                clip_right = qend
+                logger.info("tend <= amp_end")
+                clip_right = qend + rdiff
             else:
-                rdiff = tend - amp_end
-                clip_right = qend - rdiff
+                logger.info(f"tend bigger {self.name}")
+                clip_right = self.non_neg(qend - rdiff)
         else:
             clip_left = 0
             if tend <= amp_end:
@@ -437,8 +448,7 @@ if __name__ == "__main__":
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
         kwargs["name_scheme"] = os.path.join(pkg_dir, "resources", kwargs["name_scheme"] + ".json")
 
-    logger.info("notramp started with following arguments:")
-    logger.info(kwargs)
+    logger.info(f"notramp started with: {kwargs}")
    
     if kwargs["cov"]:
         amp_cov.run_amp_cov_cap(**kwargs)
@@ -453,4 +463,4 @@ if __name__ == "__main__":
     
     end = perf_counter()
     runtime = end-start
-    logger.info("finished notramp after {runtime} seconds of runtime")
+    logger.info(f"finished notramp after {runtime} seconds of runtime")
