@@ -234,17 +234,17 @@ class Read:
                 clip_right = self.non_neg(qend - rdiff)
         else:
             clip_left = 0
+            ldiff = abs(tend - amp_end)
             if tend <= amp_end:
-                    clip_left = qstart
+                    clip_left = qstart - ldiff
             else:
-                ldiff = tend - amp_end
                 clip_left = qstart + ldiff
             
             clip_right = qlen
+            rdiff = abs(amp_start - tstart)
             if tstart >= amp_start:
-                clip_right = qend
+                clip_right = qend + rdiff
             else:
-                rdiff = amp_start - tstart
                 clip_right = qend - rdiff
         
         self.seq = self.seq[clip_left:clip_right]
