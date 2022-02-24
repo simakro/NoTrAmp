@@ -1,5 +1,6 @@
 import argparse
 import logging
+import logging.config
 import subprocess
 from time import perf_counter
 import random
@@ -8,9 +9,12 @@ import sys
 import os
 from collections import defaultdict
 
-import map_trim
 import amp_cov
+import map_trim
 
+
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger(__name__)
 
 def get_arguments():
     parser = argparse.ArgumentParser(description=
@@ -254,19 +258,16 @@ class Amp:
             self.selected = self.read_names
 
     def trim_clip_all(self, incl_prim):
-        print("incl_prim", incl_prim, type(incl_prim))
         clip_ct_left = 0
         clip_ct_right = 0
         for read in self.reads_dct:
             try:
                 mapping = self.mappings[read]
                 if incl_prim:
-                    # print("including primers")
                     left, right = self.reads_dct[read].trim_to_amp(
                         self.start, self.end, mapping
                     )
                 else:
-                    # print("excluding primers")
                     left, right = self.reads_dct[read].clip_primers(
                         self.fwp_boundary, self.revp_boundary, mapping
                     )
@@ -344,21 +345,7 @@ def name_out_paf(reads, reference, mod_name):
     return os.path.join(read_dir, paf_name)
 
 
-# def name_capped(reads): # outdir=outdir
-#     read_dir, reads_file = os.path.split(reads)
-#     rf_spl = reads_file.split(".")
-#     reads_name = ".".join(rf_spl[:-1])
-#     capped_name = f"{reads_name}.cap.fasta"
-#     return os.path.join(read_dir, capped_name)
-
-# def name_clipped(reads):
-#     read_dir, reads_file = os.path.split(reads)
-#     rf_spl = reads_file.split(".")
-#     reads_name, ext = ".".join(rf_spl[:-1]), rf_spl[-1]
-#     clipped_name = f"{reads_name}.clip.{ext}"
-#     return os.path.join(read_dir, clipped_name)
-
-def name_out_reads(reads, suffix, outdir): # outdir=outdir
+def name_out_reads(reads, suffix, outdir):
     read_dir, reads_file = os.path.split(reads)
     rf_spl = reads_file.split(".")
     reads_name = ".".join(rf_spl[:-1])
@@ -412,10 +399,19 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
         mappings = mono_mappings
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
 
+# def create_logger():
+#     logger = logging.getLogger(name=__file__)
+#     logger.setLevel(logging.INFO)
+#     filehandler = logging.FileHandler('notramp.log')
+#     formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s:%(lineno)s')
+#     filehandler.setFormatter(formatter)
+#     logger.addHandler(filehandler)
+#     return logger
+
 
 if __name__ == "__main__":
-    logger = logging.getLogger(name='main')
-    logging.basicConfig(level=logging.DEBUG)
+    # logger = create_logger()
+    logger.info("From main")
 
     start = perf_counter()
 

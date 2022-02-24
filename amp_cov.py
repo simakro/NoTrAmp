@@ -6,7 +6,14 @@ from collections import defaultdict
 import notramp as nta
 import os
 import psutil
+import logging
 
+logger = logging.getLogger(name=__name__)
+# logger.setLevel(logging.INFO)
+# # logging.basicConfig(filename='notramp.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s:%(lineno)s')
+# # logger = nta.create_logger()
+logger.info("From amp_cov")
+logger.warning("From amp_cov")
 
 def bin_mappings(amp_bins, mappings, max_cov):
     binned = list()
@@ -66,14 +73,6 @@ def write_capped_from_loaded(binned, loaded_reads, fa_out):
             except KeyError as e:
                 print(f"Error: read {name} was not found in loaded reads")
 
-    
-# def name_capped(reads): # outdir=outdir
-#     read_dir, reads_file = os.path.split(reads)
-#     rf_spl = reads_file.split(".")
-#     reads_name = ".".join(rf_spl[:-1])
-#     capped_name = f"{reads_name}.cap.fasta"
-#     return os.path.join(read_dir, capped_name)
-
 
 def chk_mem_fit(read_path):
     fastq = nta.fastq_autoscan(read_path)
@@ -93,7 +92,6 @@ def run_amp_cov_cap(**kw):
     amps, av_amp_len = nta.generate_amps(primers)
     mappings = nta.create_read_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     binned = bin_mappings(amps, mappings, kw["max_cov"])
-    # fa_out = name_capped(kw["reads"])
     fa_out = nta.name_out_reads(kw["reads"], "cap", kw["out_dir"])
     mem_fit = chk_mem_fit(kw["reads"])
     if mem_fit:

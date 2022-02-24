@@ -6,6 +6,14 @@ import logging
 import notramp  as nta
 import os
 
+# logger = logging.getLogger(name=__name__)
+# logging.basicConfig(filename='notramp.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s:%(lineno)s')
+logger = logging.getLogger(name=__name__)
+# logger.setLevel(logging.INFO)
+# logging.basicConfig(filename='notramp.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s:%(lineno)s')
+# logger = nta.create_logger()
+logger.info("From map_trim")
+logger.warning("From map_trim")
 
 def bin_mappings(amp_bins, mappings):
     binned = list()
@@ -53,14 +61,6 @@ def clip_and_write_out(amp_bins, clipped_out, incl_prim):
     )
 
 
-# def name_clipped(reads):
-#     read_dir, reads_file = os.path.split(reads)
-#     rf_spl = reads_file.split(".")
-#     reads_name, ext = ".".join(rf_spl[:-1]), rf_spl[-1]
-#     clipped_name = f"{reads_name}.clip.{ext}"
-#     return os.path.join(read_dir, clipped_name)
-
-
 def run_map_trim(**kw):
     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
     amps, av_amp_len = nta.generate_amps(primers)
@@ -70,7 +70,6 @@ def run_map_trim(**kw):
     amps_bin_maps = bin_mappings(amps, mappings)
     loaded_reads = nta.load_reads(kw["reads"])
     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
-    # clipped_out = name_clipped(kw["reads"])
     clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])
     clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
     os.remove(out_paf)
