@@ -13,14 +13,14 @@ import amp_cov
 import map_trim
 
 
-# logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 def get_arguments():
     parser = argparse.ArgumentParser(description=
-        "NoTrAmp is a Tool for the preprocessing of long NGS reads (ONT/PacBio) generated with amplicon-tiling approaches. "
-        " It can normalize read-depth by capping coverage of each amplicon to a provided threshold and trim amplicons to their "
-        " appropriate length by removing primers, barcodes and adpaters in a single clipping step.", add_help=True)
+        "NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio). "
+        " It can be used in amplicon-tiling approaches to cap coverage of each amplicon and to trim amplicons to their "
+        " appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.", add_help=True)
 
     required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument("-p", "--primers", required=True, 
@@ -218,19 +218,15 @@ class Read:
             clip_left = 0
             ldiff = abs(amp_start - tstart)
             if tstart >= amp_start:
-                logger.info("tstart >= amp_start")
                 clip_left = self.non_neg(qstart - ldiff)
             else:
-                logger.info(f"tstart smaller {self.name}")
                 clip_left = qstart + ldiff
 
             clip_right = qlen
             rdiff = abs(tend - amp_end)
             if tend <= amp_end:
-                logger.info("tend <= amp_end")
                 clip_right = qend + rdiff
             else:
-                logger.info(f"tend bigger {self.name}")
                 clip_right = self.non_neg(qend - rdiff)
         else:
             clip_left = 0

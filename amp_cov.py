@@ -36,7 +36,6 @@ def bin_mappings(amp_bins, mappings, max_cov):
     num_selected = 0
     for bin in binned:
         bin.random_sample(max_cov)
-        # logging.info(bin.name, len(bin.read_names), "selected:", len(bin.selected))
         logger.info(f"Amp_{bin.name} {str(len(bin.read_names))} selected: {str(len(bin.selected))}")
         num_selected += len(bin.selected)
         
