@@ -96,44 +96,69 @@ class Mapping:
 
     def __init__(
         self,
-        qname,
-        qlen,
-        qstart,
-        qend,
-        samestrand,
-        tname,
-        tlen,
-        tstart,
-        tend,
-        matches,
-        total_bp,
-        qual,
+        posattr,
+        # qname,
+        # qlen,
+        # qstart,
+        # qend,
+        # samestrand,
+        # tname,
+        # tlen,
+        # tstart,
+        # tend,
+        # matches,
+        # total_bp,
+        # qual,
         kwattr,
     ):
-        self.qname = qname
-        self.qlen = int(qlen)
-        self.qstart = int(qstart)
-        self.qend = int(qend)
-        self.samestrand = self.eval_strand(samestrand)
-        self.tname = tname
-        self.tlen = int(tlen)
-        self.tstart = int(tstart)
-        self.tend = int(tend)
-        self.matches = int(matches)
-        self.total_bp = int(total_bp)
-        self.qual = int(qual)
+        # self.qname = qname
+        # self.qlen = int(qlen)
+        # self.qstart = int(qstart)
+        # self.qend = int(qend)
+        # self.samestrand = Mapping.eval_strand(samestrand)
+        # self.tname = tname
+        # self.tlen = int(tlen)
+        # self.tstart = int(tstart)
+        # self.tend = int(tend)
+        # self.matches = int(matches)
+        # self.total_bp = int(total_bp)
+        # self.qual = int(qual)
+        self.posattr = posattr
         self.kwattr = kwattr
+        self.gen_pos_attr()
         self.gen_kw_attr()
+
+
+    @staticmethod
+    def eval_strand(strand_info):
+        """evaluate strand info"""
+        return True if strand_info == "+" else False
+
+    def gen_pos_attr(self):
+        """generate class attributes from positional info in mapping output"""
+        posattr_dict = {
+            "qname" : str,
+            "qlen": int,
+            "qstart": int,
+            "qend": int,
+            "samestrand": Mapping.eval_strand,
+            "tname": str,
+            "tlen": int,
+            "tstart": int,
+            "tend": int,
+            "matches": int,
+            "total_bp": int,
+            "qual": int
+        }
+        zip_attr = zip(posattr_dict.keys(), self.posattr)
+        for key, val in zip_attr:
+            self.__dict__[key] = posattr_dict[key](val)
 
     def gen_kw_attr(self):
         """generate class attributes from key-worded entries in mapping output"""
         kwattr_dict = {kw.split(":")[0]: kw.split(":")[-1] for kw in self.kwattr}
         for key in kwattr_dict:
             self.__dict__[key] = kwattr_dict[key]
-
-    def eval_strand(self, strand_info):
-        """evaluate strand info"""
-        return True if strand_info == "+" else False
 
 
 class Primer:
@@ -169,21 +194,39 @@ class Amp:
         self.primers = primers
         self.start = min([primer.start for primer in primers])
         self.end = max([primer.end for primer in primers])
-        self.max_len = self.end - self.start
-        self.fwp_boundary = max(
-            [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]],
-            key=lambda x: x.end
-        ).end
-        self.revp_boundary = min(
-            [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]],
-            key=lambda x: x.start
-        ).start
+        # self.max_len = self.end - self.start
+        # self.fwp_boundary = max(
+        #     [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]],
+        #     key=lambda x: x.end
+        # ).end
+        # self.revp_boundary = min(
+        #     [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]],
+        #     key=lambda x: x.start
+        # ).start
         self.mappings = {}
         self.read_names = []
         self.reads = []
         self.reads_dct = {}
         self.selected = []
 
+
+    def fwp_boundary(self):
+        """get inner boundary of forward primer"""
+        return max(
+            [prim for prim in self.primers if prim.pos == prim.scheme["fw_indicator"]],
+            key=lambda x: x.end
+        ).end
+
+    def revp_boundary(self):
+        """get inner boundary of reverse primer"""
+        return min(
+            [prim for prim in self.primers if prim.pos == prim.scheme["rev_indicator"]],
+            key=lambda x: x.start
+        ).start
+
+    def get_max_len(self):
+        """get maximum length of amplicon"""
+        return self.end - self.start
 
     def random_sample(self, cutoff):
         """select a random subsample from all reads"""
@@ -196,21 +239,21 @@ class Amp:
         """trim all attached reads"""
         clip_ct_left = 0
         clip_ct_right = 0
-        for read in self.reads_dct:
+        for rname, read in self.reads_dct.items():
             try:
-                mapping = self.mappings[read]
+                mapping = self.mappings[rname]
                 if incl_prim:
-                    left, right = self.reads_dct[read].trim_to_amp(
+                    left, right = read.trim_to_amp(
                         self.start, self.end, mapping
                     )
                 else:
-                    left, right = self.reads_dct[read].clip_primers(
-                        self.fwp_boundary, self.revp_boundary, mapping
+                    left, right = read.clip_primers(
+                        self.fwp_boundary(), self.revp_boundary(), mapping
                     )
                 clip_ct_left += left
                 clip_ct_right += right
-            except KeyError as e:
-                logging.exception(e)
+            except KeyError as err:
+                logging.exception(err)
         return clip_ct_left, clip_ct_right
 
 
@@ -223,8 +266,8 @@ class Read:
         self.name = self.header.split("@")[1] if self.fastq else self.header.split(">")[1]
         self.seq = seq
 
-
-    def non_neg(self, num):
+    @staticmethod
+    def non_neg(num):
         """return 0 if result < 0"""
         return num if num >= 0 else 0
 
@@ -238,7 +281,7 @@ class Read:
             clip_left = 0
             ldiff = abs(amp_start - tstart)
             if tstart >= amp_start:
-                clip_left = self.non_neg(qstart - ldiff)
+                clip_left = Read.non_neg(qstart - ldiff)
             else:
                 clip_left = qstart + ldiff
 
@@ -247,7 +290,7 @@ class Read:
             if tend <= amp_end:
                 clip_right = qend + rdiff
             else:
-                clip_right = self.non_neg(qend - rdiff)
+                clip_right = Read.non_neg(qend - rdiff)
         else:
             clip_left = 0
             ldiff = abs(tend - amp_end)
@@ -362,7 +405,7 @@ def generate_amps(primers):
     for num in amp_nums:
         amp_obj = Amp(num, [primer for primer in primers if primer.amp_no == num])
         amps.append(amp_obj)
-        amp_lens.append(amp_obj.max_len)
+        amp_lens.append(amp_obj.get_max_len())
     av_amp_len = sum(amp_lens) / len(amp_lens)
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
@@ -439,7 +482,7 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
         for line in paf:
             if len(line.strip()) > 0:
                 lisp = line.strip().split("\t")
-                mapping = Mapping(*lisp[:12], lisp[12:])
+                mapping = Mapping(lisp[:12], lisp[12:])
                 map_dct[mapping.qname].append(mapping)
         mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
         mappings = [m for k, l in map_dct.items() for m in l]
@@ -482,5 +525,4 @@ if __name__ == "__main__":
     os.replace("notramp.log", os.path.join(kwargs["out_dir"], "notramp.log"))
 
     prend = perf_counter()
-    # run_time = str(prend-prstart)
     logger.info("finished notramp after %s seconds of runtime", str(prend-prstart))
