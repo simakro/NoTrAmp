@@ -1,3 +1,9 @@
+# Copyright 2022 Simon Magin.
+# Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
+# This file may not be copied, modified, or distributed except according to those terms.
+
+"""notramp main"""
+
 import argparse
 import logging
 import logging.config
@@ -16,60 +22,71 @@ import map_trim
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
-def get_arguments():
-    parser = argparse.ArgumentParser(description=
-        "NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio). "
-        " It can be used in amplicon-tiling approaches to cap coverage of each amplicon and to trim amplicons to their "
-        " appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.", add_help=True)
 
+def get_arguments():
+    """get arguments from the command line"""
+    parser = argparse.ArgumentParser(description=
+        "NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated "
+        "with long read technologies (ONT/PacBio). It can be used in amplicon-tiling approaches to "
+        "cap coverage  of each amplicon and to trim amplicons to their appropriate length "
+        "removing barcodes, adpaters and primers (if desired) in a single clipping step.",
+        add_help=True)
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument("-p", "--primers", required=True, 
-        help="Path to primer bed-file (primer-names must adhere to a consistent naming scheme see readme)")
-    required_args.add_argument("-r", "--reads", required=True, 
+    required_args.add_argument("-p", "--primers", required=True,
+        help="Path to primer bed-file (primer-names must adhere to a consistent "
+        "naming scheme see readme)")
+    required_args.add_argument("-r", "--reads", required=True,
         help="Path to sequencing reads fasta")
-    required_args.add_argument("-g", "--reference", required=True, 
+    required_args.add_argument("-g", "--reference", required=True,
         help="Path to reference (genome)")
-    
+
     read_input = required_args.add_mutually_exclusive_group(required=True)
-    read_input.add_argument("-a", "--all", 
-        help="Perform read depth normalization by coverage-capping/downsampling first, then clipp the normalized reads.", 
+    read_input.add_argument("-a", "--all",
+        help="Perform read depth normalization by coverage-capping/downsampling "
+        "first, then clipp the normalized reads.",
         default=False,  action='store_true')
-    read_input.add_argument("-c", "--cov", 
-        help="Perform only read-depth normalization/downsampling.", 
+    read_input.add_argument("-c", "--cov",
+        help="Perform only read-depth normalization/downsampling.",
         default=False, action='store_true')
-    read_input.add_argument("-t", "--trim", 
-        help="Perform only trimming to amplicon length (excluding primers).", 
+    read_input.add_argument("-t", "--trim",
+        help="Perform only trimming to amplicon length (excluding primers).",
         default=False, action='store_true')
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument("-o", dest='out_dir', 
-        default=False, 
-        help="Optionally specify a directory for saving of outfiles. If this argument is not given, "
-        "out-files will be saved in the directory where the input reads are located. [default=False]")
-    optional_args.add_argument("-m", dest='max_cov', 
+    optional_args.add_argument("-o", dest='out_dir',
+        default=False,
+        help="Optionally specify a directory for saving of outfiles. If this "
+        "argument is not given, out-files will be saved in the directory where"
+        "the input reads are located. [default=False]")
+    optional_args.add_argument("-m", dest='max_cov',
         default=200, type=int,
-        help="Provide threshold for maximum read-depth per amplicon as integer value. [default=200]")
-    optional_args.add_argument("-s", dest='seq_tec', 
-        default="ont", 
+        help="Provide threshold for maximum read-depth per amplicon as integer "
+        "value. [default=200]")
+    optional_args.add_argument("-s", dest='seq_tec',
+        default="ont",
         help="Specify long-read sequencing technology (ont/pb). [default='ont']")
-    optional_args.add_argument("-n", dest='name_scheme', 
-        default="artic_nCoV_scheme", 
-        help="Provide path to json-file containing a naming scheme which is consistently used for all primers. [default='artic_nCoV_scheme']")
-    optional_args.add_argument("--set_min_len", dest='set_min_len', 
+    optional_args.add_argument("-n", dest='name_scheme',
+        default="artic_nCoV_scheme",
+        help="Provide path to json-file containing a naming scheme which is "
+        "consistently used for all primers. [default='artic_nCoV_scheme']")
+    optional_args.add_argument("--set_min_len", dest='set_min_len',
         default=False, type=int,
         help="Set a minimum required length for alignments of reads to amplicon. "
         "If this is not set the min_len will be 0.5 * average_amp_len. "
-        "If amplicon sizes are relatively homogenous this parameter is not required [default=False]")
-    optional_args.add_argument("--set_max_len", dest='set_max_len', 
+        "If amplicon sizes are relatively homogenous this parameter is not "
+        "required [default=False]")
+    optional_args.add_argument("--set_max_len", dest='set_max_len',
         default=False, type=int,
         help="Set a maximum required length for alignments of reads to amplicon. "
         "If this is not set the max_len will be 1.5 * average_amp_len. "
-        "If amplicon sizes are relatively homogenous this parameter is not required [default=False]")
-    optional_args.add_argument("--incl_prim", dest='incl_prim', 
+        "If amplicon sizes are relatively homogenous this parameter is not "
+        "required [default=False]")
+    optional_args.add_argument("--incl_prim", dest='incl_prim',
         default=False, action='store_true',
-        help="Set to False if you want to include the primer sequences in the trimmed reads. "
-        "By default primers are removed together with all overhanging sequences. [default=False]")
-    
+        help="Set to False if you want to include the primer sequences in the "
+        "trimmed reads. By default primers are removed together with all "
+        "overhanging sequences. [default=False]")
+
     args = parser.parse_args()
     return args
 
@@ -109,15 +126,15 @@ class Mapping:
         self.gen_kw_attr()
 
     def gen_kw_attr(self):
+        """generate class attributes from key-worded entries in mapping output"""
         kwattr_dict = {kw.split(":")[0]: kw.split(":")[-1] for kw in self.kwattr}
         for key in kwattr_dict:
             self.__dict__[key] = kwattr_dict[key]
 
     def eval_strand(self, strand_info):
-        if strand_info == "+":
-            return True
-        else:
-            return False
+        """evaluate strand info"""
+        return True if strand_info == "+" else False
+
 
 class Primer:
     """class for storage and handling of primer information"""
@@ -132,14 +149,15 @@ class Primer:
         self.type = "primary"
         self.scheme = naming_scheme
         self.amp_no, self.pos = self.get_name_infos()
-        
+
 
     def get_name_infos(self):
-        ls = self.name.split(self.scheme["sep"])
-        if len(ls) == self.scheme["max_len"]:
+        """extract information from primer name"""
+        lsp = self.name.split(self.scheme["sep"])
+        if len(lsp) == self.scheme["max_len"]:
             self.type = "alt"
-            self.alt_name = ls[self.scheme["alt"]]
-        return ls[self.scheme["amp_num"]], ls[self.scheme["position"]]
+            self.alt_name = lsp[self.scheme["alt"]]
+        return lsp[self.scheme["amp_num"]], lsp[self.scheme["position"]]
 
 
 class Amp:
@@ -153,26 +171,29 @@ class Amp:
         self.end = max([primer.end for primer in primers])
         self.max_len = self.end - self.start
         self.fwp_boundary = max(
-            [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]], 
+            [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]],
             key=lambda x: x.end
         ).end
         self.revp_boundary = min(
-            [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]], 
+            [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]],
             key=lambda x: x.start
         ).start
-        self.mappings = dict()
-        self.read_names = list()
-        self.reads = list()
-        self.reads_dct = dict()
-    
-    
+        self.mappings = {}
+        self.read_names = []
+        self.reads = []
+        self.reads_dct = {}
+        self.selected = []
+
+
     def random_sample(self, cutoff):
+        """select a random subsample from all reads"""
         if len(self.read_names) > cutoff:
             self.selected = random.choices(self.read_names, k=cutoff)
         else:
             self.selected = self.read_names
 
     def trim_clip_all(self, incl_prim):
+        """trim all attached reads"""
         clip_ct_left = 0
         clip_ct_right = 0
         for read in self.reads_dct:
@@ -201,15 +222,14 @@ class Read:
         self.fastq = fastq
         self.name = self.header.split("@")[1] if self.fastq else self.header.split(">")[1]
         self.seq = seq
-    
+
 
     def non_neg(self, num):
-        if num < 0:
-            return 0
-        else:
-            return num
+        """return 0 if result < 0"""
+        return num if num >= 0 else 0
 
     def trim_to_amp(self, amp_start, amp_end, mapping):
+        """trim to amplicon boundaries including primers"""
         qlen, samestrand = mapping.qlen, mapping.samestrand
         qstart, qend = mapping.qstart, mapping.qend
         tstart, tend = mapping.tstart, mapping.tend
@@ -232,22 +252,23 @@ class Read:
             clip_left = 0
             ldiff = abs(tend - amp_end)
             if tend <= amp_end:
-                    clip_left = qstart - ldiff
+                clip_left = qstart - ldiff
             else:
                 clip_left = qstart + ldiff
-            
+
             clip_right = qlen
             rdiff = abs(amp_start - tstart)
             if tstart >= amp_start:
                 clip_right = qend + rdiff
             else:
                 clip_right = qend - rdiff
-        
+
         self.seq = self.seq[clip_left:clip_right]
         return clip_left, qlen - clip_right
 
 
     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
+        """trim to amplicon boundaries excluding primers"""
         qlen, samestrand = mapping.qlen, mapping.samestrand
         qstart, qend = mapping.qstart, mapping.qend
         tstart, tend = mapping.tstart, mapping.tend
@@ -294,7 +315,6 @@ class Read:
         return clip_left, qlen - clip_right
 
 
-
 def log_sp_error(error, message):
     """custom logging of subprocess errors"""
     logging.error(message)
@@ -307,28 +327,28 @@ def log_sp_error(error, message):
 def fastq_autoscan(read_file):
     """Scanning readfile to determine filetype"""
     logger.debug("Scanning readfile to determine filetype")
-    with open(read_file, "r") as rf:
+    with open(read_file, "r", encoding="utf-8") as rfl:
         line_ct = 0
         fastq = False
         while line_ct < 100:
-            for line in rf:
+            for line in rfl:
                 line_ct += 1
                 if line.startswith("@"):
                     fastq = True
                     break
     return fastq
 
-        
+
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
-    with open(name_scheme, "r") as scheme:
-        pd = json.loads(scheme.read())
+    with open(name_scheme, "r", encoding="utf-8") as scheme:
+        psd = json.loads(scheme.read())
 
-    with open(primer_bed, "r") as bed:
-        primers = list()
+    with open(primer_bed, "r", encoding="utf-8") as bed:
+        primers = []
         for line in bed:
-            prim = Primer(*line.strip().split("\t"), pd)
+            prim = Primer(*line.strip().split("\t"), psd)
             primers.append(prim)
     return sorted(primers, key=lambda x: x.end)
 
@@ -337,12 +357,12 @@ def generate_amps(primers):
     """generate amplicon objects"""
     logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
-    amps = list()
-    amp_lens = list()
+    amps = []
+    amp_lens = []
     for num in amp_nums:
-        ao = Amp(num, [primer for primer in primers if primer.amp_no == num])
-        amps.append(ao)
-        amp_lens.append(ao.max_len)
+        amp_obj = Amp(num, [primer for primer in primers if primer.amp_no == num])
+        amps.append(amp_obj)
+        amp_lens.append(amp_obj.max_len)
     av_amp_len = sum(amp_lens) / len(amp_lens)
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
@@ -350,10 +370,10 @@ def generate_amps(primers):
 def load_reads(read_file):
     """load reads into memory"""
     logger.info("loading reads")
-    reads = dict()
+    reads = {}
     fastq = fastq_autoscan(read_file)
     header_ind = "@" if fastq else ">"
-    with open(read_file, "r") as rfa:
+    with open(read_file, "r", encoding="utf-8") as rfa:
         for line in rfa:
             if line.startswith(header_ind):
                 header = line.strip().split(" ")[0]
@@ -393,11 +413,11 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
-        ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"], 
+        ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"],
         check=True, capture_output=True
         )
-    except subprocess.CalledProcessError as e:
-        log_sp_error(e, "Mapping of reads to reference failed")
+    except subprocess.CalledProcessError as err:
+        log_sp_error(err, "Mapping of reads to reference failed")
     return out_paf
 
 
@@ -414,12 +434,12 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
     logger.info("creating mapping objects")
     min_len = av_amp_len*0.5 if not set_min_len else set_min_len
     max_len = av_amp_len*1.5 if not set_max_len else set_max_len
-    with open(mm2_paf, "r") as paf:
+    with open(mm2_paf, "r", encoding="utf-8") as paf:
         map_dct = defaultdict(list)
         for line in paf:
             if len(line.strip()) > 0:
-                ls = line.strip().split("\t")
-                mapping = Mapping(*ls[:12], ls[12:])
+                lisp = line.strip().split("\t")
+                mapping = Mapping(*lisp[:12], lisp[12:])
                 map_dct[mapping.qname].append(mapping)
         mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
         mappings = [m for k, l in map_dct.items() for m in l]
@@ -437,15 +457,15 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
 
 
 if __name__ == "__main__":
-    start = perf_counter()
+    prstart = perf_counter()
     kwargs = vars(get_arguments())
 
     pkg_dir = os.path.split(os.path.abspath(__file__))[0]
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
         kwargs["name_scheme"] = os.path.join(pkg_dir, "resources", kwargs["name_scheme"] + ".json")
 
-    logger.info(f"notramp started with: {kwargs}")
-   
+    logger.info("notramp started with: %s", kwargs)
+
     if kwargs["cov"]:
         amp_cov.run_amp_cov_cap(**kwargs)
     elif kwargs["trim"]:
@@ -456,11 +476,11 @@ if __name__ == "__main__":
         map_trim.run_map_trim(**kwargs)
     else:
         print("Missing argument for notramp operation mode")
-    
+
     if not kwargs["out_dir"]:
         kwargs["out_dir"] = os.path.split(kwargs["reads"])[0]
     os.replace("notramp.log", os.path.join(kwargs["out_dir"], "notramp.log"))
-    
-    end = perf_counter()
-    runtime = end-start
-    logger.info(f"finished notramp after {runtime} seconds of runtime")
+
+    prend = perf_counter()
+    # run_time = str(prend-prstart)
+    logger.info("finished notramp after %s seconds of runtime", str(prend-prstart))

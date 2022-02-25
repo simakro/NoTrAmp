@@ -2,12 +2,14 @@
 # Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 # This file may not be copied, modified, or distributed except according to those terms.
 
-from collections import defaultdict
-import notramp as nta
+"""module for normalization of coverage per amplicon """
+
 import os
-import psutil
 import logging
 import logging.config
+import psutil
+import notramp as nta
+
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
@@ -15,8 +17,8 @@ logger = logging.getLogger(__name__)
 def bin_mappings(amp_bins, mappings, max_cov):
     """sort mappings to amplicons"""
     logger.info("sorting mappings to amplicons")
-    binned = list()
-    na = list()
+    binned = []
+    not_av = []
     while len(amp_bins) > 0:
         if len(mappings) > 0:
             if mappings[0].tend <= amp_bins[0].end + 5:
@@ -24,7 +26,7 @@ def bin_mappings(amp_bins, mappings, max_cov):
                     amp_bins[0].read_names.append(mappings[0].qname)
                     mappings.pop(0)
                 else:
-                    na.append(mappings[0].qname)
+                    not_av.append(mappings[0].qname)
                     mappings.pop(0)
             else:
                 binned.append(amp_bins[0])
@@ -32,13 +34,13 @@ def bin_mappings(amp_bins, mappings, max_cov):
         else:
             binned.append(amp_bins[0])
             break
-    
+
     num_selected = 0
-    for bin in binned:
-        bin.random_sample(max_cov)
-        logger.info(f"Amp_{bin.name} {str(len(bin.read_names))} selected: {str(len(bin.selected))}")
-        num_selected += len(bin.selected)
-        
+    for amp_bin in binned:
+        amp_bin.random_sample(max_cov)
+        amn, rct, slr = amp_bin.name, str(len(amp_bin.read_names)), str(len(amp_bin.selected))
+        logger.info("Amp_%s %s selected: %s", amn, rct, slr)
+        num_selected += len(amp_bin.selected)
     return binned
 
 
@@ -46,32 +48,32 @@ def write_capped_from_file(binned, reads, fa_out):
     """write subsample to outfile using reads-file as source"""
     logger.info("writing subsample to outfile using reads-file as source")
     fastq = nta.fastq_autoscan(reads)
-    hi = "@" if fastq else ">"
-    all_picks = [hi + name for amp in binned for name in amp.selected]
-    with open(reads, "r") as fi, open(fa_out, "w") as fa:
-        for line in fi:
-            if line.startswith(hi):
+    hin = "@" if fastq else ">"
+    all_picks = [hin + name for amp in binned for name in amp.selected]
+    with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as fao:
+        for line in rfi:
+            if line.startswith(hin):
                 readname = line.split(" ")[0]
                 if readname in all_picks:
                     if fastq:
                         readname = readname.replace("@", ">")
-                    fa.write(readname + "\n")
-                    fa.write(next(fi))
+                    fao.write(readname + "\n")
+                    fao.write(next(rfi))
 
 
 def write_capped_from_loaded(binned, loaded_reads, fa_out):
     """write subsample to outfile using loaded reads as source"""
     logger.info("writing subsample to outfile using loaded reads as source")
     all_picks = [name for amp in binned for name in amp.selected]
-    with open(fa_out, "w") as fa:
+    with open(fa_out, "w", encoding="utf-8") as fao:
         for name in all_picks:
             try:
                 header = ">" + name + "\n"
                 seq = loaded_reads[name].seq + "\n"
-                fa.write(header)
-                fa.write(seq)
-            except KeyError as e:
-                logging.exception(f"Error: read {name} was not found in loaded reads")
+                fao.write(header)
+                fao.write(seq)
+            except KeyError:
+                logging.exception("Error: read %s was not found in loaded reads", name)
 
 
 def chk_mem_fit(read_path):
@@ -101,7 +103,7 @@ def run_amp_cov_cap(**kw):
     if mem_fit:
         loaded_reads = nta.load_reads(kw["reads"])
         write_capped_from_loaded(binned, loaded_reads, fa_out)
-        del(loaded_reads)
+        del loaded_reads
     else:
         write_capped_from_file(binned, kw["reads"], fa_out)
     os.remove(out_paf)
