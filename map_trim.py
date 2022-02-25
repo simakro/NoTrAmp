@@ -57,8 +57,8 @@ def clip_and_write_out(amp_bins, clipped_out, incl_prim):
                 out.write(amp.reads_dct[read].header + "\n")
                 out.write(amp.reads_dct[read].seq + "\n")
                 clipped_out += 1
-    print(f"{clipped_out} reads were processed for clipping")
-    print(
+    logger.info(f"{clipped_out} reads were processed for clipping")
+    logger.info(
         f"{clip_ct['left']} bases were clipped from the fw/left-primer side of reads and "
         f"{clip_ct['right']} bases were clipped from the rev/right-primer side of reads"
     )

@@ -13,7 +13,7 @@ import amp_cov
 import map_trim
 
 
-logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+# logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 def get_arguments():
@@ -460,6 +460,10 @@ if __name__ == "__main__":
         map_trim.run_map_trim(**kwargs)
     else:
         print("Missing argument for notramp operation mode")
+    
+    if not kwargs["out_dir"]:
+        kwargs["out_dir"] = os.path.split(kwargs["reads"])[0]
+    os.replace("notramp.log", os.path.join(kwargs["out_dir"], "notramp.log"))
     
     end = perf_counter()
     runtime = end-start
