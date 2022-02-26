@@ -94,35 +94,8 @@ def get_arguments():
 class Mapping:
     """class for storage and handling of mapping information"""
 
-    def __init__(
-        self,
-        posattr,
-        # qname,
-        # qlen,
-        # qstart,
-        # qend,
-        # samestrand,
-        # tname,
-        # tlen,
-        # tstart,
-        # tend,
-        # matches,
-        # total_bp,
-        # qual,
-        kwattr,
-    ):
-        # self.qname = qname
-        # self.qlen = int(qlen)
-        # self.qstart = int(qstart)
-        # self.qend = int(qend)
-        # self.samestrand = Mapping.eval_strand(samestrand)
-        # self.tname = tname
-        # self.tlen = int(tlen)
-        # self.tstart = int(tstart)
-        # self.tend = int(tend)
-        # self.matches = int(matches)
-        # self.total_bp = int(total_bp)
-        # self.qual = int(qual)
+    def __init__(self, qname, posattr, kwattr):
+        self.qname = qname
         self.posattr = posattr
         self.kwattr = kwattr
         self.gen_pos_attr()
@@ -137,7 +110,6 @@ class Mapping:
     def gen_pos_attr(self):
         """generate class attributes from positional info in mapping output"""
         posattr_dict = {
-            "qname" : str,
             "qlen": int,
             "qstart": int,
             "qend": int,
@@ -164,16 +136,14 @@ class Mapping:
 class Primer:
     """class for storage and handling of primer information"""
 
-    def __init__(self, contig, start, end, name, score, strand, naming_scheme):
-        self.contig = contig
+    def __init__(self, start, end, name, add_info, naming_scheme):
         self.start = int(start)
         self.end = int(end)
         self.name = name
-        self.score = int(score)
-        self.strand = strand
+        self.add_info = add_info
         self.type = "primary"
         self.scheme = naming_scheme
-        self.amp_no, self.pos = self.get_name_infos()
+        self.get_name_infos()
 
 
     def get_name_infos(self):
@@ -182,7 +152,12 @@ class Primer:
         if len(lsp) == self.scheme["max_len"]:
             self.type = "alt"
             self.alt_name = lsp[self.scheme["alt"]]
-        return lsp[self.scheme["amp_num"]], lsp[self.scheme["position"]]
+        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
+        self.__dict__["pos"] = lsp[self.scheme["position"]]
+
+    def get_len(self):
+        """get primer length"""
+        return self.end - self.start + 1
 
 
 class Amp:
@@ -194,18 +169,7 @@ class Amp:
         self.primers = primers
         self.start = min([primer.start for primer in primers])
         self.end = max([primer.end for primer in primers])
-        # self.max_len = self.end - self.start
-        # self.fwp_boundary = max(
-        #     [prim for prim in primers if prim.pos == prim.scheme["fw_indicator"]],
-        #     key=lambda x: x.end
-        # ).end
-        # self.revp_boundary = min(
-        #     [prim for prim in primers if prim.pos == prim.scheme["rev_indicator"]],
-        #     key=lambda x: x.start
-        # ).start
         self.mappings = {}
-        self.read_names = []
-        self.reads = []
         self.reads_dct = {}
         self.selected = []
 
@@ -230,10 +194,11 @@ class Amp:
 
     def random_sample(self, cutoff):
         """select a random subsample from all reads"""
-        if len(self.read_names) > cutoff:
-            self.selected = random.choices(self.read_names, k=cutoff)
+        if len(self.reads_dct) > cutoff:
+            read_names = list(self.reads_dct.keys())
+            self.selected = random.choices(read_names, k=cutoff)
         else:
-            self.selected = self.read_names
+            self.selected = list(self.reads_dct.keys())
 
     def trim_clip_all(self, incl_prim):
         """trim all attached reads"""
@@ -391,7 +356,9 @@ def create_primer_objs(primer_bed, name_scheme):
     with open(primer_bed, "r", encoding="utf-8") as bed:
         primers = []
         for line in bed:
-            prim = Primer(*line.strip().split("\t"), psd)
+            contig, start, end, name, score, strand = line.strip().split("\t")
+            add_info = {"contig": contig, "strand": strand, "score": score}
+            prim = Primer(start, end, name, add_info, psd)
             primers.append(prim)
     return sorted(primers, key=lambda x: x.end)
 
@@ -482,7 +449,7 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
         for line in paf:
             if len(line.strip()) > 0:
                 lisp = line.strip().split("\t")
-                mapping = Mapping(lisp[:12], lisp[12:])
+                mapping = Mapping(lisp[0], lisp[1:12], lisp[12:])
                 map_dct[mapping.qname].append(mapping)
         mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
         mappings = [m for k, l in map_dct.items() for m in l]
