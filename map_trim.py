@@ -72,7 +72,7 @@ def run_map_trim(**kw):
     amps, av_amp_len = nta.generate_amps(primers)
     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "trim")
     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    mappings = nta.create_read_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
+    mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     amps_bin_maps = bin_mappings(amps, mappings)
     loaded_reads = nta.load_reads(kw["reads"])
     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)

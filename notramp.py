@@ -53,17 +53,20 @@ def get_arguments():
     read_input.add_argument(
         "-a", "--all",
         help="Perform read depth normalization by coverage-capping/downsampling"
-        " first, then clipp the normalized reads.",
+        " first, then clip the normalized reads. (mut.excl. with -c, -t)",
         default=False,  action='store_true'
         )
     read_input.add_argument(
         "-c", "--cov",
-        help="Perform only read-depth normalization/downsampling.",
+        help="Perform only read-depth normalization/downsampling."
+        " (mut.excl. with -a, -t)",
         default=False, action='store_true'
         )
     read_input.add_argument(
         "-t", "--trim",
-        help="Perform only trimming to amplicon length (excluding primers).",
+        help="Perform only trimming to amplicon length (excluding primers"
+        " by default; to include primers set --incl_prim flag)."
+        " (mut.excl. with -a, -c)",
         default=False, action='store_true'
         )
 
@@ -118,73 +121,6 @@ def get_arguments():
 
     args = parser.parse_args()
     return args
-
-
-class Mapping:
-    """class for storage and handling of mapping information"""
-
-    def __init__(self, qname, posattr, kwattr):
-        self.qname = qname
-        self.posattr = posattr
-        self.kwattr = kwattr
-        self.gen_pos_attr()
-        self.gen_kw_attr()
-
-    @staticmethod
-    def eval_strand(strand_info):
-        """evaluate strand info"""
-        return True if strand_info == "+" else False
-
-    def gen_pos_attr(self):
-        """generate class attributes from positional info in mapping output"""
-        posattr_dict = {
-            "qlen": int,
-            "qstart": int,
-            "qend": int,
-            "samestrand": Mapping.eval_strand,
-            "tname": str,
-            "tlen": int,
-            "tstart": int,
-            "tend": int,
-            "matches": int,
-            "total_bp": int,
-            "qual": int
-        }
-        zip_attr = zip(posattr_dict.keys(), self.posattr)
-        for key, val in zip_attr:
-            self.__dict__[key] = posattr_dict[key](val)
-
-    def gen_kw_attr(self):
-        """generate class attributes from key-worded entries in mapping output"""
-        kwattr_dict = {kw.split(":")[0]: kw.split(":")[-1] for kw in self.kwattr}
-        for key in kwattr_dict:
-            self.__dict__[key] = kwattr_dict[key]
-
-
-class Primer:
-    """class for storage and handling of primer information"""
-
-    def __init__(self, start, end, name, add_info, naming_scheme):
-        self.start = int(start)
-        self.end = int(end)
-        self.name = name
-        self.add_info = add_info
-        self.type = "primary"
-        self.scheme = naming_scheme
-        self.get_name_infos()
-
-    def get_name_infos(self):
-        """extract information from primer name"""
-        lsp = self.name.split(self.scheme["sep"])
-        if len(lsp) == self.scheme["max_len"]:
-            self.type = "alt"
-            self.alt_name = lsp[self.scheme["alt"]]
-        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
-        self.__dict__["pos"] = lsp[self.scheme["position"]]
-
-    def get_len(self):
-        """get primer length"""
-        return self.end - self.start + 1
 
 
 class Amp:
@@ -348,6 +284,73 @@ class Read:
         return clip_left, qlen - clip_right
 
 
+class Mapping:
+    """class for storage and handling of mapping information"""
+
+    def __init__(self, qname, posattr, kwattr):
+        self.qname = qname
+        self.posattr = posattr
+        self.kwattr = kwattr
+        self.gen_pos_attr()
+        self.gen_kw_attr()
+
+    @staticmethod
+    def eval_strand(strand_info):
+        """evaluate strand info"""
+        return True if strand_info == "+" else False
+
+    def gen_pos_attr(self):
+        """generate class attributes from positional info in mapping output"""
+        posattr_dict = {
+            "qlen": int,
+            "qstart": int,
+            "qend": int,
+            "samestrand": Mapping.eval_strand,
+            "tname": str,
+            "tlen": int,
+            "tstart": int,
+            "tend": int,
+            "matches": int,
+            "total_bp": int,
+            "qual": int
+        }
+        zip_attr = zip(posattr_dict.keys(), self.posattr)
+        for key, val in zip_attr:
+            self.__dict__[key] = posattr_dict[key](val)
+
+    def gen_kw_attr(self):
+        """generate class attributes from key-worded entries in mapping output"""
+        kwattr_dict = {kw.split(":")[0]: kw.split(":")[-1] for kw in self.kwattr}
+        for key in kwattr_dict:
+            self.__dict__[key] = kwattr_dict[key]
+
+
+class Primer:
+    """class for storage and handling of primer information"""
+
+    def __init__(self, start, end, name, add_info, naming_scheme):
+        self.start = int(start)
+        self.end = int(end)
+        self.name = name
+        self.add_info = add_info
+        self.type = "primary"
+        self.scheme = naming_scheme
+        self.get_name_infos()
+
+    def get_name_infos(self):
+        """extract information from primer name"""
+        lsp = self.name.split(self.scheme["sep"])
+        if len(lsp) == self.scheme["max_len"]:
+            self.type = "alt"
+            self.alt_name = lsp[self.scheme["alt"]]
+        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
+        self.__dict__["pos"] = lsp[self.scheme["position"]]
+
+    def get_len(self):
+        """get primer length"""
+        return self.end - self.start + 1
+
+
 def log_sp_error(error, message):
     """custom logging of subprocess errors"""
     logging.error(message)
@@ -457,19 +460,8 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     return out_paf
 
 
-def filter_read_mappings(mappings, min_len, max_len):
-    """filter reads"""
-    logger.info("filtering reads")
-    mappings = [m for m in mappings if min_len < m.qlen < max_len]
-    mappings = [m for m in mappings if m.qual == 60]
-    return mappings
-
-
-def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
-    """create mapping objects"""
-    logger.info("creating mapping objects")
-    min_len = av_amp_len*0.5 if not set_min_len else set_min_len
-    max_len = av_amp_len*1.5 if not set_max_len else set_max_len
+def gen_mapping_objs(mm2_paf):
+    """generate mapping objects"""
     with open(mm2_paf, "r", encoding="utf-8") as paf:
         map_dct = defaultdict(list)
         for line in paf:
@@ -477,18 +469,35 @@ def create_read_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
                 lisp = line.strip().split("\t")
                 mapping = Mapping(lisp[0], lisp[1:12], lisp[12:])
                 map_dct[mapping.qname].append(mapping)
-        mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
-        mappings = [m for k, l in map_dct.items() for m in l]
-        mappings = filter_read_mappings(mappings, min_len, max_len)
-        mono_mappings = [m for m in mappings if m.qname not in mult_maps]
-        dual_mappings = {k: v for k, v in mult_maps.items() if len(v) == 2}
-        incl_max = [
-            max(dual_mappings[mname], key=lambda x: x.matches)
-            for mname in dual_mappings
-        ]
-        incl_max = filter_read_mappings(incl_max, min_len, max_len)
-        mono_mappings.extend(incl_max)
-        mappings = mono_mappings
+    return map_dct
+
+
+def filter_read_mappings(mappings, min_len, max_len):
+    """filter reads mappings"""
+    logger.info("filtering read mappings")
+    mappings = [m for m in mappings if min_len < m.qlen < max_len]
+    mappings = [m for m in mappings if m.qual == 60]
+    return mappings
+
+
+def create_filt_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
+    """create filtered mapping objects"""
+    logger.info("creating filtered mapping objects")
+    min_len = av_amp_len*0.5 if not set_min_len else set_min_len
+    max_len = av_amp_len*1.5 if not set_max_len else set_max_len
+    map_dct = gen_mapping_objs(mm2_paf)
+    mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
+    mappings = [m for k, l in map_dct.items() for m in l]
+    mappings = filter_read_mappings(mappings, min_len, max_len)
+    mono_mappings = [m for m in mappings if m.qname not in mult_maps]
+    dual_mappings = {k: v for k, v in mult_maps.items() if len(v) == 2}
+    incl_max = [
+        max(dual_mappings[mname], key=lambda x: x.matches)
+        for mname in dual_mappings
+    ]
+    incl_max = filter_read_mappings(incl_max, min_len, max_len)
+    mono_mappings.extend(incl_max)
+    mappings = mono_mappings
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
 
 

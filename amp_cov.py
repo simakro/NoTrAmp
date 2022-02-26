@@ -99,7 +99,7 @@ def run_amp_cov_cap(**kw):
     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     amps, av_amp_len = nta.generate_amps(primers)
-    mappings = nta.create_read_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
+    mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     binned = bin_mappings(amps, mappings, kw["max_cov"])
     fa_out = nta.name_out_reads(kw["reads"], "cap", kw["out_dir"])
     mem_fit = chk_mem_fit(kw["reads"])
