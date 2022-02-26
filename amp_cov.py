@@ -14,34 +14,6 @@ import notramp as nta
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
-# def bin_mappings(amp_bins, mappings, max_cov):
-#     """sort mappings to amplicons"""
-#     logger.info("sorting mappings to amplicons")
-#     binned = []
-#     not_av = []
-#     while len(amp_bins) > 0:
-#         if len(mappings) > 0:
-#             if mappings[0].tend <= amp_bins[0].end + 5:
-#                 if mappings[0].tstart >= amp_bins[0].start - 5:
-#                     amp_bins[0].read_names.append(mappings[0].qname)
-#                     mappings.pop(0)
-#                 else:
-#                     not_av.append(mappings[0].qname)
-#                     mappings.pop(0)
-#             else:
-#                 binned.append(amp_bins[0])
-#                 amp_bins.pop(0)
-#         else:
-#             binned.append(amp_bins[0])
-#             break
-
-#     num_selected = 0
-#     for amp_bin in binned:
-#         amp_bin.random_sample(max_cov)
-#         amn, rct, slr = amp_bin.name, str(len(amp_bin.read_names)), str(len(amp_bin.selected))
-#         logger.info("Amp_%s %s selected: %s", amn, rct, slr)
-#         num_selected += len(amp_bin.selected)
-#     return binned
 
 def bin_mappings(amp_bins, mappings, max_cov):
     """sort mappings to amplicons"""
@@ -52,7 +24,7 @@ def bin_mappings(amp_bins, mappings, max_cov):
         if len(mappings) > 0:
             if mappings[0].tend <= amp_bins[0].end + 5:
                 if mappings[0].tstart >= amp_bins[0].start - 5:
-                    amp_bins[0].reads_dct[mappings[0].qname]= mappings[0].qname
+                    amp_bins[0].reads_dct[mappings[0].qname] = mappings[0].qname
                     mappings.pop(0)
                 else:
                     not_av.append(mappings[0].qname)
@@ -67,7 +39,9 @@ def bin_mappings(amp_bins, mappings, max_cov):
     num_selected = 0
     for amp_bin in binned:
         amp_bin.random_sample(max_cov)
-        amn, rct, slr = amp_bin.name, str(len(amp_bin.reads_dct)), str(len(amp_bin.selected))
+        amn = amp_bin.name
+        rct = str(len(amp_bin.reads_dct))
+        slr = str(len(amp_bin.selected))
         logger.info("Amp_%s %s selected: %s", amn, rct, slr)
         num_selected += len(amp_bin.selected)
     return binned

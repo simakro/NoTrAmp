@@ -25,67 +25,95 @@ logger = logging.getLogger(__name__)
 
 def get_arguments():
     """get arguments from the command line"""
-    parser = argparse.ArgumentParser(description=
-        "NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated "
-        "with long read technologies (ONT/PacBio). It can be used in amplicon-tiling approaches to "
-        "cap coverage  of each amplicon and to trim amplicons to their appropriate length "
-        "removing barcodes, adpaters and primers (if desired) in a single clipping step.",
-        add_help=True)
+    parser = argparse.ArgumentParser(
+        description="NoTrAmp is a Tool for read-depth normalization and trimming"
+        " of amplicon reads generated with long read technologies (ONT/PacBio)."
+        " It can be used in amplicon-tiling approaches to cap coverage  of each"
+        " amplicon and to trim amplicons to their appropriate length removing "
+        "barcodes, adpaters and primers (if desired) in a single clipping step.",
+        add_help=True
+        )
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument("-p", "--primers", required=True,
-        help="Path to primer bed-file (primer-names must adhere to a consistent "
-        "naming scheme see readme)")
-    required_args.add_argument("-r", "--reads", required=True,
-        help="Path to sequencing reads fasta")
-    required_args.add_argument("-g", "--reference", required=True,
-        help="Path to reference (genome)")
+    required_args.add_argument(
+        "-p", "--primers", required=True,
+        help="Path to primer bed-file (primer-names must adhere to a consistent"
+        " naming scheme see readme)"
+        )
+    required_args.add_argument(
+        "-r", "--reads", required=True,
+        help="Path to sequencing reads fasta"
+        )
+    required_args.add_argument(
+        "-g", "--reference", required=True,
+        help="Path to reference (genome)"
+        )
 
     read_input = required_args.add_mutually_exclusive_group(required=True)
-    read_input.add_argument("-a", "--all",
-        help="Perform read depth normalization by coverage-capping/downsampling "
-        "first, then clipp the normalized reads.",
-        default=False,  action='store_true')
-    read_input.add_argument("-c", "--cov",
+    read_input.add_argument(
+        "-a", "--all",
+        help="Perform read depth normalization by coverage-capping/downsampling"
+        " first, then clipp the normalized reads.",
+        default=False,  action='store_true'
+        )
+    read_input.add_argument(
+        "-c", "--cov",
         help="Perform only read-depth normalization/downsampling.",
-        default=False, action='store_true')
-    read_input.add_argument("-t", "--trim",
+        default=False, action='store_true'
+        )
+    read_input.add_argument(
+        "-t", "--trim",
         help="Perform only trimming to amplicon length (excluding primers).",
-        default=False, action='store_true')
+        default=False, action='store_true'
+        )
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument("-o", dest='out_dir',
+    optional_args.add_argument(
+        "-o", dest='out_dir',
         default=False,
         help="Optionally specify a directory for saving of outfiles. If this "
         "argument is not given, out-files will be saved in the directory where"
-        "the input reads are located. [default=False]")
-    optional_args.add_argument("-m", dest='max_cov',
+        "the input reads are located. [default=False]"
+        )
+    optional_args.add_argument(
+        "-m", dest='max_cov',
         default=200, type=int,
         help="Provide threshold for maximum read-depth per amplicon as integer "
-        "value. [default=200]")
-    optional_args.add_argument("-s", dest='seq_tec',
+        "value. [default=200]"
+        )
+    optional_args.add_argument(
+        "-s", dest='seq_tec',
         default="ont",
-        help="Specify long-read sequencing technology (ont/pb). [default='ont']")
-    optional_args.add_argument("-n", dest='name_scheme',
+        help="Specify long-read sequencing technology (ont/pb). [default='ont']"
+        )
+    optional_args.add_argument(
+        "-n", dest='name_scheme',
         default="artic_nCoV_scheme",
         help="Provide path to json-file containing a naming scheme which is "
-        "consistently used for all primers. [default='artic_nCoV_scheme']")
-    optional_args.add_argument("--set_min_len", dest='set_min_len',
+        "consistently used for all primers. [default='artic_nCoV_scheme']"
+        )
+    optional_args.add_argument(
+        "--set_min_len", dest='set_min_len',
         default=False, type=int,
         help="Set a minimum required length for alignments of reads to amplicon. "
         "If this is not set the min_len will be 0.5 * average_amp_len. "
         "If amplicon sizes are relatively homogenous this parameter is not "
-        "required [default=False]")
-    optional_args.add_argument("--set_max_len", dest='set_max_len',
+        "required [default=False]"
+        )
+    optional_args.add_argument(
+        "--set_max_len", dest='set_max_len',
         default=False, type=int,
         help="Set a maximum required length for alignments of reads to amplicon. "
         "If this is not set the max_len will be 1.5 * average_amp_len. "
         "If amplicon sizes are relatively homogenous this parameter is not "
-        "required [default=False]")
-    optional_args.add_argument("--incl_prim", dest='incl_prim',
+        "required [default=False]"
+        )
+    optional_args.add_argument(
+        "--incl_prim", dest='incl_prim',
         default=False, action='store_true',
         help="Set to False if you want to include the primer sequences in the "
         "trimmed reads. By default primers are removed together with all "
-        "overhanging sequences. [default=False]")
+        "overhanging sequences. [default=False]"
+        )
 
     args = parser.parse_args()
     return args
@@ -100,7 +128,6 @@ class Mapping:
         self.kwattr = kwattr
         self.gen_pos_attr()
         self.gen_kw_attr()
-
 
     @staticmethod
     def eval_strand(strand_info):
@@ -145,7 +172,6 @@ class Primer:
         self.scheme = naming_scheme
         self.get_name_infos()
 
-
     def get_name_infos(self):
         """extract information from primer name"""
         lsp = self.name.split(self.scheme["sep"])
@@ -172,7 +198,6 @@ class Amp:
         self.mappings = {}
         self.reads_dct = {}
         self.selected = []
-
 
     def fwp_boundary(self):
         """get inner boundary of forward primer"""
@@ -273,7 +298,6 @@ class Read:
 
         self.seq = self.seq[clip_left:clip_right]
         return clip_left, qlen - clip_right
-
 
     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
         """trim to amplicon boundaries excluding primers"""
@@ -398,7 +422,7 @@ def name_out_paf(reads, reference, mod_name):
     logger.debug("naming mapping file")
     read_dir, reads_file = os.path.split(reads)
     reads_name = ".".join(reads_file.split(".")[:-1])
-    ref_name =  ".".join(os.path.split(reference)[1].split(".")[:-1])
+    ref_name = ".".join(os.path.split(reference)[1].split(".")[:-1])
     paf_name = f"{reads_name}_mapto_{ref_name}.{mod_name}.paf"
     return os.path.join(read_dir, paf_name)
 
@@ -423,8 +447,9 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
-        ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"],
-        check=True, capture_output=True
+            ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"],
+            check=True,
+            capture_output=True
         )
     except subprocess.CalledProcessError as err:
         log_sp_error(err, "Mapping of reads to reference failed")

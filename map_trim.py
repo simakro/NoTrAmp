@@ -7,10 +7,12 @@
 import os
 import logging
 import logging.config
-import notramp  as nta
+import notramp as nta
+
 
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
+
 
 def bin_mappings(amp_bins, mappings):
     """sort mappings to amplicons"""
@@ -78,4 +80,3 @@ def run_map_trim(**kw):
     clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
     os.remove(out_paf)
     return clipped_out
-    
