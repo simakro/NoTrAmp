@@ -1,12 +1,12 @@
 {
     "python.linting.pycodestyleEnabled": false,
-    "python.linting.enabled": false,
+    "python.linting.enabled": true,
     "python.linting.pydocstyleEnabled": false,
-    "python.linting.pylintEnabled": false,
+    "python.linting.pylintEnabled": true,
     "editor.rulers": [
         80,
         100
     ],
     "python.linting.flake8Enabled": false,
-    "python.linting.mypyEnabled": true
+    "python.linting.mypyEnabled": false
 }
