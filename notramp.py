@@ -85,6 +85,13 @@ def get_arguments():
         " value. [default=200]"
         )
     optional_args.add_argument(
+        "--incl_prim", dest='incl_prim',
+        default=False, action='store_true',
+        help="Set to False if you want to include the primer sequences in the "
+        "trimmed reads. By default primers are removed together with all "
+        "overhanging sequences. [default=False]"
+        )
+    optional_args.add_argument(
         "-s", dest='seq_tec',
         default="ont",
         help="Specify long-read sequencing technology (ont/pb). [default='ont']"
@@ -97,7 +104,7 @@ def get_arguments():
         )
     optional_args.add_argument(
         "--set_min_len", dest='set_min_len',
-        default=False, type=int,
+        default=False, type=bool,
         help="Set a minimum required length for alignments of reads to "
         "amplicon. If this is not set the min_len will be 0.5*average_amp_len."
         " If amplicon sizes are relatively homogenous this parameter is not"
@@ -105,18 +112,17 @@ def get_arguments():
         )
     optional_args.add_argument(
         "--set_max_len", dest='set_max_len',
-        default=False, type=int,
+        default=False, type=bool,
         help="Set a maximum required length for alignments of reads to"
         " amplicon. If this is not set the max_len will be 1.5*average_amp_len."
         " If amplicon sizes are relatively homogenous this parameter is not "
         " required [default=False]"
         )
     optional_args.add_argument(
-        "--incl_prim", dest='incl_prim',
-        default=False, action='store_true',
-        help="Set to False if you want to include the primer sequences in the "
-        "trimmed reads. By default primers are removed together with all "
-        "overhanging sequences. [default=False]"
+        "--set_margins", dest='margins',
+        default=5, type=int,
+        help="Set length of tolerance margins for sorting of mappings to "
+        " amplicons. [default=5]"
         )
 
     args = parser.parse_args()

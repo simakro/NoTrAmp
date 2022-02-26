@@ -14,15 +14,15 @@ logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
-def bin_mappings(amp_bins, mappings):
+def bin_mappings(amp_bins, mappings, margins):
     """sort mappings to amplicons"""
     logger.info("sorting mappings to amplicons")
     binned = []
     not_av = []
     while len(amp_bins) > 0:
         if len(mappings) > 0:
-            if mappings[0].tend <= amp_bins[0].end + 5:
-                if mappings[0].tstart >= amp_bins[0].start - 5:
+            if mappings[0].tend <= amp_bins[0].end + margins:
+                if mappings[0].tstart >= amp_bins[0].start - margins:
                     amp_bins[0].mappings[mappings[0].qname] = mappings[0]
                     mappings.pop(0)
                 else:
@@ -73,7 +73,7 @@ def run_map_trim(**kw):
     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "trim")
     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    amps_bin_maps = bin_mappings(amps, mappings)
+    amps_bin_maps = bin_mappings(amps, mappings, kw["margins"])
     loaded_reads = nta.load_reads(kw["reads"])
     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])

@@ -15,15 +15,15 @@ logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
-def bin_mappings(amp_bins, mappings, max_cov):
+def bin_mappings(amp_bins, mappings, max_cov, margins):
     """sort mappings to amplicons"""
     logger.info("sorting mappings to amplicons")
     binned = []
     not_av = []
     while len(amp_bins) > 0:
         if len(mappings) > 0:
-            if mappings[0].tend <= amp_bins[0].end + 5:
-                if mappings[0].tstart >= amp_bins[0].start - 5:
+            if mappings[0].tend <= amp_bins[0].end + margins:
+                if mappings[0].tstart >= amp_bins[0].start - margins:
                     amp_bins[0].reads_dct[mappings[0].qname] = mappings[0].qname
                     mappings.pop(0)
                 else:
@@ -100,7 +100,7 @@ def run_amp_cov_cap(**kw):
     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     amps, av_amp_len = nta.generate_amps(primers)
     mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    binned = bin_mappings(amps, mappings, kw["max_cov"])
+    binned = bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
     fa_out = nta.name_out_reads(kw["reads"], "cap", kw["out_dir"])
     mem_fit = chk_mem_fit(kw["reads"])
     if mem_fit:
