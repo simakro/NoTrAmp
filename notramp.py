@@ -26,11 +26,12 @@ logger = logging.getLogger(__name__)
 def get_arguments():
     """get arguments from the command line"""
     parser = argparse.ArgumentParser(
-        description="NoTrAmp is a Tool for read-depth normalization and trimming"
-        " of amplicon reads generated with long read technologies (ONT/PacBio)."
-        " It can be used in amplicon-tiling approaches to cap coverage  of each"
-        " amplicon and to trim amplicons to their appropriate length removing "
-        "barcodes, adpaters and primers (if desired) in a single clipping step.",
+        description="NoTrAmp is a Tool for read-depth normalization and"
+        " trimming of amplicon reads generated with long read technologies"
+        " (ONT/PacBio). It can be used in amplicon-tiling approaches to cap"
+        " coverage of each amplicon and to trim amplicons to their appropriate"
+        " length removing barcodes, adpaters and primers (if desired) in a"
+        " single clipping step.",
         add_help=True
         )
     required_args = parser.add_argument_group('Required arguments')
@@ -72,13 +73,13 @@ def get_arguments():
         default=False,
         help="Optionally specify a directory for saving of outfiles. If this "
         "argument is not given, out-files will be saved in the directory where"
-        "the input reads are located. [default=False]"
+        " the input reads are located. [default=False]"
         )
     optional_args.add_argument(
         "-m", dest='max_cov',
         default=200, type=int,
-        help="Provide threshold for maximum read-depth per amplicon as integer "
-        "value. [default=200]"
+        help="Provide threshold for maximum read-depth per amplicon as integer"
+        " value. [default=200]"
         )
     optional_args.add_argument(
         "-s", dest='seq_tec',
@@ -94,18 +95,18 @@ def get_arguments():
     optional_args.add_argument(
         "--set_min_len", dest='set_min_len',
         default=False, type=int,
-        help="Set a minimum required length for alignments of reads to amplicon. "
-        "If this is not set the min_len will be 0.5 * average_amp_len. "
-        "If amplicon sizes are relatively homogenous this parameter is not "
-        "required [default=False]"
+        help="Set a minimum required length for alignments of reads to "
+        "amplicon. If this is not set the min_len will be 0.5*average_amp_len."
+        " If amplicon sizes are relatively homogenous this parameter is not"
+        " required [default=False]"
         )
     optional_args.add_argument(
         "--set_max_len", dest='set_max_len',
         default=False, type=int,
-        help="Set a maximum required length for alignments of reads to amplicon. "
-        "If this is not set the max_len will be 1.5 * average_amp_len. "
-        "If amplicon sizes are relatively homogenous this parameter is not "
-        "required [default=False]"
+        help="Set a maximum required length for alignments of reads to"
+        " amplicon. If this is not set the max_len will be 1.5*average_amp_len."
+        " If amplicon sizes are relatively homogenous this parameter is not "
+        " required [default=False]"
         )
     optional_args.add_argument(
         "--incl_prim", dest='incl_prim',
