@@ -8,5 +8,5 @@ NoTrAmp is a Tool for read-depth normalization and trimming of amplicon
  reads generated with long read technologies (ONT/PacBio).
 """
 
-import os
+# import os
 from .version import __version__
