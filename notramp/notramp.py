@@ -15,8 +15,8 @@ import sys
 import os
 from collections import defaultdict
 
-import amp_cov
-import map_trim
+import notramp.amp_cov
+import notramp.map_trim
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
