@@ -17,8 +17,8 @@ import sys
 import os
 from collections import defaultdict
 
-from notramp import amp_cov
-from notramp import map_trim
+import notramp_amp_cov
+import notramp_map_trim
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
@@ -89,9 +89,9 @@ def get_arguments():
     optional_args.add_argument(
         "--incl_prim", dest='incl_prim',
         default=False, action='store_true',
-        help="Set to False if you want to include the primer sequences in the "
+        help="Set this flag if you want to include the primer sequences in the "
         "trimmed reads. By default primers are removed together with all "
-        "overhanging sequences. [default=False]"
+        "overhanging sequences like barcodes and adapters."
         )
     optional_args.add_argument(
         "-s", dest='seq_tec',
