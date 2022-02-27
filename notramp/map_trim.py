@@ -4,10 +4,10 @@
 
 """module for trimming of reads to amplicon size"""
 
-import os
+# import os
 import logging
 import logging.config
-import notramp.notramp_main as nta
+# import notramp.notramp_main as nta
 
 
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
@@ -65,18 +65,18 @@ def clip_and_write_out(amp_bins, clipped_out, incl_prim):
     logger.info("%d bases were clipped from the rev/right-primer side of reads", clip_ct["right"])
 
 
-def run_map_trim(**kw):
-    """trimming/clipping of reads"""
-    logger.info("Start trimming/clipping of reads")
-    primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
-    amps, av_amp_len = nta.generate_amps(primers)
-    out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "trim")
-    mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    amps_bin_maps = bin_mappings(amps, mappings, kw["margins"])
-    loaded_reads = nta.load_reads(kw["reads"])
-    amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
-    clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])
-    clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
-    os.remove(out_paf)
-    return clipped_out
+# def run_map_trim(**kw):
+#     """trimming/clipping of reads"""
+#     logger.info("Start trimming/clipping of reads")
+#     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
+#     amps, av_amp_len = nta.generate_amps(primers)
+#     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "trim")
+#     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
+#     mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
+#     amps_bin_maps = bin_mappings(amps, mappings, kw["margins"])
+#     loaded_reads = nta.load_reads(kw["reads"])
+#     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
+#     clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])
+#     clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
+#     os.remove(out_paf)
+#     return clipped_out

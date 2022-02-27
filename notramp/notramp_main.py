@@ -16,6 +16,7 @@ import os
 from collections import defaultdict
 
 print("From .py in notramp")
+print("__name__", __name__)
 print(f"From .py in {os.path.realpath(__file__)}")
 # print(sys.modules)
 print("sys.path", sys.path)
@@ -31,8 +32,11 @@ print("real_path", real_path)
 print("normpath", os.path.normpath(__file__))
 
 
-import notramp.amp_cov
-import notramp.map_trim
+# import notramp.amp_cov as amp_cov
+# import notramp.map_trim as map_trim
+import nta_aux as aux
+import amp_cov
+import map_trim
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
@@ -382,19 +386,19 @@ def log_sp_error(error, message):
     sys.exit()
 
 
-def fastq_autoscan(read_file):
-    """Scanning readfile to determine filetype"""
-    logger.debug("Scanning readfile to determine filetype")
-    with open(read_file, "r", encoding="utf-8") as rfl:
-        line_ct = 0
-        fastq = False
-        while line_ct < 100:
-            for line in rfl:
-                line_ct += 1
-                if line.startswith("@"):
-                    fastq = True
-                    break
-    return fastq
+# def fastq_autoscan(read_file):
+#     """Scanning readfile to determine filetype"""
+#     logger.debug("Scanning readfile to determine filetype")
+#     with open(read_file, "r", encoding="utf-8") as rfl:
+#         line_ct = 0
+#         fastq = False
+#         while line_ct < 100:
+#             for line in rfl:
+#                 line_ct += 1
+#                 if line.startswith("@"):
+#                     fastq = True
+#                     break
+#     return fastq
 
 
 def create_primer_objs(primer_bed, name_scheme):
@@ -431,7 +435,7 @@ def load_reads(read_file):
     """load reads into memory"""
     logger.info("loading reads")
     reads = {}
-    fastq = fastq_autoscan(read_file)
+    fastq = aux.fastq_autoscan(read_file)
     header_ind = "@" if fastq else ">"
     with open(read_file, "r", encoding="utf-8") as rfa:
         for line in rfa:
@@ -522,6 +526,45 @@ def create_filt_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
     mappings = mono_mappings
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
 
+
+def run_amp_cov_cap(**kw):
+    """Cap coverage per amplicon and return subsampled reads"""
+    logger.info("Start capping of read-depths per amplicon")
+    primers = create_primer_objs(kw["primers"], kw["name_scheme"])
+    out_paf = name_out_paf(kw["reads"], kw["reference"], "cap")
+    mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
+    amps, av_amp_len = generate_amps(primers)
+    mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
+    binned = amp_cov.bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
+    fa_out = name_out_reads(kw["reads"], "cap", kw["out_dir"])
+    mem_fit = amp_cov.chk_mem_fit(kw["reads"])
+    if mem_fit:
+        loaded_reads = load_reads(kw["reads"])
+        amp_cov.write_capped_from_loaded(binned, loaded_reads, fa_out)
+        del loaded_reads
+    else:
+        amp_cov.write_capped_from_file(binned, kw["reads"], fa_out)
+    os.remove(out_paf)
+    return fa_out
+
+
+def run_map_trim(**kw):
+    """trimming/clipping of reads"""
+    logger.info("Start trimming/clipping of reads")
+    primers = create_primer_objs(kw["primers"], kw["name_scheme"])
+    amps, av_amp_len = generate_amps(primers)
+    out_paf = name_out_paf(kw["reads"], kw["reference"], "trim")
+    mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
+    mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
+    amps_bin_maps = map_trim.bin_mappings(amps, mappings, kw["margins"])
+    loaded_reads = load_reads(kw["reads"])
+    amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
+    clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"])
+    map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
+    os.remove(out_paf)
+    return clipped_out
+
+
 def run_notramp():
     """NoTramp main function"""
     prstart = perf_counter()
@@ -538,13 +581,13 @@ def run_notramp():
     logger.info("notramp started with: %s", kwargs)
 
     if kwargs["cov"]:
-        amp_cov.run_amp_cov_cap(**kwargs)
+        run_amp_cov_cap(**kwargs)
     elif kwargs["trim"]:
-        map_trim.run_map_trim(**kwargs)
+        run_map_trim(**kwargs)
     elif kwargs["all"]:
-        capped_reads = amp_cov.run_amp_cov_cap(**kwargs)
+        capped_reads = run_amp_cov_cap(**kwargs)
         kwargs["reads"] = capped_reads
-        map_trim.run_map_trim(**kwargs)
+        run_map_trim(**kwargs)
     else:
         print("Missing argument for notramp operation mode")
 

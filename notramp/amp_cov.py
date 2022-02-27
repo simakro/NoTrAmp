@@ -8,7 +8,8 @@ import os
 import logging
 import logging.config
 import psutil
-import notramp.notramp_main as nta
+# import notramp.notramp_main as nta
+from nta_aux import fastq_autoscan
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
@@ -50,7 +51,7 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
 def write_capped_from_file(binned, reads, fa_out):
     """write subsample to outfile using reads-file as source"""
     logger.info("writing subsample to outfile using reads-file as source")
-    fastq = nta.fastq_autoscan(reads)
+    fastq = fastq_autoscan(reads)
     hin = "@" if fastq else ">"
     all_picks = [hin + name for amp in binned for name in amp.selected]
     with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as fao:
@@ -82,7 +83,7 @@ def write_capped_from_loaded(binned, loaded_reads, fa_out):
 def chk_mem_fit(read_path):
     """Check for available memory"""
     logger.info("Checking for available memory")
-    fastq = nta.fastq_autoscan(read_path)
+    fastq = fastq_autoscan(read_path)
     rf_size = os.path.getsize(read_path)
     load_size = rf_size if not fastq else rf_size/2
     avail_mem = psutil.virtual_memory()[1]
@@ -92,22 +93,22 @@ def chk_mem_fit(read_path):
         return False
 
 
-def run_amp_cov_cap(**kw):
-    """Cap coverage per amplicon and return subsampled reads"""
-    logger.info("Start capping of read-depths per amplicon")
-    primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
-    out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "cap")
-    mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    amps, av_amp_len = nta.generate_amps(primers)
-    mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    binned = bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
-    fa_out = nta.name_out_reads(kw["reads"], "cap", kw["out_dir"])
-    mem_fit = chk_mem_fit(kw["reads"])
-    if mem_fit:
-        loaded_reads = nta.load_reads(kw["reads"])
-        write_capped_from_loaded(binned, loaded_reads, fa_out)
-        del loaded_reads
-    else:
-        write_capped_from_file(binned, kw["reads"], fa_out)
-    os.remove(out_paf)
-    return fa_out
+# def run_amp_cov_cap(**kw):
+#     """Cap coverage per amplicon and return subsampled reads"""
+#     logger.info("Start capping of read-depths per amplicon")
+#     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
+#     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "cap")
+#     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
+#     amps, av_amp_len = nta.generate_amps(primers)
+#     mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
+#     binned = bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
+#     fa_out = nta.name_out_reads(kw["reads"], "cap", kw["out_dir"])
+#     mem_fit = chk_mem_fit(kw["reads"])
+#     if mem_fit:
+#         loaded_reads = nta.load_reads(kw["reads"])
+#         write_capped_from_loaded(binned, loaded_reads, fa_out)
+#         del loaded_reads
+#     else:
+#         write_capped_from_file(binned, kw["reads"], fa_out)
+#     os.remove(out_paf)
+#     return fa_out
