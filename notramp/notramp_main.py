@@ -299,36 +299,41 @@ class Read:
 class Mapping:
     """class for storage and handling of mapping information"""
 
-    def __init__(self, qname, posattr, kwattr):
+    def __init__(
+        self,
+        qname,
+        qlen,
+        qstart,
+        qend,
+        samestrand,
+        tname,
+        tlen,
+        tstart,
+        tend,
+        matches,
+        total_bp,
+        qual,
+        kwattr,
+    ):
         self.qname = qname
-        self.posattr = posattr
+        self.qlen = int(qlen)
+        self.qstart = int(qstart)
+        self.qend = int(qend)
+        self.samestrand = self.eval_strand(samestrand)
+        self.tname = tname
+        self.tlen = int(tlen)
+        self.tstart = int(tstart)
+        self.tend = int(tend)
+        self.matches = int(matches)
+        self.total_bp = int(total_bp)
+        self.qual = int(qual)
         self.kwattr = kwattr
-        self.gen_pos_attr()
         self.gen_kw_attr()
 
     @staticmethod
     def eval_strand(strand_info):
         """evaluate strand info"""
         return True if strand_info == "+" else False
-
-    def gen_pos_attr(self):
-        """generate class attributes from positional info in mapping output"""
-        posattr_dict = {
-            "qlen": int,
-            "qstart": int,
-            "qend": int,
-            "samestrand": Mapping.eval_strand,
-            "tname": str,
-            "tlen": int,
-            "tstart": int,
-            "tend": int,
-            "matches": int,
-            "total_bp": int,
-            "qual": int
-        }
-        zip_attr = zip(posattr_dict.keys(), self.posattr)
-        for key, val in zip_attr:
-            self.__dict__[key] = posattr_dict[key](val)
 
     def gen_kw_attr(self):
         """generate class attributes from key-worded entries in mapping output"""
@@ -464,7 +469,7 @@ def gen_mapping_objs(mm2_paf):
         for line in paf:
             if len(line.strip()) > 0:
                 lisp = line.strip().split("\t")
-                mapping = Mapping(lisp[0], lisp[1:12], lisp[12:])
+                mapping = Mapping(*lisp[:12], lisp[12:])
                 map_dct[mapping.qname].append(mapping)
     return map_dct
 
