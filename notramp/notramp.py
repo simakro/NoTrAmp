@@ -87,9 +87,9 @@ def get_arguments():
     optional_args.add_argument(
         "--incl_prim", dest='incl_prim',
         default=False, action='store_true',
-        help="Set to False if you want to include the primer sequences in the "
+        help="Set this flag if you want to include the primer sequences in the "
         "trimmed reads. By default primers are removed together with all "
-        "overhanging sequences. [default=False]"
+        "overhanging sequences like barcodes and adapters."
         )
     optional_args.add_argument(
         "-s", dest='seq_tec',
