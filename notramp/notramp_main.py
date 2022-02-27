@@ -30,16 +30,19 @@ print("main_path", main_path)
 print("real_path", real_path)
 # print("dirname realpath", os.path.dirname(real_path))
 print("normpath", os.path.normpath(__file__))
-
-
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
+# import notramp.nta_aux as aux
 # import notramp.amp_cov as amp_cov
 # import notramp.map_trim as map_trim
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import nta_aux as aux
 import amp_cov
 import map_trim
 
 
-logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
+logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
+# logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 

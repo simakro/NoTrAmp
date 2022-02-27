@@ -17,9 +17,9 @@ setup(name='notramp',
       packages=['notramp'],
       include_package_data=True,
       scripts=['bin/notramp'],
-      entry_points={"console_scripts":['notramp = notramp.notramp_main:run_notramp']},
+      # entry_points={"console_scripts":['notramp = notramp.notramp_main:run_notramp']},
       install_requires=[
-          'psutil'
+          'psutil',
       ],
       python_requires='>=3.6',
       classifiers=[
