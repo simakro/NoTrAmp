@@ -15,8 +15,24 @@ import sys
 import os
 from collections import defaultdict
 
+print("From .py in notramp")
+print(f"From .py in {os.path.realpath(__file__)}")
+# print(sys.modules)
+print("sys.path", sys.path)
+main_path = os.path.abspath(os.path.dirname(__file__))
+# script_path = os.path.join(os.path.split(main_path)[0])
+real_path = os.path.realpath(__file__)
+cwd = os.getcwd()
+print("cwd", cwd)
+print("main_path", main_path)
+print("script_path", script_path)
+print("real_path", real_path)
+# print("dirname realpath", os.path.dirname(real_path))
+print("normpath", os.path.normpath(__file__))
+
+
 import notramp.amp_cov
-import notramp.map_trim
+from notramp import map_trim
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
