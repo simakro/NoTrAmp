@@ -32,7 +32,7 @@ print("normpath", os.path.normpath(__file__))
 
 
 import notramp.amp_cov
-from notramp import map_trim
+import notramp.map_trim
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)

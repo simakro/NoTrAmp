@@ -7,7 +7,7 @@
 import os
 import logging
 import logging.config
-import notramp_main as nta
+import notramp.notramp_main as nta
 
 
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
