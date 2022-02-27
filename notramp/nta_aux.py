@@ -1,8 +1,9 @@
-import os
+from os import path
 import logging
 import logging.config
 
-log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),  "resources", "logging.conf")
+
+log_file_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
 logging.config.fileConfig(log_file_path , disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 

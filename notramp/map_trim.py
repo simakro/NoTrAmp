@@ -2,15 +2,13 @@
 # Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 # This file may not be copied, modified, or distributed except according to those terms.
 
-"""module for trimming of reads to amplicon size"""
 
-import os
+from os import path
 import logging
 import logging.config
-# import notramp.notramp_main as nta
 
 
-log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources", "logging.conf")
+log_file_path = path.join(path.dirname(__file__), "resources", "logging.conf")
 logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
@@ -64,20 +62,3 @@ def clip_and_write_out(amp_bins, clipped_out, incl_prim):
     logger.info("%s reads were processed for clipping", clipped_out)
     logger.info("%d bases were clipped from the fw/left-primer side of reads.", clip_ct["left"])
     logger.info("%d bases were clipped from the rev/right-primer side of reads", clip_ct["right"])
-
-
-# def run_map_trim(**kw):
-#     """trimming/clipping of reads"""
-#     logger.info("Start trimming/clipping of reads")
-#     primers = nta.create_primer_objs(kw["primers"], kw["name_scheme"])
-#     amps, av_amp_len = nta.generate_amps(primers)
-#     out_paf = nta.name_out_paf(kw["reads"], kw["reference"], "trim")
-#     mm2_paf = nta.map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-#     mappings = nta.create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-#     amps_bin_maps = bin_mappings(amps, mappings, kw["margins"])
-#     loaded_reads = nta.load_reads(kw["reads"])
-#     amps_bin_reads = load_amps_with_reads(amps_bin_maps, loaded_reads)
-#     clipped_out = nta.name_out_reads(kw["reads"], "clip", kw["out_dir"])
-#     clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
-#     os.remove(out_paf)
-#     return clipped_out

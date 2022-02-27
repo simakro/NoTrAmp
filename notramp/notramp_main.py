@@ -2,7 +2,6 @@
 # Licensed under the BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 # This file may not be copied, modified, or distributed except according to those terms.
 
-"""notramp main"""
 
 import argparse
 import logging
@@ -12,11 +11,9 @@ from time import perf_counter
 import random
 import json
 import sys
-import os
+from os import path, remove, replace
 from collections import defaultdict
 
-# os.chdir(os.path.abspath(os.path.dirname(__file__)))
-# sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 if __name__ == "__main__":
     import nta_aux as aux
     import amp_cov as amp_cov
@@ -27,7 +24,7 @@ else:
     import notramp.map_trim as map_trim
 
 
-log_conf_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),  "resources", "logging.conf")
+log_conf_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
 logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
@@ -375,21 +372,6 @@ def log_sp_error(error, message):
     sys.exit()
 
 
-# def fastq_autoscan(read_file):
-#     """Scanning readfile to determine filetype"""
-#     logger.debug("Scanning readfile to determine filetype")
-#     with open(read_file, "r", encoding="utf-8") as rfl:
-#         line_ct = 0
-#         fastq = False
-#         while line_ct < 100:
-#             for line in rfl:
-#                 line_ct += 1
-#                 if line.startswith("@"):
-#                     fastq = True
-#                     break
-#     return fastq
-
-
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
@@ -439,24 +421,24 @@ def load_reads(read_file):
 def name_out_paf(reads, reference, mod_name):
     """construct name for output reads-file"""
     logger.debug("naming mapping file")
-    read_dir, reads_file = os.path.split(reads)
+    read_dir, reads_file = path.split(reads)
     reads_name = ".".join(reads_file.split(".")[:-1])
-    ref_name = ".".join(os.path.split(reference)[1].split(".")[:-1])
+    ref_name = ".".join(path.split(reference)[1].split(".")[:-1])
     paf_name = f"{reads_name}_mapto_{ref_name}.{mod_name}.paf"
-    return os.path.join(read_dir, paf_name)
+    return path.join(read_dir, paf_name)
 
 
 def name_out_reads(reads, suffix, outdir):
     """construct name for output reads-file"""
     logger.debug("naming output reads-file")
-    read_dir, reads_file = os.path.split(reads)
+    read_dir, reads_file = path.split(reads)
     rf_spl = reads_file.split(".")
     reads_name = ".".join(rf_spl[:-1])
     out_name = f"{reads_name}.{suffix}.fasta"
     if outdir:
-        out_path = os.path.join(outdir, out_name)
+        out_path = path.join(outdir, out_name)
     else:
-        out_path = os.path.join(read_dir, out_name)
+        out_path = path.join(read_dir, out_name)
     return out_path
 
 
@@ -533,7 +515,7 @@ def run_amp_cov_cap(**kw):
         del loaded_reads
     else:
         amp_cov.write_capped_from_file(binned, kw["reads"], fa_out)
-    os.remove(out_paf)
+    remove(out_paf)
     return fa_out
 
 
@@ -550,7 +532,7 @@ def run_map_trim(**kw):
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"])
     map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
-    os.remove(out_paf)
+    remove(out_paf)
     return clipped_out
 
 
@@ -559,9 +541,9 @@ def run_notramp():
     prstart = perf_counter()
     kwargs = vars(get_arguments())
 
-    pkg_dir = os.path.split(os.path.abspath(__file__))[0]
+    pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
-        kwargs["name_scheme"] = os.path.join(
+        kwargs["name_scheme"] = path.join(
                                             pkg_dir,
                                             "resources",
                                             kwargs["name_scheme"] + ".json"
@@ -581,8 +563,8 @@ def run_notramp():
         print("Missing argument for notramp operation mode")
 
     if not kwargs["out_dir"]:
-        kwargs["out_dir"] = os.path.split(kwargs["reads"])[0]
-    os.replace("notramp.log", os.path.join(kwargs["out_dir"], "notramp.log"))
+        kwargs["out_dir"] = path.split(kwargs["reads"])[0]
+    replace("notramp.log", path.join(kwargs["out_dir"], "notramp.log"))
 
     prend = perf_counter()
     logger.info("finished notramp after %s seconds of runtime", str(prend-prstart))
