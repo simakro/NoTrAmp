@@ -17,7 +17,7 @@ setup(name='notramp',
       packages=['notramp'],
       include_package_data=True,
       scripts=['bin/notramp', 'bin/map_trim', 'bin/amp_cov'],
-      entry_points={"console_scripts":['notramp = notramp.notramp:run_notramp']},
+      # entry_points={"console_scripts":['notramp = notramp.notramp:run_notramp']},
       install_requires=[
           'psutil'
       ],
