@@ -16,7 +16,7 @@ setup(name='notramp',
       license='BSD-2',
       packages=['notramp'],
       include_package_data=True,
-      scripts=['NoTrAmp/notramp'],
+      scripts=['bin/notramp'],
       entry_points={"console_scripts":['notramp = notramp.notramp:run_notramp']},
       install_requires=[
           'psutil'

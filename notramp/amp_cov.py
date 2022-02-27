@@ -8,7 +8,7 @@ import os
 import logging
 import logging.config
 import psutil
-import notramp as nta
+import notramp_main as nta
 
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
