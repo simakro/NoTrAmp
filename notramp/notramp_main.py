@@ -15,34 +15,20 @@ import sys
 import os
 from collections import defaultdict
 
-print("From .py in notramp")
-print("__name__", __name__)
-print(f"From .py in {os.path.realpath(__file__)}")
-# print(sys.modules)
-print("sys.path", sys.path)
-main_path = os.path.abspath(os.path.dirname(__file__))
-# script_path = os.path.join(os.path.split(main_path)[0])
-real_path = os.path.realpath(__file__)
-cwd = os.getcwd()
-print("cwd", cwd)
-print("main_path", main_path)
-# print("script_path", script_path)
-print("real_path", real_path)
-# print("dirname realpath", os.path.dirname(real_path))
-print("normpath", os.path.normpath(__file__))
-os.chdir(os.path.abspath(os.path.dirname(__file__)))
-# import notramp.nta_aux as aux
-# import notramp.amp_cov as amp_cov
-# import notramp.map_trim as map_trim
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-import nta_aux as aux
-import amp_cov
-import map_trim
+# os.chdir(os.path.abspath(os.path.dirname(__file__)))
+# sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+if __name__ == "__main__":
+    import nta_aux as aux
+    import amp_cov as amp_cov
+    import map_trim as map_trim
+else:
+    import notramp.nta_aux as aux
+    import notramp.amp_cov as amp_cov
+    import notramp.map_trim as map_trim
 
 
-log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf')
-logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
-# logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+log_conf_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),  "resources", "logging.conf")
+logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
@@ -604,29 +590,3 @@ def run_notramp():
 
 if __name__ == "__main__":
     run_notramp()
-    # prstart = perf_counter()
-    # kwargs = vars(get_arguments())
-
-    # pkg_dir = os.path.split(os.path.abspath(__file__))[0]
-    # if kwargs["name_scheme"] == 'artic_nCoV_scheme':
-    #     kwargs["name_scheme"] = os.path.join(pkg_dir, "resources", kwargs["name_scheme"] + ".json")
-
-    # logger.info("notramp started with: %s", kwargs)
-
-    # if kwargs["cov"]:
-    #     amp_cov.run_amp_cov_cap(**kwargs)
-    # elif kwargs["trim"]:
-    #     map_trim.run_map_trim(**kwargs)
-    # elif kwargs["all"]:
-    #     capped_reads = amp_cov.run_amp_cov_cap(**kwargs)
-    #     kwargs["reads"] = capped_reads
-    #     map_trim.run_map_trim(**kwargs)
-    # else:
-    #     print("Missing argument for notramp operation mode")
-
-    # if not kwargs["out_dir"]:
-    #     kwargs["out_dir"] = os.path.split(kwargs["reads"])[0]
-    # os.replace("notramp.log", os.path.join(kwargs["out_dir"], "notramp.log"))
-
-    # prend = perf_counter()
-    # logger.info("finished notramp after %s seconds of runtime", str(prend-prstart))
