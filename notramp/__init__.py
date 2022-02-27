@@ -10,5 +10,3 @@ NoTrAmp is a Tool for read-depth normalization and trimming of amplicon
 
 # import os
 from .version import __version__
-import map_trim
-import amp_cov
