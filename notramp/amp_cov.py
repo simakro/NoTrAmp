@@ -7,7 +7,11 @@ from os import path
 import logging
 import logging.config
 import psutil
-from notramp.nta_aux import fastq_autoscan
+
+if __name__ == "amp_cov":
+    from nta_aux import fastq_autoscan
+else:
+    from notramp.nta_aux import fastq_autoscan
 
 
 log_file_path = path.join(path.dirname(__file__), "resources", "logging.conf")
