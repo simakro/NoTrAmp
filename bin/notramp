@@ -189,7 +189,7 @@ class Amp:
                 clip_ct_left += left
                 clip_ct_right += right
             except KeyError as err:
-                logging.exception(err)
+                logger.exception(err)
         return clip_ct_left, clip_ct_right
 
 
@@ -367,10 +367,10 @@ class Primer:
 
 def log_sp_error(error, message):
     """custom logging of subprocess errors"""
-    logging.error(message)
+    logger.error(message)
     print("Check notramp.log for error details")
-    logging.error(error.stdout.decode('utf-8'))
-    logging.error("Exiting notramp")
+    logger.error(error.stdout.decode('utf-8'))
+    logger.error("Exiting notramp")
     sys.exit()
 
 
@@ -383,10 +383,15 @@ def create_primer_objs(primer_bed, name_scheme):
     with open(primer_bed, "r", encoding="utf-8") as bed:
         primers = []
         for line in bed:
-            contig, start, end, name, score, strand = line.strip().split("\t")
-            add_info = {"contig": contig, "strand": strand, "score": score}
-            prim = Primer(start, end, name, add_info, psd)
-            primers.append(prim)
+            if len(line.strip()) > 0:
+                lst = line.strip().split("\t")
+                try:
+                    contig, start, end, name, score, strand = lst
+                except ValueError:
+                    logger.exception("Unexpected number of cols in primer bed")
+                add_info = {"contig": contig, "strand": strand, "score": score}
+                prim = Primer(start, end, name, add_info, psd)
+                primers.append(prim)
     return sorted(primers, key=lambda x: x.end)
 
 
