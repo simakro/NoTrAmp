@@ -7,7 +7,7 @@ It can be used in amplicon-tiling approaches to cap coverage of each amplicon an
 appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
 
 ## Table of Contents
-- [Installation] (#installation)
+- [Installation](#installation)
 - [Commmand line Options](#options)
 - [Dependencies](#depend)
 
