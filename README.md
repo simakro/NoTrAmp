@@ -15,8 +15,9 @@ appropriate length removing barcodes, adpaters and primers (if desired) in a sin
 install with pip:
 ```sh
 pip install notramp
-
+```
 install with conda:
+```sh
 conda create -n notramp
 conda activate notramp
 conda install -c simakro notramp
@@ -24,21 +25,24 @@ conda install -c simakro notramp
 or
 
 conda create -n notramp -c simakro notramp
-
-```sh
-
+```
 
 ## <a name="options"></a>Commmand line Options
-```sh
+
 USAGE:
-#####
+
 install notramp package and run:
---------------------------------
+```sh
 notramp (-a | -c | -t) -p PRIMERS -r  READS -g REFERENCE [optional arguments]
+```
 
-or download source and run from package dir:
+or download source from github and run from package dir:
+```sh
 notramp_main.py (-a | -c | -t) -p PRIMERS -r READS -g  REFERENCE [optional arguments]
+```
 
+All arguments in detail:
+```sh
 NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio). It can be used in amplicon-tiling approaches to cap coverage of
 each amplicon and to trim amplicons to their appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
 
@@ -71,7 +75,7 @@ Optional arguments:
   --set_margins MARGINS
                         Set length of tolerance margins for sorting of mappings to amplicons. [default=5]
   -v, --version         Print version and exit
-  ```sh
+  ```
 
 ## <a name="depend"></a>Requirements/Dependencies
 - Python 3.x
