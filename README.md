@@ -33,9 +33,6 @@ conda activate notramp
 
 
 ## <a name="usage"></a>Usage
-
-USAGE:
-
 install notramp package and run:
 ```sh
 notramp (-a | -c | -t) -p PRIMERS -r  READS -g REFERENCE [optional arguments]
