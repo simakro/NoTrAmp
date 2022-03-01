@@ -7,10 +7,11 @@ It can be used in amplicon-tiling approaches to cap coverage of each amplicon an
 appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
 
 ## Table of Contents
-- [Installation] (#install)
+- [Installation] (#installation)
 - [Commmand line Options](#options)
 - [Dependencies](#depend)
 
+# Installation
 ## <a name="install"></a>Installation of notramp
 install with pip:
 ```sh
@@ -21,12 +22,16 @@ install with conda:
 conda create -n notramp
 conda activate notramp
 conda install -c simakro notramp
+```
 
 or
 
+```
 conda create -n notramp -c simakro notramp
+conda activate notramp
 ```
 
+## Usage
 ## <a name="options"></a>Commmand line Options
 
 USAGE:
