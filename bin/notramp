@@ -19,6 +19,7 @@ from collections import defaultdict
 import notramp.nta_aux as aux
 import notramp.amp_cov as amp_cov
 import notramp.map_trim as map_trim
+from notramp.version import __version__
 
 
 log_conf_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
@@ -35,7 +36,7 @@ def get_arguments():
         " coverage of each amplicon and to trim amplicons to their appropriate"
         " length removing barcodes, adpaters and primers (if desired) in a"
         " single clipping step.",
-        add_help=True
+        add_help=False
         )
     required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument(
@@ -74,6 +75,11 @@ def get_arguments():
         )
 
     optional_args = parser.add_argument_group('Optional arguments')
+    optional_args.add_argument(
+        "-h", "--help",
+        action="help",
+        help="Print help message and exit"
+        )
     optional_args.add_argument(
         "-o", dest='out_dir',
         default=False,
@@ -126,6 +132,11 @@ def get_arguments():
         default=5, type=int,
         help="Set length of tolerance margins for sorting of mappings to "
         " amplicons. [default=5]"
+        )
+    optional_args.add_argument(
+        "-v", "--version", action="version",
+        version=f"notramp {__version__}",
+        help="Print version and exit"
         )
 
     args = parser.parse_args()
@@ -374,24 +385,56 @@ def log_sp_error(error, message):
     sys.exit()
 
 
+def gen_primer_instance(split_line, prim_scheme):
+    """generate class attributes from positional info in mapping output"""
+    chrom, start, end, name = split_line[:4]
+    add_cols = split_line[4:]
+    add_info = {"chrom": chrom}
+    
+    col_dict = {
+        "score": str,
+        "strand": str,
+        "thickStart": int,
+        "thickEnd": int,
+        "itemRgb": str,
+        "blockCount": int,
+        "blockSizes": str,
+        "blockStarts": str,
+    }
+    zip_col = zip(list(col_dict.keys())[:len(add_cols)], add_cols)
+    for key, val in zip_col:
+        add_info[key] = col_dict[key](val)
+
+    prim = Primer(start, end, name, add_info, prim_scheme)
+    return prim
+      
+
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
     with open(name_scheme, "r", encoding="utf-8") as scheme:
         psd = json.loads(scheme.read())
 
+    col_num, headers = aux.bed_scan(primer_bed)
     with open(primer_bed, "r", encoding="utf-8") as bed:
         primers = []
         for line in bed:
-            if len(line.strip()) > 0:
+            if len(line.strip()) == 0:
+                pass
+            else:
                 lst = line.strip().split("\t")
-                try:
-                    contig, start, end, name, score, strand = lst
-                except ValueError:
-                    logger.exception("Unexpected number of cols in primer bed")
-                add_info = {"contig": contig, "strand": strand, "score": score}
-                prim = Primer(start, end, name, add_info, psd)
-                primers.append(prim)
+                if len(lst) == col_num:
+                    prim = gen_primer_instance(lst, psd)
+                    primers.append(prim)
+                else:
+                    if headers:
+                        head = aux.bed_chk_header(line, headers)
+                        if head:
+                            pass
+                        else:
+                            raise aux.BedColumnError
+                    else:
+                        raise aux.BedColumnError         
     return sorted(primers, key=lambda x: x.end)
 
 
