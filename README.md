@@ -7,20 +7,40 @@ It can be used in amplicon-tiling approaches to cap coverage of each amplicon an
 appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
 
 ## Table of Contents
-
+- [Installation] (#install)
 - [Commmand line Options](#options)
 - [Dependencies](#depend)
 
+## <a name="install"></a>Installation of notramp
+install with pip:
+```sh
+pip install notramp
+
+install with conda:
+conda create -n notramp
+conda activate notramp
+conda install -c simakro notramp
+
+or
+
+conda create -n notramp -c simakro notramp
+
+```sh
+
+
 ## <a name="options"></a>Commmand line Options
 ```sh
-usage: notramp.py [-h] -p PRIMERS -r READS -g REFERENCE (-a | -c | -t) [-o OUT_DIR] [-m MAX_COV] [--incl_prim] [-s SEQ_TEC] [-n NAME_SCHEME] [--set_min_len SET_MIN_LEN] [--set_max_len SET_MAX_LEN]
-                  [--set_margins MARGINS]
+USAGE:
+#####
+install notramp package and run:
+--------------------------------
+notramp (-a | -c | -t) -p PRIMERS -r  READS -g REFERENCE [optional arguments]
 
-NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio). It can be used in amplicon-tiling approaches to cap coverage of each
-amplicon and to trim amplicons to their appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
+or download source and run from package dir:
+notramp_main.py (-a | -c | -t) -p PRIMERS -r READS -g  REFERENCE [optional arguments]
 
-optional arguments:
-  -h, --help            show this help message and exit
+NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio). It can be used in amplicon-tiling approaches to cap coverage of
+each amplicon and to trim amplicons to their appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
 
 Required arguments:
   -p PRIMERS, --primers PRIMERS
@@ -34,19 +54,24 @@ Required arguments:
   -t, --trim            Perform only trimming to amplicon length (excluding primers by default; to include primers set --incl_prim flag). (mut.excl. with -a, -c)
 
 Optional arguments:
-  -o OUT_DIR            Optionally specify a directory for saving of outfiles. If this argument is not given, out-files will be saved in the directory where the input reads are located. [default=False]
+  -h, --help            Print help message and exit
+  -o OUT_DIR            Optionally specify a directory for saving of outfiles. If this argument is not given, out-files will be saved in the directory where the input reads are located.
+                        [default=False]
   -m MAX_COV            Provide threshold for maximum read-depth per amplicon as integer value. [default=200]
-  --incl_prim           Set to False if you want to include the primer sequences in the trimmed reads. By default primers are removed together with all overhanging sequences. [default=False]
+  --incl_prim           Set this flag if you want to include the primer sequences in the trimmed reads. By default primers are removed together with all overhanging sequences like barcodes and
+                        adapters.
   -s SEQ_TEC            Specify long-read sequencing technology (ont/pb). [default='ont']
   -n NAME_SCHEME        Provide path to json-file containing a naming scheme which is consistently used for all primers. [default='artic_nCoV_scheme']
   --set_min_len SET_MIN_LEN
-                        Set a minimum required length for alignments of reads to amplicon. If this is not set the min_len will be 0.5*average_amp_len. If amplicon sizes are relatively homogenous this
-                        parameter is not required [default=False]
+                        Set a minimum required length for alignments of reads to amplicon. If this is not set the min_len will be 0.5*average_amp_len. If amplicon sizes are relatively homogenous
+                        this parameter is not required [default=False]
   --set_max_len SET_MAX_LEN
-                        Set a maximum required length for alignments of reads to amplicon. If this is not set the max_len will be 1.5*average_amp_len. If amplicon sizes are relatively homogenous this
-                        parameter is not required [default=False]
+                        Set a maximum required length for alignments of reads to amplicon. If this is not set the max_len will be 1.5*average_amp_len. If amplicon sizes are relatively homogenous
+                        this parameter is not required [default=False]
   --set_margins MARGINS
                         Set length of tolerance margins for sorting of mappings to amplicons. [default=5]
+  -v, --version         Print version and exit
+  ```sh
 
 ## <a name="depend"></a>Requirements/Dependencies
 - Python 3.x
