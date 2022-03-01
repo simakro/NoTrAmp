@@ -33,7 +33,12 @@ logger = logging.getLogger(__name__)
 
 def get_arguments():
     """get arguments from the command line"""
+
+    usg_msg = "\nnotramp (-a | -c | -t) -p PRIMERS -r READS -g REFERENCE"\
+        " [optional arguments]"
+
     parser = argparse.ArgumentParser(
+        prog="notramp", usage=usg_msg,
         description="NoTrAmp is a Tool for read-depth normalization and"
         " trimming of amplicon reads generated with long read technologies"
         " (ONT/PacBio). It can be used in amplicon-tiling approaches to cap"
