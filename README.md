@@ -8,7 +8,7 @@ appropriate length removing barcodes, adpaters and primers (if desired) in a sin
 
 ## Table of Contents
 - [Installation](#installation)
-- [Commmand line Options](#options)
+- [Usage](#usage)
 - [Dependencies](#depend)
 
 # Installation
@@ -32,7 +32,7 @@ conda activate notramp
 ```
 
 ## Usage
-## <a name="options"></a>Commmand line Options
+## <a name="usage"></a>Usage
 
 USAGE:
 
