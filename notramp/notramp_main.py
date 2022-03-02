@@ -461,7 +461,7 @@ def generate_amps(primers):
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
-def load_reads(read_file):
+def load_reads(read_file, outfile_type):
     """load reads into memory"""
     logger.info("loading reads")
     reads = {}
@@ -473,6 +473,10 @@ def load_reads(read_file):
                 header = line.strip().split(" ")[0]
                 seq = next(rfa)
                 read = Read(header, seq.strip(), fastq=fastq)
+                if fastq:
+                    if outfile_type == fastq:
+                        read.plus = next(rfa)
+                        read.qstr = next(rfa)
                 reads[read.name] = read
     return reads
 

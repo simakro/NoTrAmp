@@ -51,34 +51,63 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
     return binned
 
 
-def write_capped_from_file(binned, reads, fa_out):
+def write_read_to_file(rname, read_fobj, out_fobj, infile_fastq, outfile_type):
+    if infile_fastq:
+        if outfile_type == "fasta":
+            rname = rname.replace("@", ">")
+            out_fobj.write(rname + "\n")
+            out_fobj.write(next(read_fobj))
+        else:
+            try:
+                out_fobj.write(rname + "\n")
+                out_fobj.write(next(read_fobj))
+                out_fobj.write(next(read_fobj))
+                out_fobj.write(next(read_fobj))
+            except StopIteration as stop:
+                logger.exception("Unexpected eof during writing of fastq")
+    else:
+        out_fobj.write(rname + "\n")
+        out_fobj.write(next(read_fobj))
+
+
+def write_capped_from_file(binned, reads, fa_out, outfile_type):
     """write subsample to outfile using reads-file as source"""
     logger.info("writing subsample to outfile using reads-file as source")
     fastq = fastq_autoscan(reads)
     hin = "@" if fastq else ">"
     all_picks = [hin + name for amp in binned for name in amp.selected]
-    with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as fao:
+    with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as ofo:
         for line in rfi:
             if line.startswith(hin):
                 readname = line.split(" ")[0]
                 if readname in all_picks:
-                    if fastq:
-                        readname = readname.replace("@", ">")
-                    fao.write(readname + "\n")
-                    fao.write(next(rfi))
+                    write_read_to_file(readname, rfi, ofo, fastq, outfile_type)
+                    # if fastq:
+                    #     readname = readname.replace("@", ">")
+                    # fao.write(readname + "\n")
+                    # fao.write(next(rfi))
 
 
-def write_capped_from_loaded(binned, loaded_reads, fa_out):
+def write_capped_from_loaded(binned, loaded_reads, out_file, outfile_type):
     """write subsample to outfile using loaded reads as source"""
     logger.info("writing subsample to outfile using loaded reads as source")
     all_picks = [name for amp in binned for name in amp.selected]
-    with open(fa_out, "w", encoding="utf-8") as fao:
+    with open(out_file, "w", encoding="utf-8") as outf:
         for name in all_picks:
             try:
-                header = ">" + name + "\n"
-                seq = loaded_reads[name].seq + "\n"
-                fao.write(header)
-                fao.write(seq)
+                if outfile_type == "fasta":
+                    header = ">" + name + "\n"
+                    seq = loaded_reads[name].seq + "\n"
+                    outf.write(header)
+                    outf.write(seq)
+                else:
+                    # it must be taken care of, that the fastq flaq is reset to "fasta", if filescan does not confirm fastq file status
+                    fq_read = loaded_reads[name]
+                    header = "@" + name + "\n"
+                    outf.write(header)
+                    outf.write(fq_read.seq + "\n")    
+                    outf.write(fq_read.plus)
+                    outf.write(fq_read.qstr)
             except KeyError:
                 logging.exception("Error: read %s was not found in loaded reads", name)
 
