@@ -44,7 +44,7 @@ def load_amps_with_reads(amp_bins, loaded_reads):
     return amp_bins
 
 
-def clip_and_write_out(amp_bins, clipped_out, incl_prim):
+def clip_and_write_out(amp_bins, clipped_out, incl_prim, output_fq):
     """Trim reads to amplicon boundaries (including/excluding primers)"""
     incl_excl = "excluding" if not incl_prim else "including"
     logger.info("Trimming reads to amplicons boundaries %s primers", incl_excl)
@@ -58,7 +58,16 @@ def clip_and_write_out(amp_bins, clipped_out, incl_prim):
             for read in amp.reads_dct:
                 out.write(amp.reads_dct[read].header + "\n")
                 out.write(amp.reads_dct[read].seq + "\n")
+                if output_fq:
+                    out.write("+\n")
+                    out.write(amp.reads_dct[read].qstr + "\n")
                 clipped_out += 1
     logger.info("%s reads were processed for clipping", clipped_out)
-    logger.info("%d bases were clipped from the fw/left-primer side of reads.", clip_ct["left"])
-    logger.info("%d bases were clipped from the rev/right-primer side of reads", clip_ct["right"])
+    logger.info(
+        "%d bases were clipped from the fw/left-primer side of reads.",
+        clip_ct["left"]
+        )
+    logger.info(
+        "%d bases were clipped from the rev/right-primer side of reads",
+        clip_ct["right"]
+        )

@@ -6,12 +6,6 @@
 from os import path
 import logging
 import logging.config
-import psutil
-
-if __name__ == "amp_cov":
-    from nta_aux import fastq_autoscan
-else:
-    from notramp.nta_aux import fastq_autoscan
 
 
 log_file_path = path.join(path.dirname(__file__), "resources", "logging.conf")
@@ -52,6 +46,7 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
 
 
 def write_read_to_file(rname, read_fobj, out_fobj, infile_fastq, outfile_type):
+    """Write reads from in_file to out_file"""
     if infile_fastq:
         if outfile_type == "fasta":
             rname = rname.replace("@", ">")
@@ -63,17 +58,17 @@ def write_read_to_file(rname, read_fobj, out_fobj, infile_fastq, outfile_type):
                 out_fobj.write(next(read_fobj))
                 out_fobj.write(next(read_fobj))
                 out_fobj.write(next(read_fobj))
-            except StopIteration as stop:
+            except StopIteration:
                 logger.exception("Unexpected eof during writing of fastq")
     else:
         out_fobj.write(rname + "\n")
         out_fobj.write(next(read_fobj))
 
 
-def write_capped_from_file(binned, reads, fa_out, outfile_type):
+def write_capped_from_file(binned, reads, fa_out, kw):
     """write subsample to outfile using reads-file as source"""
     logger.info("writing subsample to outfile using reads-file as source")
-    fastq = fastq_autoscan(reads)
+    fastq = kw["fq_in"]
     hin = "@" if fastq else ">"
     all_picks = [hin + name for amp in binned for name in amp.selected]
     with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as ofo:
@@ -81,45 +76,27 @@ def write_capped_from_file(binned, reads, fa_out, outfile_type):
             if line.startswith(hin):
                 readname = line.split(" ")[0]
                 if readname in all_picks:
-                    write_read_to_file(readname, rfi, ofo, fastq, outfile_type)
-                    # if fastq:
-                    #     readname = readname.replace("@", ">")
-                    # fao.write(readname + "\n")
-                    # fao.write(next(rfi))
+                    write_read_to_file(readname, rfi, ofo, fastq, kw["fq_out"])
 
 
-def write_capped_from_loaded(binned, loaded_reads, out_file, outfile_type):
+def write_capped_from_loaded(binned, loaded_reads, out_file, kw):
     """write subsample to outfile using loaded reads as source"""
     logger.info("writing subsample to outfile using loaded reads as source")
     all_picks = [name for amp in binned for name in amp.selected]
     with open(out_file, "w", encoding="utf-8") as outf:
         for name in all_picks:
             try:
-                if outfile_type == "fasta":
+                if not kw["fq_out"]:
                     header = ">" + name + "\n"
                     seq = loaded_reads[name].seq + "\n"
                     outf.write(header)
                     outf.write(seq)
                 else:
-                    # it must be taken care of, that the fastq flaq is reset to "fasta", if filescan does not confirm fastq file status
                     fq_read = loaded_reads[name]
                     header = "@" + name + "\n"
                     outf.write(header)
-                    outf.write(fq_read.seq + "\n")    
-                    outf.write(fq_read.plus)
-                    outf.write(fq_read.qstr)
+                    outf.write(fq_read.seq + "\n")
+                    outf.write("+\n")
+                    outf.write(fq_read.qstr + "\n")
             except KeyError:
                 logging.exception("Error: read %s was not found in loaded reads", name)
-
-
-def chk_mem_fit(read_path):
-    """Check for available memory"""
-    logger.info("Checking for available memory")
-    fastq = fastq_autoscan(read_path)
-    rf_size = path.getsize(read_path)
-    load_size = rf_size if not fastq else rf_size/2
-    avail_mem = psutil.virtual_memory()[1]
-    if avail_mem / load_size > 4:
-        return True
-    else:
-        return False

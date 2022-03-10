@@ -1,7 +1,7 @@
 from os import path
-from collections import Counter
 import logging
 import logging.config
+import psutil
 
 
 log_file_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
@@ -22,6 +22,19 @@ def fastq_autoscan(read_file):
                     fastq = True
                     break
     return fastq
+
+
+def chk_mem_fit(read_path, fq_in):
+    """Check for available memory"""
+    logger.info("Checking for available memory")
+    fastq = fq_in
+    rf_size = path.getsize(read_path)
+    load_size = rf_size if not fastq else rf_size/2
+    avail_mem = psutil.virtual_memory()[1]
+    if avail_mem / load_size > 4:
+        return True
+    else:
+        return False
 
 
 class BedColumnError(Exception):
@@ -68,6 +81,7 @@ def bed_scan(bed_file):
 
 
 def bed_chk_header(line, headers):
+    """Check if line conforms to header type in headers list"""
     head = False
     for string in headers:
         if line.startswith(string):
