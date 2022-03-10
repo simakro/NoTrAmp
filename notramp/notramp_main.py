@@ -193,7 +193,7 @@ class Amp:
         """select a random subsample from all reads"""
         if len(self.reads_dct) > cutoff:
             read_names = list(self.reads_dct.keys())
-            self.selected = random.choices(read_names, k=cutoff)
+            self.selected = random.sample(read_names, k=cutoff)
         else:
             self.selected = list(self.reads_dct.keys())
 
@@ -591,7 +591,7 @@ def run_amp_cov_cap(kw):
         del loaded_reads
     else:
         amp_cov.write_capped_from_file(binned, kw["reads"], cap_out, kw)
-    remove(out_paf)
+    # remove(out_paf)
     return cap_out
 
 
@@ -608,7 +608,7 @@ def run_map_trim(kw):
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
     map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"])
-    remove(out_paf)
+    # remove(out_paf)
     return clipped_out
 
 

@@ -18,6 +18,7 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
     logger.info("sorting mappings to amplicons")
     binned = []
     not_av = []
+    logger.info("mappings of %s reads available", str(len(mappings)))
     while len(amp_bins) > 0:
         if len(mappings) > 0:
             if mappings[0].tend <= amp_bins[0].end + margins:
@@ -40,8 +41,9 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
         amn = amp_bin.name
         rct = str(len(amp_bin.reads_dct))
         slr = str(len(amp_bin.selected))
-        logger.info("Amp_%s %s selected: %s", amn, rct, slr)
+        logger.info("Amp_%s reads available %s selected: %s", amn, rct, slr)
         num_selected += len(amp_bin.selected)
+    # logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
 
 
