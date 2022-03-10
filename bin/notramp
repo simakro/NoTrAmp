@@ -140,7 +140,7 @@ def get_arguments():
         )
     optional_args.add_argument(
         "--fastq", dest='fq_out',
-        default=False, action="store_true", 
+        default=False, action="store_true",
         help="Set this flag to request output in fastq format. By default"
         " output is in fasta format."
         )
@@ -189,7 +189,7 @@ class Amp:
         """select a random subsample from all reads"""
         if len(self.reads_dct) > cutoff:
             read_names = list(self.reads_dct.keys())
-            self.selected = random.choices(read_names, k=cutoff)
+            self.selected = random.sample(read_names, k=cutoff)
         else:
             self.selected = list(self.reads_dct.keys())
 
@@ -407,7 +407,7 @@ def gen_primer_instance(split_line, prim_scheme):
     chrom, start, end, name = split_line[:4]
     add_cols = split_line[4:]
     add_info = {"chrom": chrom}
-    
+
     col_dict = {
         "score": str,
         "strand": str,
@@ -424,7 +424,7 @@ def gen_primer_instance(split_line, prim_scheme):
 
     prim = Primer(start, end, name, add_info, prim_scheme)
     return prim
-      
+
 
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
@@ -451,7 +451,7 @@ def create_primer_objs(primer_bed, name_scheme):
                         else:
                             raise aux.BedColumnError
                     else:
-                        raise aux.BedColumnError         
+                        raise aux.BedColumnError
     return sorted(primers, key=lambda x: x.end)
 
 
@@ -610,7 +610,7 @@ def run_map_trim(kw):
 
 def run_notramp():
     """NoTramp main function"""
-    logger.info(f"notramp version {__version__}")
+    logger.info("notramp version %s", __version__)
     prstart = perf_counter()
     kwargs = vars(get_arguments())
 
@@ -646,7 +646,7 @@ def run_notramp():
         print("Missing argument for notramp operation mode")
 
     replace(
-        path.join(pkg_dir, "notramp.log"), 
+        path.join(pkg_dir, "notramp.log"),
         path.join(kwargs["out_dir"], "notramp.log")
         )
 

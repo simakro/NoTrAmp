@@ -43,7 +43,7 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
         slr = str(len(amp_bin.selected))
         logger.info("Amp_%s reads available %s selected: %s", amn, rct, slr)
         num_selected += len(amp_bin.selected)
-    # logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
+    logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
 
 
