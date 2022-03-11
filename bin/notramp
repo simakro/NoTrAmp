@@ -27,9 +27,19 @@ logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
+log_conf_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
+logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
+
+
 def get_arguments():
     """get arguments from the command line"""
+
+    usg_msg = "\nnotramp (-a | -c | -t) -p PRIMERS -r READS -g REFERENCE"\
+        " [optional arguments]"
+
     parser = argparse.ArgumentParser(
+        prog="notramp", usage=usg_msg,
         description="NoTrAmp is a Tool for read-depth normalization and"
         " trimming of amplicon reads generated with long read technologies"
         " (ONT/PacBio). It can be used in amplicon-tiling approaches to cap"
@@ -134,6 +144,12 @@ def get_arguments():
         " amplicons. [default=5]"
         )
     optional_args.add_argument(
+        "--fastq", dest='fq_out',
+        default=False, action="store_true",
+        help="Set this flag to request output in fastq format. By default"
+        " output is in fasta format."
+        )
+    optional_args.add_argument(
         "-v", "--version", action="version",
         version=f"notramp {__version__}",
         help="Print version and exit"
@@ -178,7 +194,7 @@ class Amp:
         """select a random subsample from all reads"""
         if len(self.reads_dct) > cutoff:
             read_names = list(self.reads_dct.keys())
-            self.selected = random.choices(read_names, k=cutoff)
+            self.selected = random.sample(read_names, k=cutoff)
         else:
             self.selected = list(self.reads_dct.keys())
 
@@ -212,6 +228,8 @@ class Read:
         self.fastq = fastq
         self.name = self.header.split("@")[1] if self.fastq else self.header.split(">")[1]
         self.seq = seq
+        self.plus = False
+        self.qstr = False
 
     @staticmethod
     def non_neg(num):
@@ -254,6 +272,8 @@ class Read:
                 clip_right = qend - rdiff
 
         self.seq = self.seq[clip_left:clip_right]
+        if self.qstr:
+            self.qstr = self.qstr[clip_left:clip_right]
         return clip_left, qlen - clip_right
 
     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
@@ -301,6 +321,8 @@ class Read:
                     clip_left = qstart - ldiff
 
         self.seq = self.seq[clip_left:clip_right]
+        if self.qstr:
+            self.qstr = self.qstr[clip_left:clip_right]
         return clip_left, qlen - clip_right
 
 
@@ -390,7 +412,7 @@ def gen_primer_instance(split_line, prim_scheme):
     chrom, start, end, name = split_line[:4]
     add_cols = split_line[4:]
     add_info = {"chrom": chrom}
-    
+
     col_dict = {
         "score": str,
         "strand": str,
@@ -407,7 +429,7 @@ def gen_primer_instance(split_line, prim_scheme):
 
     prim = Primer(start, end, name, add_info, prim_scheme)
     return prim
-      
+
 
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
@@ -434,7 +456,7 @@ def create_primer_objs(primer_bed, name_scheme):
                         else:
                             raise aux.BedColumnError
                     else:
-                        raise aux.BedColumnError         
+                        raise aux.BedColumnError
     return sorted(primers, key=lambda x: x.end)
 
 
@@ -452,7 +474,7 @@ def generate_amps(primers):
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
-def load_reads(read_file):
+def load_reads(read_file, output_fq):
     """load reads into memory"""
     logger.info("loading reads")
     reads = {}
@@ -464,6 +486,10 @@ def load_reads(read_file):
                 header = line.strip().split(" ")[0]
                 seq = next(rfa)
                 read = Read(header, seq.strip(), fastq=fastq)
+                if fastq:
+                    if output_fq:
+                        read.plus = next(rfa)
+                        read.qstr = next(rfa).strip()
                 reads[read.name] = read
     return reads
 
@@ -478,13 +504,14 @@ def name_out_paf(reads, reference, mod_name):
     return path.join(read_dir, paf_name)
 
 
-def name_out_reads(reads, suffix, outdir):
+def name_out_reads(reads, suffix, outdir, kw):
     """construct name for output reads-file"""
     logger.debug("naming output reads-file")
     read_dir, reads_file = path.split(reads)
     rf_spl = reads_file.split(".")
     reads_name = ".".join(rf_spl[:-1])
-    out_name = f"{reads_name}.{suffix}.fasta"
+    fext = "fastq" if kw["fq_out"] else "fasta"
+    out_name = f"{reads_name}.{suffix}.{fext}"
     if outdir:
         out_path = path.join(outdir, out_name)
     else:
@@ -548,7 +575,7 @@ def create_filt_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
     return sorted(mappings, key=lambda x: (x.tend, x.tstart))
 
 
-def run_amp_cov_cap(**kw):
+def run_amp_cov_cap(kw):
     """Cap coverage per amplicon and return subsampled reads"""
     logger.info("Start capping of read-depths per amplicon")
     primers = create_primer_objs(kw["primers"], kw["name_scheme"])
@@ -557,19 +584,19 @@ def run_amp_cov_cap(**kw):
     amps, av_amp_len = generate_amps(primers)
     mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     binned = amp_cov.bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
-    fa_out = name_out_reads(kw["reads"], "cap", kw["out_dir"])
-    mem_fit = amp_cov.chk_mem_fit(kw["reads"])
+    cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
+    mem_fit = aux.chk_mem_fit(kw)
     if mem_fit:
-        loaded_reads = load_reads(kw["reads"])
-        amp_cov.write_capped_from_loaded(binned, loaded_reads, fa_out)
+        loaded_reads = load_reads(kw["reads"], kw["fq_out"])
+        amp_cov.write_capped_from_loaded(binned, loaded_reads, cap_out, kw)
         del loaded_reads
     else:
-        amp_cov.write_capped_from_file(binned, kw["reads"], fa_out)
+        amp_cov.write_capped_from_file(binned, kw["reads"], cap_out, kw)
     remove(out_paf)
-    return fa_out
+    return cap_out
 
 
-def run_map_trim(**kw):
+def run_map_trim(kw):
     """trimming/clipping of reads"""
     logger.info("Start trimming/clipping of reads")
     primers = create_primer_objs(kw["primers"], kw["name_scheme"])
@@ -578,18 +605,22 @@ def run_map_trim(**kw):
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     amps_bin_maps = map_trim.bin_mappings(amps, mappings, kw["margins"])
-    loaded_reads = load_reads(kw["reads"])
+    loaded_reads = load_reads(kw["reads"], kw["fq_out"])
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
-    clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"])
-    map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"])
+    clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
+    map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"])
     remove(out_paf)
     return clipped_out
 
 
 def run_notramp():
     """NoTramp main function"""
+    logger.info("notramp version %s", __version__)
     prstart = perf_counter()
     kwargs = vars(get_arguments())
+
+    if not kwargs["out_dir"]:
+        kwargs["out_dir"] = path.split(kwargs["reads"])[0]
 
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
@@ -598,23 +629,31 @@ def run_notramp():
                                             "resources",
                                             kwargs["name_scheme"] + ".json"
                                             )
+                                            
+    fastq_in = aux.fastq_autoscan(kwargs["reads"])
+    kwargs["fq_in"] = True if fastq_in else False
+    if kwargs["fq_out"]:
+        if not fastq_in:
+            kwargs["fq_out"] = False
+            logger.warning("No fastq input. Outfile-type was changed to fasta")
 
     logger.info("notramp started with: %s", kwargs)
 
     if kwargs["cov"]:
-        run_amp_cov_cap(**kwargs)
+        run_amp_cov_cap(kwargs)
     elif kwargs["trim"]:
-        run_map_trim(**kwargs)
+        run_map_trim(kwargs)
     elif kwargs["all"]:
-        capped_reads = run_amp_cov_cap(**kwargs)
+        capped_reads = run_amp_cov_cap(kwargs)
         kwargs["reads"] = capped_reads
-        run_map_trim(**kwargs)
+        run_map_trim(kwargs)
     else:
         print("Missing argument for notramp operation mode")
 
-    if not kwargs["out_dir"]:
-        kwargs["out_dir"] = path.split(kwargs["reads"])[0]
-    replace("notramp.log", path.join(kwargs["out_dir"], "notramp.log"))
+    replace(
+        path.join(pkg_dir, "notramp.log"),
+        path.join(kwargs["out_dir"], "notramp.log")
+        )
 
     prend = perf_counter()
     logger.info("finished notramp after %s seconds of runtime", str(prend-prstart))
