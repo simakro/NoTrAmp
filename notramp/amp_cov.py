@@ -3,13 +3,9 @@
 # This file may not be copied, modified, or distributed except according to those terms.
 
 
-from os import path
 import logging
-import logging.config
 
 
-log_file_path = path.join(path.dirname(__file__), "resources", "logging.conf")
-logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 

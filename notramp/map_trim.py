@@ -3,13 +3,9 @@
 # This file may not be copied, modified, or distributed except according to those terms.
 
 
-from os import path
 import logging
-import logging.config
 
 
-log_file_path = path.join(path.dirname(__file__), "resources", "logging.conf")
-logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +43,7 @@ def load_amps_with_reads(amp_bins, loaded_reads):
 def clip_and_write_out(amp_bins, clipped_out, incl_prim, output_fq):
     """Trim reads to amplicon boundaries (including/excluding primers)"""
     incl_excl = "excluding" if not incl_prim else "including"
-    logger.info("Trimming reads to amplicons boundaries %s primers", incl_excl)
+    logger.info("Trimming reads to amplicon boundaries %s primers", incl_excl)
     with open(clipped_out, "w", encoding="utf-8") as out:
         clip_ct = {"left": 0, "right": 0}
         clipped_out = 0

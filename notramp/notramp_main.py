@@ -11,7 +11,8 @@ from time import perf_counter
 import random
 import json
 import sys
-from os import path, remove, replace
+import os
+from os import path
 from collections import defaultdict
 
 if __name__ == "__main__":
@@ -26,8 +27,6 @@ else:
     from notramp.version import __version__
 
 
-log_conf_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
-logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
@@ -591,7 +590,7 @@ def run_amp_cov_cap(kw):
         del loaded_reads
     else:
         amp_cov.write_capped_from_file(binned, kw["reads"], cap_out, kw)
-    remove(out_paf)
+    os.remove(out_paf)
     return cap_out
 
 
@@ -608,18 +607,39 @@ def run_map_trim(kw):
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
     map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"])
-    remove(out_paf)
+    os.remove(out_paf)
     return clipped_out
+
+
+def get_main_logger(outdir):
+    log_conf_path = path.join(
+        path.dirname(__file__),
+        "resources",
+        "logging.conf"
+        )
+    logging.config.fileConfig(
+    log_conf_path,
+    disable_existing_loggers=False,
+    defaults={'logfilename': path.join(outdir, "notramp.log")}
+    )
+    logger = logging.getLogger(__name__)
+    return logger
 
 
 def run_notramp():
     """NoTramp main function"""
-    logger.info("notramp version %s", __version__)
     prstart = perf_counter()
     kwargs = vars(get_arguments())
 
     if not kwargs["out_dir"]:
         kwargs["out_dir"] = path.split(kwargs["reads"])[0]
+    if not path.exists(kwargs["out_dir"]):
+        os.makedirs(kwargs["out_dir"], mode=777, exist_ok=False)
+        os.chmod(kwargs["out_dir"], 0o777)
+    
+    logger = get_main_logger(kwargs["out_dir"])
+    logger.info("notramp version %s", __version__)
+    logger.info("notramp started with: %s", kwargs)
 
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == 'artic_nCoV_scheme':
@@ -636,8 +656,6 @@ def run_notramp():
             kwargs["fq_out"] = False
             logger.warning("No fastq input. Outfile-type was changed to fasta")
 
-    logger.info("notramp started with: %s", kwargs)
-
     if kwargs["cov"]:
         run_amp_cov_cap(kwargs)
     elif kwargs["trim"]:
@@ -649,13 +667,11 @@ def run_notramp():
     else:
         print("Missing argument for notramp operation mode")
 
-    replace(
-        path.join(pkg_dir, "notramp.log"),
-        path.join(kwargs["out_dir"], "notramp.log")
-        )
-
     prend = perf_counter()
-    logger.info("finished notramp after %s seconds of runtime", str(prend-prstart))
+    logger.info(
+        "finished notramp after %s seconds of runtime",
+         str(prend-prstart)
+         )
 
 
 if __name__ == "__main__":
