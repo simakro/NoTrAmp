@@ -27,6 +27,11 @@ logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 
+log_conf_path = path.join(path.dirname(__file__),  "resources", "logging.conf")
+logging.config.fileConfig(log_conf_path, disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
+
+
 def get_arguments():
     """get arguments from the command line"""
 
@@ -469,11 +474,11 @@ def generate_amps(primers):
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
-def load_reads(read_file, output_fq, fq_in):
+def load_reads(read_file, output_fq):
     """load reads into memory"""
     logger.info("loading reads")
     reads = {}
-    fastq = fq_in
+    fastq = aux.fastq_autoscan(read_file)
     header_ind = "@" if fastq else ">"
     with open(read_file, "r", encoding="utf-8") as rfa:
         for line in rfa:
@@ -580,9 +585,9 @@ def run_amp_cov_cap(kw):
     mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     binned = amp_cov.bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
     cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
-    mem_fit = aux.chk_mem_fit(kw["reads"], kw["fq_in"])
+    mem_fit = aux.chk_mem_fit(kw)
     if mem_fit:
-        loaded_reads = load_reads(kw["reads"], kw["fq_out"], kw["fq_in"])
+        loaded_reads = load_reads(kw["reads"], kw["fq_out"])
         amp_cov.write_capped_from_loaded(binned, loaded_reads, cap_out, kw)
         del loaded_reads
     else:
@@ -600,7 +605,7 @@ def run_map_trim(kw):
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
     amps_bin_maps = map_trim.bin_mappings(amps, mappings, kw["margins"])
-    loaded_reads = load_reads(kw["reads"], kw["fq_out"], kw["fq_in"])
+    loaded_reads = load_reads(kw["reads"], kw["fq_out"])
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
     map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"])
@@ -624,9 +629,9 @@ def run_notramp():
                                             "resources",
                                             kwargs["name_scheme"] + ".json"
                                             )
+                                            
     fastq_in = aux.fastq_autoscan(kwargs["reads"])
     kwargs["fq_in"] = True if fastq_in else False
-
     if kwargs["fq_out"]:
         if not fastq_in:
             kwargs["fq_out"] = False

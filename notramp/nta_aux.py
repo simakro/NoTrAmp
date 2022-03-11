@@ -24,12 +24,15 @@ def fastq_autoscan(read_file):
     return fastq
 
 
-def chk_mem_fit(read_path, fq_in):
+def chk_mem_fit(kw):
     """Check for available memory"""
     logger.info("Checking for available memory")
-    fastq = fq_in
-    rf_size = path.getsize(read_path)
-    load_size = rf_size if not fastq else rf_size/2
+    fastq = fastq_autoscan(kw["reads"])
+    rf_size = path.getsize(kw["reads"])
+    if fastq:
+        load_size = rf_size if kw["fq_out"] else rf_size/2
+    else:
+        load_size = rf_size
     avail_mem = psutil.virtual_memory()[1]
     if avail_mem / load_size > 4:
         return True
