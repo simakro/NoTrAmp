@@ -9,16 +9,25 @@ logger = logging.getLogger(__name__)
 
 def fastq_autoscan(read_file):
     """Scanning readfile to determine filetype"""
-    logger.debug("Scanning readfile to determine filetype")
+    logger.info("Scanning readfile to determine filetype")
+    rf_size = path.getsize(read_file)
+    if rf_size == 0:
+        logger.warning("Read file appears to be completely empty!")
+    elif rf_size < 100:
+        logger.warning("Read file appears to be almost empty!")
+    else:
+        logger.info("Read file size is %s", rf_size)
     with open(read_file, "r", encoding="utf-8") as rfl:
         line_ct = 0
         fastq = False
-        while line_ct < 100:
-            for line in rfl:
-                line_ct += 1
-                if line.startswith("@"):
-                    fastq = True
-                    break
+        # while line_ct < 100:
+        for line in rfl:
+            line_ct += 1
+            if line.startswith("@"):
+                fastq = True
+                break
+            if line_ct > 100:
+                break
     return fastq
 
 
@@ -32,10 +41,14 @@ def chk_mem_fit(kw):
     else:
         load_size = rf_size
     avail_mem = psutil.virtual_memory()[1]
-    if avail_mem / load_size > 4:
-        return True
+
+    if load_size > 0:
+        if avail_mem / load_size > 4:
+            return True
+        else:
+            return False
     else:
-        return False
+        return True
 
 
 class BedColumnError(Exception):

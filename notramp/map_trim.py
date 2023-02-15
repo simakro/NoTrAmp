@@ -14,6 +14,10 @@ def bin_mappings(amp_bins, mappings, margins):
     logger.info("sorting mappings to amplicons")
     binned = []
     not_av = []
+    if len(amp_bins) == 0:
+        logger.warning(
+            "No mappings of any reads were created! No trimming will occur."
+            )
     while len(amp_bins) > 0:
         if len(mappings) > 0:
             if mappings[0].tend <= amp_bins[0].end + margins:
