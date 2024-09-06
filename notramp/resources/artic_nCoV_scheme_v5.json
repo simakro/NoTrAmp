@@ -1,0 +1,13 @@
+{
+    "sep": "_", 
+    "min_len": 4, 
+    "max_len": 6, 
+    "root_name": 0,
+    "amp_scale": 1, 
+    "amp_num": 2, 
+    "position": 3,
+    "iteration": 4,
+    "alt": 5, 
+    "fw_indicator": "LEFT", 
+    "rev_indicator": "RIGHT"
+}

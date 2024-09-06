@@ -19,11 +19,13 @@ if __name__ == "__main__":
     import nta_aux as aux
     import amp_cov as amp_cov
     import map_trim as map_trim
+    from defaults import DEFAULTS
     from version import __version__
 else:
     import notramp.nta_aux as aux
     import notramp.amp_cov as amp_cov
     import notramp.map_trim as map_trim
+    from notramp.defaults import DEFAULTS
     from notramp.version import __version__
 
 
@@ -97,9 +99,9 @@ def get_arguments():
         )
     optional_args.add_argument(
         "-m", dest='max_cov',
-        default=200, type=int,
-        help="Provide threshold for maximum read-depth per amplicon as integer"
-        " value. [default=200]"
+        default=DEFAULTS["max_cov"], type=int,
+        help=f"Provide threshold for maximum read-depth per amplicon as integer"
+        f" value. [default={DEFAULTS['max_cov']}]"
         )
     optional_args.add_argument(
         "--incl_prim", dest='incl_prim',
@@ -110,14 +112,15 @@ def get_arguments():
         )
     optional_args.add_argument(
         "-s", dest='seq_tec',
-        default="ont",
-        help="Specify long-read sequencing technology (ont/pb). [default='ont']"
+        default=DEFAULTS['seq_tec'],
+        help=f"Specify long-read sequencing technology (ont/pb)."
+        f" [default={DEFAULTS['seq_tec']}]"
         )
     optional_args.add_argument(
         "-n", dest='name_scheme',
-        default="artic_nCoV_scheme",
-        help="Provide path to json-file containing a naming scheme which is "
-        "consistently used for all primers. [default='artic_nCoV_scheme']"
+        default=DEFAULTS["name_scheme"],
+        help=f"Provide path to json-file containing a naming scheme which is "
+        f"consistently used for all primers.[default={DEFAULTS['name_scheme']}]"
         )
     optional_args.add_argument(
         "--set_min_len", dest='set_min_len',
@@ -130,16 +133,16 @@ def get_arguments():
     optional_args.add_argument(
         "--set_max_len", dest='set_max_len',
         default=False, type=bool,
-        help="Set a maximum required length for alignments of reads to"
+        help="Set a maximum allowed length for alignments of reads to"
         " amplicon. If this is not set the max_len will be 1.5*average_amp_len."
         " If amplicon sizes are relatively homogenous this parameter is not "
         " required [default=False]"
         )
     optional_args.add_argument(
         "--set_margins", dest='margins',
-        default=5, type=int,
-        help="Set length of tolerance margins for sorting of mappings to "
-        " amplicons. [default=5]"
+        default=DEFAULTS["margins"], type=int,
+        help=f"Set length of tolerance margins for sorting of mappings to "
+        f" amplicons. [default={DEFAULTS['margins']}]"
         )
     optional_args.add_argument(
         "--fastq", dest='fq_out',
@@ -642,7 +645,7 @@ def run_notramp():
     logger.info("notramp started with: %s", kwargs)
 
     pkg_dir = path.split(path.abspath(__file__))[0]
-    if kwargs["name_scheme"] == 'artic_nCoV_scheme':
+    if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:
         kwargs["name_scheme"] = path.join(
                                             pkg_dir,
                                             "resources",
