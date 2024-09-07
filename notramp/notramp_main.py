@@ -388,11 +388,25 @@ class Primer:
     def get_name_infos(self):
         """extract information from primer name"""
         lsp = self.name.split(self.scheme["sep"])
-        if len(lsp) == self.scheme["max_len"]:
-            self.type = "alt"
-            self.alt_name = lsp[self.scheme["alt"]]
         self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
         self.__dict__["pos"] = lsp[self.scheme["position"]]
+        if "alt" in self.scheme:
+            if len(lsp) == self.scheme["max_len"]:
+                self.type = "alt"
+                self.alt_name = lsp[self.scheme["alt"]]
+    
+    # def chk_primer_name():
+    # req_fields = ["sep", ]
+
+    # # : "_", 
+    # # "min_len": 3, 
+    # # "max_len": 3, 
+    # # "root_name": 0, 
+    # # "amp_num": 1, 
+    # # "position": 2, 
+    # # "alt": 3, 
+    # # "fw_indicator": "fw", 
+    # # "rev_indicator": "rev"
 
     def get_len(self):
         """get primer length"""

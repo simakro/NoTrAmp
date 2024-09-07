@@ -1,0 +1,9 @@
+{
+    "sep": "_",
+    "min_len": 2,
+    "max_len": 2,
+    "amp_num": 0,
+    "position": 1,
+    "fw_indicator": "fw",
+    "rev_indicator": "rev"
+}

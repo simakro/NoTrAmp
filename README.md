@@ -9,6 +9,7 @@ appropriate length removing barcodes, adpaters and primers (if desired) in a sin
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
+- [Primer naming schemes](#namescheme)
 - [Dependencies](#depend)
 
 
@@ -90,6 +91,89 @@ Optional arguments:
                         [default=5]
   -v, --version         Print version and exit
   ```
+
+## <a name="namescheme"></a>Primer naming schemes
+NoTramp requires primers in multiplex amplicon tiling panels to follow a consistent scheme.
+A primer name must consist of a number of fields demarcated/delineated by a defined separator.
+Two fields are mandatory: amplicon-number and primer-position(FW/REV).
+NoTramp offers a high degree of flexibility regarding the naming of primers by allowing the user to specify which field of the primer name contains which information in a json file.
+However, the convention specified in this naming scheme must be used/followed consistently throughout/within the entire panel.
+
+Minimal primer naming scheme containing all required key/value pairs (see also "notramp/resources/minimal_scheme.json"):
+```sh
+{
+    "sep": "_", 
+    "min_len": 2, 
+    "max_len": 2, 
+    "amp_num": 0, 
+    "position": 1, 
+    "fw_indicator": "fw",
+    "rev_indicator": "rev"
+}
+```
+"sep" = Separator used to delineate fields in primer name
+"min_len" = minimal number of fiels in primer names [must be an int]
+"max_len" = maximum number of fiels in primer names (if no alternative primer are in the panel, the same as min_len) [must be an int]
+"amp_num" = 0 based index of the field containing the amplicon-number [must be an int]
+"position" = 0 based index of the field containing information on primer position in the amplicon (e.g. left/right or fw/rev) [must be an int]
+"fw_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "fw", "FW", "left", "start", "+"
+"rev_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "rev", "REV", "right", "end", "-"
+
+Examples for primers named after a minimal scheme:
+  1_fw
+  1_rev
+  2_fw
+  2_rev
+  3_fw
+  3_rev
+  ...
+
+Use of such naming schemes enforces primers names to consistently have names with the same number of fields, which always carry the same kind of information.
+However, there can be one exception from the same number of fields rule.
+
+Sometimes alternative primer pairs for the "same" amplicon are used to boost underperforming amplicons.
+These are typically primer sequences that are shifted just a couple of bases to the left or right of the original/primary primer pair,
+in the hope of increasing the yield for this region. The products generated under involvement of such alternative primers
+cover the same region of the target sequence, with only slight deviations on the rims/fringes/edges/corners, in the parts overlapping
+with neighbouring amplicons.
+Alternative primers are required to carry the same amplicon-number as primary ones, but must have some indicator to be distinguished from those.
+NoTramp accounts for this irregularity by allowing for alternative primers to be labeled with an "alt" field, which must be supplied as a postfix.
+Therefore in panels containing alternative primers, max_len must min_len + 1.
+If your panel includes alternative primers, you have to add the "alt" keyword to your naming scheme, with its corresponding index as value, which must be the last possible field (max_len-1).
+The alt indicator you use in the name can be anything you want (e.g. "v2", "2", "b", "alt" etc.), but the keyword in the json dict must be "alt".
+
+In addition to the optional "alt" field, any number of custom fields can be added to the naming scheme, if your primer contains additionals field.
+These could typically be a common name or pool indicator. THese fields can be added for completeness, but don't have an effect on the innerworkings of NoTramp.
+
+Generic primer scheme (see also "notramp/resources/generic_scheme.json"):
+```sh
+{
+    "sep": "_", 
+    "min_len": 3, 
+    "max_len": 4, 
+    "root_name": 0,
+    "amp_num": 1, 
+    "position": 2, 
+    "alt": 3, 
+    "fw_indicator": "FW",
+    "rev_indicator": "REV"
+}
+```
+"alt" = 0 based index of the field containing the alternative primer indicator 
+"root_name" = custom field used for a common name
+
+Examples for primers complying to the generic scheme above (excerpt from artic-ncov2019 v3 primer panel):
+
+nCoV-2019_5_LEFT
+nCoV-2019_5_RIGHT
+nCoV-2019_6_LEFT
+nCoV-2019_6_RIGHT
+nCoV-2019_7_LEFT
+nCoV-2019_7_LEFT_alt0
+nCoV-2019_7_RIGHT
+nCoV-2019_7_RIGHT_alt5
+nCoV-2019_8_LEFT
+nCoV-2019_8_RIGHT
 
 ## <a name="depend"></a>Requirements/Dependencies
 - Python 3.x
