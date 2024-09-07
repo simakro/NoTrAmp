@@ -111,15 +111,16 @@ Minimal primer naming scheme containing all required key/value pairs (see also "
     "rev_indicator": "rev"
 }
 ```
-"sep" = Separator used to delineate fields in primer name
-"min_len" = minimal number of fiels in primer names [must be an int]
-"max_len" = maximum number of fiels in primer names (if no alternative primer are in the panel, the same as min_len) [must be an int]
-"amp_num" = 0 based index of the field containing the amplicon-number [must be an int]
-"position" = 0 based index of the field containing information on primer position in the amplicon (e.g. left/right or fw/rev) [must be an int]
-"fw_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "fw", "FW", "left", "start", "+"
-"rev_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "rev", "REV", "right", "end", "-"
+- "sep" = Separator used to delineate fields in primer name\
+- "min_len" = minimal number of fiels in primer names [must be an int]
+- "max_len" = maximum number of fiels in primer names (if no alternative primer are in the panel, the same as min_len) [must be an int]
+- "amp_num" = 0 based index of the field containing the amplicon-number [must be an int]
+- "position" = 0 based index of the field containing information on primer position in the amplicon (e.g. left/right or fw/rev) [must be an int]
+- "fw_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "fw", "FW", "left", "start", "+"
+- "rev_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "rev", "REV", "right", "end", "-"
 
 Examples for primers named after a minimal scheme:
+```sh
   1_fw
   1_rev
   2_fw
@@ -127,6 +128,7 @@ Examples for primers named after a minimal scheme:
   3_fw
   3_rev
   ...
+```
 
 Use of such naming schemes enforces primers names to consistently have names with the same number of fields, which always carry the same kind of information.
 However, there can be one exception from the same number of fields rule.
@@ -159,11 +161,12 @@ Generic primer scheme (see also "notramp/resources/generic_scheme.json"):
     "rev_indicator": "REV"
 }
 ```
-"alt" = 0 based index of the field containing the alternative primer indicator 
-"root_name" = custom field used for a common name
+"alt" = 0 based index of the field containing the alternative primer indicator   
+"root_name" = custom field used for a common name   
 
 Examples for primers complying to the generic scheme above (excerpt from artic-ncov2019 v3 primer panel):
 
+```sh
 nCoV-2019_5_LEFT
 nCoV-2019_5_RIGHT
 nCoV-2019_6_LEFT
@@ -174,6 +177,8 @@ nCoV-2019_7_RIGHT
 nCoV-2019_7_RIGHT_alt5
 nCoV-2019_8_LEFT
 nCoV-2019_8_RIGHT
+```
+
 
 ## <a name="depend"></a>Requirements/Dependencies
 - Python 3.x
