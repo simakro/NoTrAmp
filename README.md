@@ -113,7 +113,7 @@ Minimal primer naming scheme containing all required key/value pairs (see also "
 }
 ```
 |"Keyword"|"Description"|
-|---|---|
+|:---|:---|
 |"sep" | Separator used to delineate fields in primer name|
 |"min_len" | minimal number of fields in primer names [must be an int]|
 |"max_len" | maximum number of fields in primer names (if no alternative primer are in the panel, the same as min_len) [must be an int]|
