@@ -113,13 +113,13 @@ Minimal primer naming scheme containing all required key/value pairs (see also "
 }
 ```
 
-"sep"           = Separator used to delineate fields in primer name  
-"min_len"       = minimal number of fields in primer names [must be an int]  
-"max_len"       = maximum number of fields in primer names (if no alternative primer are in the panel, the same as min_len) [must be an int]  
-"amp_num"       = 0 based index of the field containing the amplicon-number [must be an int]  
-"position"      = 0 based index of the field containing information on primer position in the amplicon (e.g. left/right or fw/rev) [must be an int]  
-"fw_indicator"  = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "fw", "FW", "left", "start", "+"  
-"rev_indicator" = indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "rev", "REV", "right", "end", "-"  
+|"sep" | Separator used to delineate fields in primer name  
+|"min_len" | minimal number of fields in primer names [must be an int]  
+|"max_len" | maximum number of fields in primer names (if no alternative primer are in the panel, the same as min_len) [must be an int]  
+|"amp_num" | 0 based index of the field containing the amplicon-number [must be an int]  
+|"position" | 0 based index of the field containing information on primer position in the amplicon (e.g. left/right or fw/rev) [must be an int]  
+|"fw_indicator" | indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "fw", "FW", "left", "start", "+"  
+|"rev_indicator" | indicator used to identify directionality of the primer; can be anything as long as consistent; typical indicators: "rev", "REV", "right", "end", "-"  
 
 Examples for primers named after a minimal scheme:
 ```sh
