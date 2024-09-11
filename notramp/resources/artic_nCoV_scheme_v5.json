@@ -1,6 +1,6 @@
 {
     "sep": "_", 
-    "min_len": 4, 
+    "min_len": 5, 
     "max_len": 6, 
     "root_name": 0,
     "amp_scale": 1, 
