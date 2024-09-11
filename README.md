@@ -164,8 +164,10 @@ Generic primer scheme (see also "notramp/resources/generic_scheme.json"):
     "rev_indicator": "REV"
 }
 ```
-"alt" = 0 based index of the field containing the alternative primer indicator   
-"root_name" = custom field used for a common name   
+|"Keyword"|"Description"|
+|:---|:---|
+|"alt" |0 based index of the field containing the alternative primer indicator|   
+|"root_name"|custom field used for a common name |
 
 Examples for primers complying to the generic scheme above:
 ```sh
