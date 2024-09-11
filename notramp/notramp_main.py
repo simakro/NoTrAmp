@@ -423,7 +423,7 @@ def log_sp_error(error, message):
 
 
 def gen_primer_instance(split_line, prim_scheme):
-    """generate class attributes from positional info in mapping output"""
+    """generate class attributes from optional infos in bed file"""
     chrom, start, end, name = split_line[:4]
     add_cols = split_line[4:]
     add_info = {"chrom": chrom}
