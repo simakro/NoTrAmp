@@ -376,14 +376,15 @@ class Mapping:
 class Primer:
     """class for storage and handling of primer information"""
 
-    def __init__(self, split_bed_line, naming_schemes):
+    def __init__(self, split_bed_line, naming_scheme):
         self.start = None
         self.end = None
         self.name = None
         self.add_info = None
         self.type = "primary"
+        self.scheme = naming_scheme
         self.get_col_infos(split_bed_line)
-        self.get_name_infos(naming_schemes)
+        self.get_name_infos()
         
 
     def get_col_infos(self, split_bed_line):
@@ -422,17 +423,16 @@ class Primer:
                     f"included in primer bed files disregarding bed specificati"
                     f"ons. If value looks like a primer you are probably OK."
                     )
-                logger.error(e)
     
-    def get_name_infos(self, naming_schemes):
+    def get_name_infos(self):
         """extract information from primer name"""
-        lsp = self.name.split(naming_schemes["sep"])
-        self.__dict__["amp_no"] = lsp[naming_schemes["amp_num"]]
-        self.__dict__["pos"] = lsp[naming_schemes["position"]]
-        if "alt" in naming_schemes:
-            if len(lsp) == naming_schemes["max_len"]:
+        lsp = self.name.split(self.scheme["sep"])
+        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
+        self.__dict__["pos"] = lsp[self.scheme["position"]]
+        if "alt" in self.scheme:
+            if len(lsp) == self.scheme["max_len"]:
                 self.type = "alt"
-                self.alt_name = lsp[naming_schemes["alt"]]
+                self.alt_name = lsp[self.scheme["alt"]]
 
 # class Primer:
 #     """class for storage and handling of primer information"""
