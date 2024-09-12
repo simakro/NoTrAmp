@@ -39,6 +39,16 @@ jobs:
           pip install psutil
           conda install -c bioconda minimap2
     
+    - name: Run intloc standard mode with ava_clust
+      shell: bash -el {0}
+      run: |
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTramp/NoTramp/notramp/resources/artic_nCoV_scheme_v5.3.2.json -r /home/runner/work/NoTramp/NoTramp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTramp/NoTramp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta 
+
+
+    
    # - name: Install dependencies
    #   run: |
    #     python -m pip install --upgrade pip
