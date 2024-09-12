@@ -434,45 +434,6 @@ class Primer:
                 self.type = "alt"
                 self.alt_name = lsp[self.scheme["alt"]]
 
-# class Primer:
-#     """class for storage and handling of primer information"""
-
-#     def __init__(self, start, end, name, add_info, naming_scheme):
-#         self.start = int(start)
-#         self.end = int(end)
-#         self.name = name
-#         self.add_info = add_info
-#         self.type = "primary"
-#         self.scheme = naming_scheme
-#         self.get_name_infos()
-
-#     def get_name_infos(self):
-#         """extract information from primer name"""
-#         lsp = self.name.split(self.scheme["sep"])
-#         self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
-#         self.__dict__["pos"] = lsp[self.scheme["position"]]
-#         if "alt" in self.scheme:
-#             if len(lsp) == self.scheme["max_len"]:
-#                 self.type = "alt"
-#                 self.alt_name = lsp[self.scheme["alt"]]
-    
-#     # def chk_primer_name():
-#     # req_fields = ["sep", ]
-
-#     # # : "_", 
-#     # # "min_len": 3, 
-#     # # "max_len": 3, 
-#     # # "root_name": 0, 
-#     # # "amp_num": 1, 
-#     # # "position": 2, 
-#     # # "alt": 3, 
-#     # # "fw_indicator": "fw", 
-#     # # "rev_indicator": "rev"
-
-#     def get_len(self):
-#         """get primer length"""
-#         return self.end - self.start + 1
-
 
 def log_sp_error(error, message):
     """custom logging of subprocess errors"""
@@ -481,30 +442,6 @@ def log_sp_error(error, message):
     logger.error(error.stdout.decode('utf-8'))
     logger.error("Exiting notramp")
     sys.exit()
-
-
-# def gen_primer_instance(split_line, prim_scheme):
-#     """generate class attributes from optional infos in bed file"""
-#     chrom, start, end, name = split_line[:4]
-#     add_cols = split_line[4:]
-#     add_info = {"chrom": chrom}
-
-#     col_dict = {
-#         "score": str,
-#         "strand": str,
-#         "thickStart": int,
-#         "thickEnd": int,
-#         "itemRgb": str,
-#         "blockCount": int,
-#         "blockSizes": str,
-#         "blockStarts": str,
-#     }
-#     zip_col = zip(list(col_dict.keys())[:len(add_cols)], add_cols)
-#     for key, val in zip_col:
-#         add_info[key] = col_dict[key](val)
-
-#     prim = Primer(start, end, name, add_info, prim_scheme)
-#     return prim
 
 
 def create_primer_objs(primer_bed, name_scheme):

@@ -47,12 +47,9 @@ jobs:
          conda list
          cd notramp
          pwd
-         cd test
-         pwd
-         ls -al
-         cd ..
-         cd ..
-         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/SARs-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta 
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/SARs-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         echo "Showing contents of logfile:"
+         cat /Users/simon/Documents/GitHub/NoTrAmp/notramp/test/notramp.log
 
 
     
