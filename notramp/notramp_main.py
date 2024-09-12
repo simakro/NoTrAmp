@@ -606,13 +606,17 @@ def run_amp_cov_cap(kw):
     else:
         amp_cov.write_capped_from_file(binned, kw["reads"], cap_out, kw)
     os.remove(out_paf)
-    return cap_out
+    return cap_out, primers, amps, av_amp_len
 
 
 def run_map_trim(kw):
     """trimming/clipping of reads"""
     logger.info("Start trimming/clipping of reads")
-    primers = create_primer_objs(kw["primers"], kw["name_scheme"])
+    if kw["all"]:
+        primers = kw["primer_objects"]
+        # amps, av_amp_len = kw["amp_objects"], kw["amp_lens"]
+    else:
+        primers = create_primer_objs(kw["primers"], kw["name_scheme"])
     amps, av_amp_len = generate_amps(primers)
     out_paf = name_out_paf(kw["reads"], kw["reference"], "trim")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
@@ -676,8 +680,11 @@ def run_notramp():
     elif kwargs["trim"]:
         run_map_trim(kwargs)
     elif kwargs["all"]:
-        capped_reads = run_amp_cov_cap(kwargs)
+        capped_reads, prims, amps, amp_lens = run_amp_cov_cap(kwargs)
         kwargs["reads"] = capped_reads
+        kwargs["primer_objects"] = prims
+        # kwargs["amp_objects"] = amps
+        # kwargs["amp_lens"] = amp_lens
         run_map_trim(kwargs)
     else:
         print("Missing argument for notramp operation mode")
@@ -687,7 +694,6 @@ def run_notramp():
         "finished notramp after %s seconds of runtime",
          str(prend-prstart)
          )
-
 
 if __name__ == "__main__":
     run_notramp()
