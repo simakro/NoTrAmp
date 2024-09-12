@@ -39,7 +39,7 @@ jobs:
           pip install psutil
           conda install -c bioconda minimap2
     
-    - name: Run intloc standard mode with ava_clust
+    - name: Run NoTramp all mode with single amplicons as reads
       shell: bash -el {0}
       run: |
          pwd
