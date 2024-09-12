@@ -46,8 +46,9 @@ jobs:
          conda activate
          conda list
          cd notramp
-         ls -al
+         pwd
          cd test
+         pwd
          ls -al
          python notramp/notramp_main.py -a -p /home/runner/work/NoTramp/NoTramp/notramp/resources/artic_nCoV_scheme_v5.3.2.json -r /home/runner/work/NoTramp/NoTramp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTramp/NoTramp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta 
 
