@@ -376,41 +376,102 @@ class Mapping:
 class Primer:
     """class for storage and handling of primer information"""
 
-    def __init__(self, start, end, name, add_info, naming_scheme):
-        self.start = int(start)
-        self.end = int(end)
-        self.name = name
-        self.add_info = add_info
+    def __init__(self, split_bed_line, naming_schemes):
+        self.start = None
+        self.end = None
+        self.name = None
+        self.add_info = None
         self.type = "primary"
-        self.scheme = naming_scheme
-        self.get_name_infos()
+        self.get_col_infos(split_bed_line)
+        self.get_name_infos(naming_schemes)
+        
 
-    def get_name_infos(self):
-        """extract information from primer name"""
-        lsp = self.name.split(self.scheme["sep"])
-        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
-        self.__dict__["pos"] = lsp[self.scheme["position"]]
-        if "alt" in self.scheme:
-            if len(lsp) == self.scheme["max_len"]:
-                self.type = "alt"
-                self.alt_name = lsp[self.scheme["alt"]]
+    def get_col_infos(self, split_bed_line):
+        """generate class attributes from bed columns"""
+        opt_cols = {
+            "score": str,
+            "strand": str,
+            "thickStart": int,
+            "thickEnd": int,
+            "itemRgb": str,
+            "blockCount": int,
+            "blockSizes": str,
+            "blockStarts": str,
+        }
+        chrom, start, end, name = split_bed_line[:4]
+        try:
+            self.start = int(start)
+            self.end = int(end)
+        except ValueError as e:
+            logger.error(
+                "Faulty primer bed file. Both start and end must be of type int"
+                )
+            logger.error(e)
+        self.name = name
+        add_info = {"chrom": chrom}
+
+        add_cols = split_bed_line[4:]
+        zip_col = zip(list(opt_cols.keys())[:len(add_cols)], add_cols)
+        for key, val in zip_col:
+            try:
+                add_info[key] = opt_cols[key](val)
+            except ValueError as e:
+                logger.info(
+                    f"Expected value of type {opt_cols[key]} for column {key}. "
+                    f"Got value {val} instead. Often primer sequences are "
+                    f"included in primer bed files disregarding bed specificati"
+                    f"ons. If value looks like a primer you are probably OK."
+                    )
+                logger.error(e)
     
-    # def chk_primer_name():
-    # req_fields = ["sep", ]
+    def get_name_infos(self, naming_schemes):
+        """extract information from primer name"""
+        lsp = self.name.split(naming_schemes["sep"])
+        self.__dict__["amp_no"] = lsp[naming_schemes["amp_num"]]
+        self.__dict__["pos"] = lsp[naming_schemes["position"]]
+        if "alt" in naming_schemes:
+            if len(lsp) == naming_schemes["max_len"]:
+                self.type = "alt"
+                self.alt_name = lsp[naming_schemes["alt"]]
 
-    # # : "_", 
-    # # "min_len": 3, 
-    # # "max_len": 3, 
-    # # "root_name": 0, 
-    # # "amp_num": 1, 
-    # # "position": 2, 
-    # # "alt": 3, 
-    # # "fw_indicator": "fw", 
-    # # "rev_indicator": "rev"
+# class Primer:
+#     """class for storage and handling of primer information"""
 
-    def get_len(self):
-        """get primer length"""
-        return self.end - self.start + 1
+#     def __init__(self, start, end, name, add_info, naming_scheme):
+#         self.start = int(start)
+#         self.end = int(end)
+#         self.name = name
+#         self.add_info = add_info
+#         self.type = "primary"
+#         self.scheme = naming_scheme
+#         self.get_name_infos()
+
+#     def get_name_infos(self):
+#         """extract information from primer name"""
+#         lsp = self.name.split(self.scheme["sep"])
+#         self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
+#         self.__dict__["pos"] = lsp[self.scheme["position"]]
+#         if "alt" in self.scheme:
+#             if len(lsp) == self.scheme["max_len"]:
+#                 self.type = "alt"
+#                 self.alt_name = lsp[self.scheme["alt"]]
+    
+#     # def chk_primer_name():
+#     # req_fields = ["sep", ]
+
+#     # # : "_", 
+#     # # "min_len": 3, 
+#     # # "max_len": 3, 
+#     # # "root_name": 0, 
+#     # # "amp_num": 1, 
+#     # # "position": 2, 
+#     # # "alt": 3, 
+#     # # "fw_indicator": "fw", 
+#     # # "rev_indicator": "rev"
+
+#     def get_len(self):
+#         """get primer length"""
+#         return self.end - self.start + 1
 
 
 def log_sp_error(error, message):
@@ -422,35 +483,35 @@ def log_sp_error(error, message):
     sys.exit()
 
 
-def gen_primer_instance(split_line, prim_scheme):
-    """generate class attributes from optional infos in bed file"""
-    chrom, start, end, name = split_line[:4]
-    add_cols = split_line[4:]
-    add_info = {"chrom": chrom}
+# def gen_primer_instance(split_line, prim_scheme):
+#     """generate class attributes from optional infos in bed file"""
+#     chrom, start, end, name = split_line[:4]
+#     add_cols = split_line[4:]
+#     add_info = {"chrom": chrom}
 
-    col_dict = {
-        "score": str,
-        "strand": str,
-        "thickStart": int,
-        "thickEnd": int,
-        "itemRgb": str,
-        "blockCount": int,
-        "blockSizes": str,
-        "blockStarts": str,
-    }
-    zip_col = zip(list(col_dict.keys())[:len(add_cols)], add_cols)
-    for key, val in zip_col:
-        add_info[key] = col_dict[key](val)
+#     col_dict = {
+#         "score": str,
+#         "strand": str,
+#         "thickStart": int,
+#         "thickEnd": int,
+#         "itemRgb": str,
+#         "blockCount": int,
+#         "blockSizes": str,
+#         "blockStarts": str,
+#     }
+#     zip_col = zip(list(col_dict.keys())[:len(add_cols)], add_cols)
+#     for key, val in zip_col:
+#         add_info[key] = col_dict[key](val)
 
-    prim = Primer(start, end, name, add_info, prim_scheme)
-    return prim
+#     prim = Primer(start, end, name, add_info, prim_scheme)
+#     return prim
 
 
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
     with open(name_scheme, "r", encoding="utf-8") as scheme:
-        psd = json.loads(scheme.read())
+        naming_scheme = json.loads(scheme.read())
 
     col_num, headers = aux.bed_scan(primer_bed)
     with open(primer_bed, "r", encoding="utf-8") as bed:
@@ -461,7 +522,7 @@ def create_primer_objs(primer_bed, name_scheme):
             else:
                 lst = line.strip().split("\t")
                 if len(lst) == col_num:
-                    prim = gen_primer_instance(lst, psd)
+                    prim = Primer(lst, naming_scheme)
                     primers.append(prim)
                 else:
                     if headers:
