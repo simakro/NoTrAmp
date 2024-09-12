@@ -50,7 +50,7 @@ jobs:
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
     
-    - name: Run NoTramp all mode with single amplicons as reads
+    - name: Run NoTramp all mode with empty reads-file 
       shell: bash -el {0}
       run: |
          pwd
@@ -59,9 +59,29 @@ jobs:
          python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/SARs-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/empty_reads.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
-
-
     
+    - name: Run NoTramp trimming mode only 
+      shell: bash -el {0}
+      run: |
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -t -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/SARs-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         echo "Showing contents of logfile:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+  
+    - name: Run NoTramp coverage capping mode only 
+      shell: bash -el {0}
+      run: |
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -c -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/SARs-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         echo "Showing contents of logfile:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+
    # - name: Install dependencies
    #   run: |
    #     python -m pip install --upgrade pip
