@@ -8,8 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-def bin_mappings(amp_bins, mappings, max_cov, margins):
+def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     """sort mappings to amplicons"""
     logger.info("sorting mappings to amplicons")
     binned = []
@@ -36,13 +35,29 @@ def bin_mappings(amp_bins, mappings, max_cov, margins):
             break
 
     num_selected = 0
+    avail_reads = {}
+    select_reads = {}
     for amp_bin in binned:
         amp_bin.random_sample(max_cov)
         amn = amp_bin.name
-        rct = str(len(amp_bin.reads_dct))
-        slr = str(len(amp_bin.selected))
-        logger.info("Amp_%s reads available %s selected: %s", amn, rct, slr)
+        rct = len(amp_bin.reads_dct)
+        slr = len(amp_bin.selected)
+        avail_reads[amn] = rct
+        select_reads[amn] = slr
+        logger.info(
+            "Amp_%s reads available %s selected: %s", amn, str(rct), str(slr)
+            )
         num_selected += len(amp_bin.selected)
+    if figures:
+        try:
+            import plot_amp_reads
+            plot_amp_reads. gen_overview_fig(avail_reads, select_reads, kw)
+        except:
+            logger.warning(
+                "Figures could not be created. The functionality of NoTrAmp wil"
+                "l not be affected otherwise."
+                )
+    
     logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
 
@@ -101,4 +116,6 @@ def write_capped_from_loaded(binned, loaded_reads, out_file, kw):
                     outf.write("+\n")
                     outf.write(fq_read.qstr + "\n")
             except KeyError:
-                logging.exception("Error: read %s was not found in loaded reads", name)
+                logging.exception(
+                    "Error: read %s was not found in loaded reads", name
+                    )

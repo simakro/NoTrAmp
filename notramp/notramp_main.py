@@ -151,6 +151,14 @@ def get_arguments():
         " output is in fasta format."
         )
     optional_args.add_argument(
+        "--figures", dest='figures',
+        default=False, action="store", const=20, nargs='?',
+        help="Set to generate figures of input and output read_counts. Availabl"
+        "e for --all and --cov modes. You can optionally provide a value to dra"
+        "w a red helper line in the output read plot, showing a threshold, e.g."
+        " min. required reads. [default=False; default_threshold=20]"
+        )
+    optional_args.add_argument(
         "-v", "--version", action="version",
         version=f"notramp {__version__}",
         help="Print version and exit"
@@ -176,14 +184,16 @@ class Amp:
     def fwp_boundary(self):
         """get inner boundary of forward primer"""
         return max(
-            [prim for prim in self.primers if prim.pos == prim.scheme["fw_indicator"]],
+            # [prim for prim in self.primers if prim.pos == prim.scheme["fw_indicator"]],
+            [p for p in self.primers if p.pos == p.scheme["fw_indicator"]],
             key=lambda x: x.end
         ).end
 
     def revp_boundary(self):
         """get inner boundary of reverse primer"""
         return min(
-            [prim for prim in self.primers if prim.pos == prim.scheme["rev_indicator"]],
+            # [prim for prim in self.primers if prim.pos == prim.scheme["rev_indicator"]],
+            [p for p in self.primers if p.pos == p.scheme["rev_indicator"]],
             key=lambda x: x.start
         ).start
 
@@ -383,9 +393,9 @@ class Primer:
         self.add_info = None
         self.type = "primary"
         self.scheme = naming_scheme
+        self.unexpected_vals = defaultdict(list)
         self.get_col_infos(split_bed_line)
         self.get_name_infos()
-        
 
     def get_col_infos(self, split_bed_line):
         """generate class attributes from bed columns"""
@@ -417,12 +427,7 @@ class Primer:
             try:
                 add_info[key] = opt_cols[key](val)
             except ValueError as e:
-                logger.info(
-                    f"Expected value of type {opt_cols[key]} for column {key}. "
-                    f"Got value {val} instead. Often primer sequences are "
-                    f"included in primer bed files disregarding bed specificati"
-                    f"ons. If value looks like a primer you are probably OK."
-                    )
+                self.unexpected_vals[(key, e)].append(val)
     
     def get_name_infos(self):
         """extract information from primer name"""
@@ -470,6 +475,18 @@ def create_primer_objs(primer_bed, name_scheme):
                             raise aux.BedColumnError
                     else:
                         raise aux.BedColumnError
+    # unexpected_bed_vals = [p.unexpected_vals for p in primers]
+    # for k,l in dict(unexpected_bed_vals).items():
+    #         logger.info(
+    #             f"Expected value of type {opt_cols[k]} for optional column {k}."
+    #             f" Got the following values instead in {len(l)} cases:\n\t{l}"
+    #         )
+    #         logger.info(
+    #             f"Values in optional columns do not affect the functionality of"
+    #             f" NoTrAmp. As long as the core values (start, end, name) are c"
+    #             f"orrect there is nothing to worry about. Frequently primer seq"
+    #             f"uences that are included in primer bed files are the reason."
+    #             )
     return sorted(primers, key=lambda x: x.end)
 
 
@@ -595,8 +612,12 @@ def run_amp_cov_cap(kw):
     out_paf = name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     amps, av_amp_len = generate_amps(primers)
-    mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    binned = amp_cov.bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
+    mappings = create_filt_mappings(
+        mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"]
+        )
+    binned = amp_cov.bin_mappings_ac(
+        amps, mappings, kw["max_cov"], kw["margins"], kw["figures"], kw
+        )
     cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
     mem_fit = aux.chk_mem_fit(kw)
     if mem_fit:
@@ -620,12 +641,16 @@ def run_map_trim(kw):
     amps, av_amp_len = generate_amps(primers)
     out_paf = name_out_paf(kw["reads"], kw["reference"], "trim")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    amps_bin_maps = map_trim.bin_mappings(amps, mappings, kw["margins"])
+    mappings = create_filt_mappings(
+        mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"]
+        )
+    amps_bin_maps = map_trim.bin_mappings_mt(amps, mappings, kw["margins"])
     loaded_reads = load_reads(kw["reads"], kw["fq_out"])
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
-    map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"])
+    map_trim.clip_and_write_out(
+        amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"]
+        )
     os.remove(out_paf)
     return clipped_out
 
@@ -694,6 +719,7 @@ def run_notramp():
         "finished notramp after %s seconds of runtime",
          str(prend-prstart)
          )
+
 
 if __name__ == "__main__":
     run_notramp()

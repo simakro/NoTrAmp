@@ -1,0 +1,6 @@
+*.cap.fasta
+*.cap.clip.fasta
+*.log
+*.png
+*.paf
+large_test_data_set.fasta

@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def bin_mappings(amp_bins, mappings, margins):
+def bin_mappings_mt(amp_bins, mappings, margins):
     """sort mappings to amplicons"""
     logger.info("sorting mappings to amplicons")
     binned = []
