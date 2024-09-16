@@ -9,13 +9,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
-    """sort mappings to amplicons"""
-    logger.info("sorting mappings to amplicons")
+    """sort mappings to amplicons (amp_cov)"""
+    logger.info("sorting mappings to amplicons (amp_cov)")
+    binned_ct = 0
     binned = []
     not_av = []
     if len(mappings) == 0:
         logger.warning(
-            "No mappings of any reads were created! No capping or trimming will occur."
+            "No mappings of any reads were created!"
+            " No capping or trimming will occur."
             )
     logger.info("mappings of %s reads available", str(len(mappings)))
     while len(amp_bins) > 0:
@@ -23,6 +25,7 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
             if mappings[0].tend <= amp_bins[0].end + margins:
                 if mappings[0].tstart >= amp_bins[0].start - margins:
                     amp_bins[0].reads_dct[mappings[0].qname] = mappings[0].qname
+                    binned_ct += 1
                     mappings.pop(0)
                 else:
                     not_av.append(mappings[0].qname)
@@ -33,6 +36,11 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
         else:
             binned.append(amp_bins[0])
             break
+    print(binned)
+    logger.info(
+        f"{binned_ct} reads were sorted to bins. "
+        f"{len(not_av)} could not be sorted to an amplicon."
+        )
 
     num_selected = 0
     avail_reads = {}
@@ -48,6 +56,9 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
             "Amp_%s reads available %s selected: %s", amn, str(rct), str(slr)
             )
         num_selected += len(amp_bin.selected)
+    logger.info(
+        "A total of %s reads was selected.", str(sum(select_reads.values()))
+        )
     if figures:
         try:
             import plot_amp_reads

@@ -1,7 +1,14 @@
 from os import path
 import logging
 import logging.config
-import psutil
+
+try:
+    import psutil
+except ModuleNotFoundError as e:
+    print(
+        "WARNING: Module psutil could not be be found. Running NoTrAmp without "
+        "psutil can increase runtime significantly!"
+        )
 
 
 logger = logging.getLogger(__name__)
@@ -16,18 +23,6 @@ class BedColumnError(Exception):
                     " headers or comments begin with any of the following:" \
                     " 'track', 'browser', '#'."
         super().__init__(self.message)
-
-
-# class BedColumnError(Exception):
-#     """raised when number of columns in bed file is not matching"""
-
-#     def __init__(self):
-#         self.message = "Not all lines in primer bed have same number of" \
-#                     " columns. File may be corrupt, please check integrity" \
-#                     " of this file. Columns may not be empty. Take care that" \
-#                     " headers or comments begin with any of the following:" \
-#                     " 'track', 'browser', '#'."
-#         super().__init__(self.message)
 
 
 def fastq_autoscan(read_file):

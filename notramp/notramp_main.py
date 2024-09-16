@@ -148,7 +148,7 @@ def get_arguments():
         "--fastq", dest='fq_out',
         default=False, action="store_true",
         help="Set this flag to request output in fastq format. By default"
-        " output is in fasta format."
+        " output is in fasta format. Has no effect if input file is fasta."
         )
     optional_args.add_argument(
         "--figures", dest='figures',
@@ -426,8 +426,8 @@ class Primer:
         for key, val in zip_col:
             try:
                 add_info[key] = opt_cols[key](val)
-            except ValueError as e:
-                self.unexpected_vals[(key, e)].append(val)
+            except ValueError:
+                self.unexpected_vals[(key, opt_cols[key])].append(val)
     
     def get_name_infos(self):
         """extract information from primer name"""
@@ -475,18 +475,21 @@ def create_primer_objs(primer_bed, name_scheme):
                             raise aux.BedColumnError
                     else:
                         raise aux.BedColumnError
-    # unexpected_bed_vals = [p.unexpected_vals for p in primers]
-    # for k,l in dict(unexpected_bed_vals).items():
-    #         logger.info(
-    #             f"Expected value of type {opt_cols[k]} for optional column {k}."
-    #             f" Got the following values instead in {len(l)} cases:\n\t{l}"
-    #         )
-    #         logger.info(
-    #             f"Values in optional columns do not affect the functionality of"
-    #             f" NoTrAmp. As long as the core values (start, end, name) are c"
-    #             f"orrect there is nothing to worry about. Frequently primer seq"
-    #             f"uences that are included in primer bed files are the reason."
-    #             )
+    unexpected_bed_vals = defaultdict(list)
+    for p in primers:
+        for k,v in p.unexpected_vals.items():
+            unexpected_bed_vals[k].extend(v)
+    for k,l in dict(unexpected_bed_vals).items():
+            logger.info(
+                f"Expected value of type {k[1]} for optional column {k[0]}. Got"
+                f" the following values instead in {len(l)} cases:\n\t\t\t\t{l}"
+            )
+            logger.info(
+                f"Values in optional columns do not affect the functionality of"
+                f" NoTrAmp. As long as the core values (start, end, name) are c"
+                f"orrect there is nothing to worry about. Frequently primer seq"
+                f"uences that are included in primer bed files are the reason."
+                )
     return sorted(primers, key=lambda x: x.end)
 
 
@@ -619,7 +622,18 @@ def run_amp_cov_cap(kw):
         amps, mappings, kw["max_cov"], kw["margins"], kw["figures"], kw
         )
     cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
-    mem_fit = aux.chk_mem_fit(kw)
+    try:
+        
+        mem_fit = aux.chk_mem_fit(kw)
+    except:
+        mem_fit = False
+        logger.warning(
+            "Memory check failed, likely because module psutil could not be fou"
+            "nd. NoTrAmp will still work, but for safety reasons all writing an"
+            "d loading of reads will be performed from file instead from memory"
+            ". This can increase runtime significantly."
+            )
+
     if mem_fit:
         loaded_reads = load_reads(kw["reads"], kw["fq_out"])
         amp_cov.write_capped_from_loaded(binned, loaded_reads, cap_out, kw)

@@ -10,8 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 def bin_mappings_mt(amp_bins, mappings, margins):
-    """sort mappings to amplicons"""
-    logger.info("sorting mappings to amplicons")
+    """sort mappings to amplicons (map_trim)"""
+    logger.info("sorting mappings to amplicons (map_trim)")
+    binned_ct = 0
     binned = []
     not_av = []
     if len(amp_bins) == 0:
@@ -23,6 +24,7 @@ def bin_mappings_mt(amp_bins, mappings, margins):
             if mappings[0].tend <= amp_bins[0].end + margins:
                 if mappings[0].tstart >= amp_bins[0].start - margins:
                     amp_bins[0].mappings[mappings[0].qname] = mappings[0]
+                    binned_ct += 1
                     mappings.pop(0)
                 else:
                     not_av.append(mappings[0].qname)
@@ -33,6 +35,10 @@ def bin_mappings_mt(amp_bins, mappings, margins):
         else:
             binned.append(amp_bins[0])
             break
+    logger.info(
+        f"{binned_ct} reads were sorted to bins. "
+        f"{len(not_av)} could not be sorted to an amplicon"
+        )
     return binned
 
 
