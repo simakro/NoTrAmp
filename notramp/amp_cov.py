@@ -44,7 +44,9 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
             if not switch_binned:
                 not_av.append(m.qname)
             if len(amp_bins) == 0:
-                # find a way to add potential remaining mapping to not_av
+                # add potential remaining mappings to not_av
+                remaining = mappings[mappings.index(m):-1]
+                not_av.extend(remaining)
                 break
 
     if len(amp_bins) > 0:
