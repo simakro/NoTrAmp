@@ -20,23 +20,38 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
             " No capping or trimming will occur."
             )
     logger.info("mappings of %s reads available", str(len(mappings)))
-    while len(amp_bins) > 0:
-        if len(mappings) > 0:
-            if mappings[0].tend <= amp_bins[0].end + margins:
-                if mappings[0].tstart >= amp_bins[0].start - margins:
-                    amp_bins[0].reads_dct[mappings[0].qname] = mappings[0].qname
-                    binned_ct += 1
-                    mappings.pop(0)
-                else:
-                    not_av.append(mappings[0].qname)
-                    mappings.pop(0)
+
+    for m in mappings:
+        if m.tend <= amp_bins[0].end + margins:
+            if m.tstart >= amp_bins[0].start - margins:
+                amp_bins[0].reads_dct[m.qname] = m.qname
+                binned_ct += 1
             else:
-                binned.append(amp_bins[0])
-                amp_bins.pop(0)
+                not_av.append(m.qname)
         else:
             binned.append(amp_bins[0])
-            break
-    print(binned)
+            amp_bins.pop(0)
+            # to avoid systematic loss of reads when switching to next amp_bin
+            # check if the current mapping fits into the next (or later) bin
+            switch_binned = False
+            for bin in amp_bins:
+                if m.tend <= bin.end + margins:
+                    if m.tstart >= bin.start - margins:
+                        bin.reads_dct[m.qname] = m.qname
+                        binned_ct += 1
+                        switch_binned = True
+                        break
+            if not switch_binned:
+                not_av.append(m.qname)
+            if len(amp_bins) == 0:
+                # find a way to add potential remaining mapping to not_av
+                break
+
+    if len(amp_bins) > 0:
+        binned.extend(amp_bins)
+    
+    # not_av.extend([m.qname for m in mappings])
+    mappings = []
     logger.info(
         f"{binned_ct} reads were sorted to bins. "
         f"{len(not_av)} could not be sorted to an amplicon."
