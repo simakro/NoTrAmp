@@ -431,13 +431,22 @@ class Primer:
     
     def get_name_infos(self):
         """extract information from primer name"""
-        lsp = self.name.split(self.scheme["sep"])
-        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
-        self.__dict__["pos"] = lsp[self.scheme["position"]]
-        if "alt" in self.scheme:
-            if len(lsp) == self.scheme["max_len"]:
-                self.type = "alt"
-                self.alt_name = lsp[self.scheme["alt"]]
+        try:
+            lsp = self.name.split(self.scheme["sep"])
+            self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
+            self.__dict__["pos"] = lsp[self.scheme["position"]]
+            if "alt" in self.scheme:
+                if len(lsp) == self.scheme["max_len"]:
+                    self.type = "alt"
+                    self.alt_name = lsp[self.scheme["alt"]]
+        except Exception as e:
+            logger.error(
+                "Naming scheme does not match primer names in bed file. Please "
+                "ensure that you are using the right combination of naming sche"
+                "me and primer bed-file."
+                )
+            logger.error(e)
+            exit()
 
 
 def log_sp_error(error, message):

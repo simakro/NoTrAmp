@@ -11,15 +11,16 @@ logger = logging.getLogger(__name__)
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     """sort mappings to amplicons (amp_cov)"""
     logger.info("sorting mappings to amplicons (amp_cov)")
+    initial_mappings = len(mappings)
     binned_ct = 0
     binned = []
     not_av = []
-    if len(mappings) == 0:
+    if initial_mappings == 0:
         logger.warning(
             "No mappings of any reads were created!"
             " No capping or trimming will occur."
             )
-    logger.info("mappings of %s reads available", str(len(mappings)))
+    logger.info("mappings of %s reads available", str(initial_mappings))
 
     for m in mappings:
         if m.tend <= amp_bins[0].end + margins:
@@ -52,12 +53,19 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     if len(amp_bins) > 0:
         binned.extend(amp_bins)
     
-    # not_av.extend([m.qname for m in mappings])
-    mappings = []
     logger.info(
         f"{binned_ct} reads were sorted to bins. "
         f"{len(not_av)} could not be sorted to an amplicon."
         )
+    if initial_mappings > 0:
+        perc_binned = (binned_ct/initial_mappings)*100
+        if perc_binned < 75:
+            logger.warning(
+                "A high proportion (>25%) of reads could not be sorted to ampli"
+                "cons. This can occur if you don't use the right amplicon tilin"
+                "g scheme (primer bed-file) or can be an indication of sequenci"
+                "ng issues."
+                )
 
     num_selected = 0
     avail_reads = {}

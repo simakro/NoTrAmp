@@ -30,9 +30,9 @@ def fastq_autoscan(read_file):
     logger.info("Scanning readfile to determine filetype")
     rf_size = path.getsize(read_file)
     if rf_size == 0:
-        logger.warning("Read file appears to be completely empty!")
+        logger.warning(f"File {read_file} appears to be completely empty!")
     elif rf_size < 100:
-        logger.warning("Read file appears to be almost empty!")
+        logger.warning(f"File {read_file} appears to be almost empty!")
     else:
         logger.info("Read file size is %s", rf_size)
     with open(read_file, "r", encoding="utf-8") as rfl:
