@@ -103,8 +103,9 @@ Optional arguments:
 NoTrAmp outputs per default two read files, one containing the subsampled capped reads, ending on ".cap.fasta", 
 and one containing clipped versions of the capped reads, ending on ".cap.clip.fasta". If quality information is required downstream 
 in your workflow, you can request output in fastq format, by setting the --fastq flag. It is recommended that quality control and 
-filtering of data is performed before running NoTramp.
-
+filtering of data is performed before running NoTramp.  
+Additionaly a log-file ("notramp.log") is generated, that also contains detailed information about processed and selected reads, read coverage/amplicon and trimmed bases. 
+A visual representation (see belwo) of input and output reads can also be requested by setting the --figures flag.
 <p align="center">
   <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="800" height="auto" align="left"/>
 </p>
