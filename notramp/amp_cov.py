@@ -155,3 +155,29 @@ def write_capped_from_loaded(binned, loaded_reads, out_file, kw):
                 logging.exception(
                     "Error: read %s was not found in loaded reads", name
                     )
+
+
+def write_to_split_files(binned, loaded_reads, out_file, kw):
+    """write subsample to amp-specific outfiles using loaded reads as source"""
+    logger.info("splitting selected untrimmed reads to amplicon outfiles")
+    # all_picks = [name for amp in binned for name in amp.selected]    
+    for amp in binned:
+        with open(f"{out_file}_{amp.name}", "w", encoding="utf-8") as outf:
+            for name in amp.selected:
+                try:
+                    if not kw["fq_out"]:
+                        header = ">" + name + "\n"
+                        seq = loaded_reads[name].seq + "\n"
+                        outf.write(header)
+                        outf.write(seq)
+                    else:
+                        fq_read = loaded_reads[name]
+                        header = "@" + name + "\n"
+                        outf.write(header)
+                        outf.write(fq_read.seq + "\n")
+                        outf.write("+\n")
+                        outf.write(fq_read.qstr + "\n")
+                except KeyError:
+                    logging.exception(
+                        "Error: read %s was not found in loaded reads", name
+                        )

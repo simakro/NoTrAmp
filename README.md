@@ -21,8 +21,8 @@ It is frequently utilized for the sequencing of viral genomes and has seen exten
 
 Amplicon-tiling protocols include amplification of the target sequences in separate multiplex PCRs build on (typically) two complementary primer pools.
 The performance of individual amplicons in these multiplex PCRs can be vastly different, resulting in large variations of read counts for different regions of the target sequence.
-The necessity to accumulate enough reads at weak amplicons usually results in amassing orders of magnitude more reads at the more efficient amplicons than required.
-This net overproduction increases the data load and can significantly slow down downstream processes. Additionaly, adapters and barcodes that are attached to DNA fragments during sequencing library preparation, as well as the PCR primers, which could otherwise conceal mutations/variations, need to be removed for downstream processing sequencing.
+The necessity to accumulate enough reads at weak amplicons usually results in amassing orders of magnitude more reads than required at the more efficient amplicons.
+This net overproduction increases the data load and can significantly slow down downstream processes. Additionaly, adapters and barcodes that are attached to DNA fragments during sequencing library preparation, as well as the PCR primers, which could otherwise conceal mutations/variations, need to be removed for downstream processing sequencing.  
 NoTrAmp addresses these issues by limiting the read depth at each amplicon to a set count and performs extremely fast one-step trimming, by removing primers, barcodes and adapters in the same clipping operation.
 
 ## <a name="install"></a>Installation

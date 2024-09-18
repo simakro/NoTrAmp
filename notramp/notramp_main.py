@@ -145,18 +145,24 @@ def get_arguments():
         f" amplicons. [default={DEFAULTS['margins']}]"
         )
     optional_args.add_argument(
-        "--fastq", dest='fq_out',
-        default=False, action="store_true",
-        help="Set this flag to request output in fastq format. By default"
-        " output is in fasta format. Has no effect if input file is fasta."
-        )
-    optional_args.add_argument(
         "--figures", dest='figures',
         default=False, action="store", const=20, nargs='?',
         help="Set to generate figures of input and output read_counts. Availabl"
         "e for --all and --cov modes. You can optionally provide a value to dra"
         "w a red helper line in the output read plot, showing a threshold, e.g."
         " min. required reads. [default=False; default_threshold=20]"
+        )
+    optional_args.add_argument(
+        "--fastq", dest='fq_out',
+        default=False, action="store_true",
+        help="Set this flag to request output in fastq format. By default"
+        " output is in fasta format. Has no effect if input file is fasta."
+        )
+    optional_args.add_argument(
+        "--split", dest='split_out',
+        default=False, action="store_true",
+        help="Set this flag to request output of capped, untrimmed reads split"
+        " to amplicon specific files (can be a lot)."
         )
     optional_args.add_argument(
         "-v", "--version", action="version",
@@ -646,9 +652,18 @@ def run_amp_cov_cap(kw):
     if mem_fit:
         loaded_reads = load_reads(kw["reads"], kw["fq_out"])
         amp_cov.write_capped_from_loaded(binned, loaded_reads, cap_out, kw)
+        if kw["split_out"]:
+            amp_cov.write_to_split_files(binned, loaded_reads, cap_out, kw)
         del loaded_reads
     else:
         amp_cov.write_capped_from_file(binned, kw["reads"], cap_out, kw)
+        if kw["split_out"]:
+            logger.warning(
+                "Writing to split files could not be performed, because reads w"
+                "ere not loaded into memory. This can occur if the in-file is t"
+                "oo large for your memory or when NoTrAmp is run without psutil"
+                "."
+                )
     os.remove(out_paf)
     return cap_out, primers, amps, av_amp_len
 
