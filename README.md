@@ -111,6 +111,8 @@ A visual representation (see below) of input and output reads can also be reques
 <p align="center">
   <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="600" height="auto" align="center"/>
 </p>
+Upper plot: Input reads (before)
+Lower plot: Capped output reads (after)
 
 ## <a name="namescheme"></a>Primer naming schemes
 NoTramp requires primers in multiplex amplicon tiling panels to follow a consistent scheme.
