@@ -11,17 +11,18 @@ Normalization and Trimming of long-read (ONT, PB) amplicon sequencing data
 
 ## <a name="intro"></a>Introduction
 
-NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio).
+NoTrAmp is a Tool for read-depth normalization and super fast trimming of amplicon reads generated with long read technologies (ONT/PacBio).
 It is primarily designed to be used in amplicon-tiling approaches to cap coverage of each amplicon and to trim amplicons to their
 appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.  
 Amplicon-tiling schemes are employed to target and amplify specific sequences and enable coverage of longer regions of DNA with small, contiguous segments using overlapping amplicons. 
 This approach is particularly useful for detection of mutations, characterization of genetic variation and allows generation of high quality assemblies from low input, fragmented DNA. 
-<!-- Although long-read technologies like nanopore sequencing allow direct sequencing of long DNA fragments, relatively large amounts of intact high-molecular weight DNA are required to achieve the desired coverage across the entire target sequence. have to be taken to achieve targeting   --> 
+<!-- Although long-read technologies like nanopore sequencing allow direct sequencing of long DNA fragments, relatively large amounts of intact high-molecular weight DNA are required to achieve the desired coverage across the entire target sequence. have to be taken to achieve targeting   -->
 It is frequently utilized for the sequencing of viral genomes and has been extensively used for sequencing of SARS-CoV2 or during Ebola outbreaks [Citations, links to ARTIC], but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
 Amplicon-tiling protocols include amplification of the target sequences in separate multiplex PCRs build on (typically) two complementary primer pools.
 The performance of individual amplicons in these multiplex PCRs can be vastly different, resulting in large variations of read counts for different regions of the target sequence.
 The necessity to accumulate enough reads at weak amplicons usually results in amassing orders of magnitude more reads at the more efficient amplicons than required.
-This net overproduction increases the data load and can significantly slow down downstream processes.
+This net overproduction increases the data load and can significantly slow down downstream processes. Additionaly, adapters and barcodes that are attached to DNA fragments during sequencing library preparation, as well as the PCR primers, which could otherwise conceal mutations/variations, need to be removed for downstream processing sequencing.
+NoTrAmp addresses these issues by limiting the read depth at each amplicon to a set count and performs extremely fast one-step trimming, by removing primers, barcodes and adapters in the same clipping operation.
 
 ## <a name="install"></a>Installation
 install with pip:
