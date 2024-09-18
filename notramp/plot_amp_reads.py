@@ -37,7 +37,7 @@ def plot_reads_per_amp(
     values = list(data.values())  
     ax.bar(categories, values)
     ax.set_xlabel('Amplicon')
-    ax.set_ylabel('Count')
+    ax.set_ylabel('Read count')
     ax.set_title(title)
     if int(helpline):
         ax.axhline(

@@ -13,14 +13,14 @@ Normalization and Trimming of long-read (ONT, PB) amplicon sequencing data
 
 NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio).
 It is primarily designed to be used in amplicon-tiling approaches to cap coverage of each amplicon and to trim amplicons to their
-appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step. Amplicon-tiling schemes are employed 
-to enable the sequencing of extended stretches of DNA.  
-Although long-read sequencing technologies like nanopore sequencing allow direct sequencing of long DNA fragments, relatively large amounts of intact high-molecular weight DNA are required to achieve the desired coverage across the entire target sequence. Amplicon-tiling schemes allow variant calling and generation and analysis of high quality assemblies from low input, fragmented DNA at high coverage.  
-Amplicon-tiling sequencing is frequently employed for the sequencing of viral genomes but can also be used for targeted sequencing of larger genetic regions in eukaryotes.
-It has been extensively used for sequencing of SARS-CoV2 or during Ebola outbreaks [Citations, links to ARTIC].  
-Amplicon-tiling protocols include amplification of the target sequences in Multiplex PCRs of (typically two) primer pools.
-The performance of individual amplicons in these Multiplex PCRs often varies widely, resulting in large variations of read counts for different regions of the target sequence.
-In order to achieve the required coverage at weak amplicons, orders of magnitude more reads can accumulate at the most efficient amplicons.
+appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.  
+Amplicon-tiling schemes are employed to target and amplify specific sequences and enable coverage of longer regions of DNA with small, contiguous segments using overlapping amplicons. 
+This approach is particularly useful for detection of mutations, characterization of genetic variation and allows generation of high quality assemblies from low input, fragmented DNA. 
+<!-- Although long-read technologies like nanopore sequencing allow direct sequencing of long DNA fragments, relatively large amounts of intact high-molecular weight DNA are required to achieve the desired coverage across the entire target sequence. have to be taken to achieve targeting   --> 
+It is frequently utilized for the sequencing of viral genomes and has been extensively used for sequencing of SARS-CoV2 or during Ebola outbreaks [Citations, links to ARTIC], but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
+Amplicon-tiling protocols include amplification of the target sequences in separate multiplex PCRs build on (typically) two complementary primer pools.
+The performance of individual amplicons in these multiplex PCRs can be vastly different, resulting in large variations of read counts for different regions of the target sequence.
+The necessity to accumulate enough reads at weak amplicons usually results in amassing orders of magnitude more reads at the more efficient amplicons than required.
 This net overproduction increases the data load and can significantly slow down downstream processes.
 
 ## <a name="install"></a>Installation
@@ -105,9 +105,9 @@ and one containing clipped versions of the capped reads, ending on ".cap.clip.fa
 in your workflow, you can request output in fastq format, by setting the --fastq flag. It is recommended that quality control and 
 filtering of data is performed before running NoTramp.  
 Additionaly a log-file ("notramp.log") is generated, that also contains detailed information about processed and selected reads, read coverage/amplicon and trimmed bases. 
-A visual representation (see belwo) of input and output reads can also be requested by setting the --figures flag.
+A visual representation (see below) of input and output reads can also be requested by setting the --figures flag.
 <p align="center">
-  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="800" height="auto" align="left"/>
+  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="600" height="auto" align="center"/>
 </p>
 
 ## <a name="namescheme"></a>Primer naming schemes
