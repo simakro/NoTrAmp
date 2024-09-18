@@ -103,7 +103,7 @@ in your workflow, you can request output in fastq format, by setting the --fastq
 filtering of data is performed before running NoTramp.
 
 <p align="center">
-  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x" width="800" height="auto" align="left"/>
+  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="800" height="auto" align="left"/>
 </p>
 
 ## <a name="namescheme"></a>Primer naming schemes
