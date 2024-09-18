@@ -16,7 +16,6 @@ It is primarily designed to be used in amplicon-tiling approaches to cap coverag
 appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.  
 Amplicon-tiling schemes are employed to target and amplify specific sequences and enable coverage of longer regions of DNA with small, contiguous segments using overlapping amplicons. 
 This approach is particularly useful for detection of mutations, characterization of genetic variation and allows generation of high quality assemblies from low input, fragmented DNA. 
-<!-- Although long-read technologies like nanopore sequencing allow direct sequencing of long DNA fragments, relatively large amounts of intact high-molecular weight DNA are required to achieve the desired coverage across the entire target sequence. have to be taken to achieve targeting   -->
 It is frequently utilized for the sequencing of viral genomes and has been extensively used for sequencing of SARS-CoV2 or during Ebola outbreaks [Citations, links to ARTIC], but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
 Amplicon-tiling protocols include amplification of the target sequences in separate multiplex PCRs build on (typically) two complementary primer pools.
 The performance of individual amplicons in these multiplex PCRs can be vastly different, resulting in large variations of read counts for different regions of the target sequence.
