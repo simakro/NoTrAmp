@@ -3,13 +3,19 @@ Normalization and Trimming of long-read (ONT, PB) amplicon sequencing data
 
 
 NoTrAmp is a Tool for read-depth normalization and trimming of amplicon reads generated with long read technologies (ONT/PacBio).
-It can be used in amplicon-tiling approaches to cap coverage of each amplicon and to trim amplicons to their
-appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.
+It is primarily designed to be used in amplicon-tiling approaches to cap coverage of each amplicon and to trim amplicons to their
+appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step. Amplicon-tiling schemes are employed 
+to enable the sequencing of extended stretches of DNA. Although long-read sequencing technologies like nanopore sequencing  
+allow direct sequencing of long DNA fragments, relatively large amounts of intact high-molecular weight DNA are required to achieve the desired coverage across the entire target sequence. Amplicon-tiling schemes allow variant calling and generation and analysis of high quality assemblies from low input, fragmented DNA at high coverage.
+They are frequently employed for the sequencing of viral genomes but can also be used for targeted sequencing of larger genetic regions in eukaryotes.
+Amplicon-tiling sequencing has been extensively used for sequencing of SARS-CoV2 or during Ebola outbreaks [Citations, links to ARTIC].
+MUltiplex pCRs pools performance of different amplicons efficiency
+
 
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
-- [Output] (#output)
+- [Output](#output)
 - [Primer naming schemes](#namescheme)
 - [Dependencies](#depend)
 
@@ -97,7 +103,7 @@ in your workflow, you can request output in fastq format, by setting the --fastq
 filtering of data is performed before running NoTramp.
 
 <p align="center">
-  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/resources/notramp_amplicon_coverage_large_test_data_thr30x" width="800" height="auto" align="left"/>
+  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x" width="800" height="auto" align="left"/>
 </p>
 
 ## <a name="namescheme"></a>Primer naming schemes
