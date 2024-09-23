@@ -1,6 +1,7 @@
 from os import path
 import logging
 import logging.config
+import traceback as trace
 
 try:
     import psutil
@@ -25,6 +26,23 @@ class BedColumnError(Exception):
         super().__init__(self.message)
 
 
+class PrimerSchemeError(Exception):
+    """raised Naming scheme does not match primer name in bed file"""
+
+    def __init__(self, obj_type):
+        self.message = f"Error during {obj_type}-objects generation. Naming scheme does not" \
+                f" match primer names in bed file. Please ensure that you are us" \
+                f"ing the right combination of naming scheme and primer bed-file" \
+                f" and that your primers consistently follow this scheme."
+        super().__init__(self.message)
+
+
+def exception_handler(exception_type, exception, tb):
+    logger.error(f"{exception_type.__name__}, {exception}")
+    tb_str = "".join(trace.format_list(trace.extract_tb(tb)))
+    logger.info(tb_str)
+
+
 def fastq_autoscan(read_file):
     """Scanning readfile to determine filetype"""
     logger.info("Scanning readfile to determine filetype")
@@ -34,11 +52,10 @@ def fastq_autoscan(read_file):
     elif rf_size < 100:
         logger.warning(f"File {read_file} appears to be almost empty!")
     else:
-        logger.info("Read file size is %s", rf_size)
+        logger.info("Read file size is %s bytes", rf_size)
     with open(read_file, "r", encoding="utf-8") as rfl:
         line_ct = 0
         fastq = False
-        # while line_ct < 100:
         for line in rfl:
             line_ct += 1
             if line.startswith("@"):
@@ -52,7 +69,8 @@ def fastq_autoscan(read_file):
 def chk_mem_fit(kw):
     """Check for available memory"""
     logger.info("Checking for available memory")
-    fastq = fastq_autoscan(kw["reads"])
+    # fastq = fastq_autoscan(kw["reads"])
+    fastq = kw["fastq_in"]
     rf_size = path.getsize(kw["reads"])
     if fastq:
         load_size = rf_size if kw["fq_out"] else rf_size/2
@@ -61,7 +79,8 @@ def chk_mem_fit(kw):
     avail_mem = psutil.virtual_memory()[1]
 
     if load_size > 0:
-        if avail_mem / load_size > 4:
+        # if avail_mem / load_size > 4:
+        if avail_mem / load_size > kw["mem_quota"]:
             return True
         else:
             return False

@@ -30,6 +30,7 @@ else:
 
 
 logger = logging.getLogger(__name__)
+sys.excepthook = aux.exception_handler
 
 
 def get_arguments():
@@ -165,6 +166,13 @@ def get_arguments():
         " to amplicon specific files (can be a lot)."
         )
     optional_args.add_argument(
+        "--max_mem_quota", dest='mem_quota',
+        default=2, type=int,
+        help="Set the fraction (1/n) of memory that can maximally be occupied b"
+        "y NoTrAmp. This will influence if all reads can be loaded into memory,"
+        " which helps NoTrAmp to run significantly faster, but will also influence how many processes can run in parallel"
+        )
+    optional_args.add_argument(
         "-v", "--version", action="version",
         version=f"notramp {__version__}",
         help="Print version and exit"
@@ -179,7 +187,7 @@ class Amp:
     handle and process data of attached Primer, Mapping and Read objects"""
 
     def __init__(self, amp_no, primers):
-        self.name = int(amp_no)
+        self.name = self._set_name(amp_no)
         self.primers = primers
         self.start = min([primer.start for primer in primers])
         self.end = max([primer.end for primer in primers])
@@ -187,10 +195,16 @@ class Amp:
         self.reads_dct = {}
         self.selected = []
 
+    def _set_name(self, amp_no):
+        try:
+            return int(amp_no)
+        except ValueError as ve:
+            tb = ve.__traceback__
+            raise aux.PrimerSchemeError("Amplicon").with_traceback(tb)
+    
     def fwp_boundary(self):
         """get inner boundary of forward primer"""
         return max(
-            # [prim for prim in self.primers if prim.pos == prim.scheme["fw_indicator"]],
             [p for p in self.primers if p.pos == p.scheme["fw_indicator"]],
             key=lambda x: x.end
         ).end
@@ -198,7 +212,6 @@ class Amp:
     def revp_boundary(self):
         """get inner boundary of reverse primer"""
         return min(
-            # [prim for prim in self.primers if prim.pos == prim.scheme["rev_indicator"]],
             [p for p in self.primers if p.pos == p.scheme["rev_indicator"]],
             key=lambda x: x.start
         ).start
@@ -446,13 +459,8 @@ class Primer:
                     self.type = "alt"
                     self.alt_name = lsp[self.scheme["alt"]]
         except Exception as e:
-            logger.error(
-                "Naming scheme does not match primer names in bed file. Please "
-                "ensure that you are using the right combination of naming sche"
-                "me and primer bed-file."
-                )
-            logger.error(e)
-            exit()
+            tb = e.__traceback__
+            raise aux.PrimerSchemeError("Primer").with_traceback(tb)
 
 
 def log_sp_error(error, message):
@@ -522,20 +530,20 @@ def generate_amps(primers):
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
-def load_reads(read_file, output_fq):
+def load_reads(kw):
     """load reads into memory"""
     logger.info("loading reads")
     reads = {}
-    fastq = aux.fastq_autoscan(read_file)
+    fastq = kw["fastq_in"]
     header_ind = "@" if fastq else ">"
-    with open(read_file, "r", encoding="utf-8") as rfa:
+    with open(kw["reads"], "r", encoding="utf-8") as rfa:
         for line in rfa:
             if line.startswith(header_ind):
                 header = line.strip().split(" ")[0]
                 seq = next(rfa)
                 read = Read(header, seq.strip(), fastq=fastq)
                 if fastq:
-                    if output_fq:
+                    if kw["fq_out"]:
                         read.plus = next(rfa)
                         read.qstr = next(rfa).strip()
                 reads[read.name] = read
@@ -638,7 +646,6 @@ def run_amp_cov_cap(kw):
         )
     cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
     try:
-        
         mem_fit = aux.chk_mem_fit(kw)
     except:
         mem_fit = False
@@ -650,7 +657,7 @@ def run_amp_cov_cap(kw):
             )
 
     if mem_fit:
-        loaded_reads = load_reads(kw["reads"], kw["fq_out"])
+        loaded_reads = load_reads(kw)
         amp_cov.write_capped_from_loaded(binned, loaded_reads, cap_out, kw)
         if kw["split_out"]:
             amp_cov.write_to_split_files(binned, loaded_reads, cap_out, kw)
@@ -673,7 +680,6 @@ def run_map_trim(kw):
     logger.info("Start trimming/clipping of reads")
     if kw["all"]:
         primers = kw["primer_objects"]
-        # amps, av_amp_len = kw["amp_objects"], kw["amp_lens"]
     else:
         primers = create_primer_objs(kw["primers"], kw["name_scheme"])
     amps, av_amp_len = generate_amps(primers)
@@ -683,7 +689,7 @@ def run_map_trim(kw):
         mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"]
         )
     amps_bin_maps = map_trim.bin_mappings_mt(amps, mappings, kw["margins"])
-    loaded_reads = load_reads(kw["reads"], kw["fq_out"])
+    loaded_reads = load_reads(kw)
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
     map_trim.clip_and_write_out(
@@ -722,7 +728,6 @@ def run_notramp():
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
     logger.info("notramp started with: %s", kwargs)
-
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:
         kwargs["name_scheme"] = path.join(
@@ -730,11 +735,11 @@ def run_notramp():
                                             "resources",
                                             kwargs["name_scheme"] + ".json"
                                             )
-                                            
-    fastq_in = aux.fastq_autoscan(kwargs["reads"])
-    kwargs["fq_in"] = True if fastq_in else False
+
+    kwargs["fastq_in"] = aux.fastq_autoscan(kwargs["reads"])                                      
+    kwargs["fq_in"] = True if kwargs["fastq_in"] else False
     if kwargs["fq_out"]:
-        if not fastq_in:
+        if not kwargs["fastq_in"]:
             kwargs["fq_out"] = False
             logger.warning("No fastq input. Outfile-type was changed to fasta")
 
@@ -746,8 +751,6 @@ def run_notramp():
         capped_reads, prims, amps, amp_lens = run_amp_cov_cap(kwargs)
         kwargs["reads"] = capped_reads
         kwargs["primer_objects"] = prims
-        # kwargs["amp_objects"] = amps
-        # kwargs["amp_lens"] = amp_lens
         run_map_trim(kwargs)
     else:
         print("Missing argument for notramp operation mode")

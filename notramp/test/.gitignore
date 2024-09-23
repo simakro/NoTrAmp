@@ -3,4 +3,5 @@
 *.log
 *.png
 *.paf
+*.ipynb
 large_test_data_set.fasta

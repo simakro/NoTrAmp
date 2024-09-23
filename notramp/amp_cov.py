@@ -159,8 +159,7 @@ def write_capped_from_loaded(binned, loaded_reads, out_file, kw):
 
 def write_to_split_files(binned, loaded_reads, out_file, kw):
     """write subsample to amp-specific outfiles using loaded reads as source"""
-    logger.info("splitting selected untrimmed reads to amplicon outfiles")
-    # all_picks = [name for amp in binned for name in amp.selected]    
+    logger.info("splitting selected untrimmed reads to amplicon outfiles")   
     for amp in binned:
         with open(f"{out_file}_{amp.name}", "w", encoding="utf-8") as outf:
             for name in amp.selected:
