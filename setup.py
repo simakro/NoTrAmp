@@ -1,6 +1,7 @@
 from setuptools import setup
+from notramp.version import __version__
 
-exec(open('notramp/version.py').read())
+# exec(open('notramp/version.py').read())
 
 with open("README.md", "r", encoding="utf-8") as desc:
     long_description = desc.read()
