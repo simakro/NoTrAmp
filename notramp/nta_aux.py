@@ -69,7 +69,6 @@ def fastq_autoscan(read_file):
 def chk_mem_fit(kw):
     """Check for available memory"""
     logger.info("Checking for available memory")
-    # fastq = fastq_autoscan(kw["reads"])
     fastq = kw["fastq_in"]
     rf_size = path.getsize(kw["reads"])
     if fastq:

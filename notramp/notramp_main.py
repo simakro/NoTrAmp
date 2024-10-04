@@ -166,13 +166,6 @@ def get_arguments():
         " to amplicon specific files (can be a lot)."
         )
     optional_args.add_argument(
-        "--max_mem_quota", dest='mem_quota',
-        default=2, type=int,
-        help="Set the fraction (1/n) of memory that can maximally be occupied b"
-        "y NoTrAmp. This will influence if all reads can be loaded into memory,"
-        " which helps NoTrAmp to run significantly faster, but will also influence how many processes can run in parallel"
-        )
-    optional_args.add_argument(
         "-v", "--version", action="version",
         version=f"notramp {__version__}",
         help="Print version and exit"
@@ -592,6 +585,7 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
 
 def gen_mapping_objs(mm2_paf):
     """generate mapping objects"""
+    logger.info("creating mapping objects")
     with open(mm2_paf, "r", encoding="utf-8") as paf:
         map_dct = defaultdict(list)
         for line in paf:

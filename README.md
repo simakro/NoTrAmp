@@ -102,8 +102,8 @@ Optional arguments:
 
 
 ## <a name="output"></a>Output
-NoTrAmp outputs per default two read files, one containing the subsampled capped reads, ending on ".cap.fasta", 
-and one containing clipped versions of the capped reads, ending on ".cap.clip.fasta". If quality information is required downstream 
+NoTrAmp by default generates a separate read file as output for capping and trimming. Capped untrimmed reads are contained in a file ending on ".cap.fasta". 
+Clipped reads are stored in a file ending on ".clip.fasta". If both capping and trimming were selected, trimmed versions of the capped reads, are written to  "YourFileName.cap.clip.fasta". If quality information is required downstream 
 in your workflow, you can request output in fastq format, by setting the --fastq flag. It is recommended that quality control and 
 filtering of data is performed before running NoTramp.  
 Additionaly a log-file ("notramp.log") is generated, that also contains detailed information about processed and selected reads, read coverage/amplicon and trimmed bases. 
