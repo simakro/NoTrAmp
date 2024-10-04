@@ -19,33 +19,6 @@ def bin_mappings_mt(amp_bins, mappings, margins):
         logger.warning(
             "No mappings of any reads were created! No trimming will occur."
             )
-    # for m in mappings:
-    #     if m.tend <= amp_bins[0].end + margins:
-    #         if m.tstart >= amp_bins[0].start - margins:
-    #             amp_bins[0].reads_dct[m.qname] = m.qname
-    #             binned_ct += 1
-    #         else:
-    #             not_av.append(m.qname)
-    #     else:
-    #         binned.append(amp_bins[0])
-    #         amp_bins.pop(0)
-    #         # to avoid systematic loss of reads when switching to next amp_bin
-    #         # check if the current mapping fits into the next (or later) bin
-    #         switch_binned = False
-    #         for bin in amp_bins:
-    #             if m.tend <= bin.end + margins:
-    #                 if m.tstart >= bin.start - margins:
-    #                     bin.reads_dct[m.qname] = m.qname
-    #                     binned_ct += 1
-    #                     switch_binned = True
-    #                     break
-    #         if not switch_binned:
-    #             not_av.append(m.qname)
-    #         if len(amp_bins) == 0:
-    #             # add potential remaining mappings to not_av
-    #             remaining = mappings[mappings.index(m):-1]
-    #             not_av.extend(remaining)
-    #             break
     while len(amp_bins) > 0:
         if len(mappings) > 0:
             if mappings[0].tend <= amp_bins[0].end + margins:
