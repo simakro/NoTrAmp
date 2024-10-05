@@ -5,7 +5,7 @@ import traceback as trace
 
 try:
     import psutil
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     print(
         "WARNING: Module psutil could not be be found. Running NoTrAmp without "
         "psutil can increase runtime significantly!"
@@ -13,6 +13,7 @@ except ModuleNotFoundError as e:
 
 
 logger = logging.getLogger(__name__)
+
 
 class BedColumnError(Exception):
     """raised when number of columns in bed file is not matching"""
@@ -78,8 +79,7 @@ def chk_mem_fit(kw):
     avail_mem = psutil.virtual_memory()[1]
 
     if load_size > 0:
-        # if avail_mem / load_size > 4:
-        if avail_mem / load_size > kw["mem_quota"]:
+        if avail_mem - load_size > avail_mem*0.2:
             return True
         else:
             return False

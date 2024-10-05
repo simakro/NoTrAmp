@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     """sort mappings to amplicons (amp_cov)"""
     logger.info("sorting mappings to amplicons (amp_cov)")
@@ -52,7 +53,7 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
 
     if len(amp_bins) > 0:
         binned.extend(amp_bins)
-    
+
     logger.info(
         f"{binned_ct} reads were sorted to bins. "
         f"{len(not_av)} could not be sorted to an amplicon."
@@ -88,12 +89,12 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
         try:
             import plot_amp_reads
             plot_amp_reads. gen_overview_fig(avail_reads, select_reads, kw)
-        except:
+        except Exception:
             logger.warning(
                 "Figures could not be created. The functionality of NoTrAmp wil"
                 "l not be affected otherwise."
                 )
-    
+
     logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
 
@@ -159,7 +160,7 @@ def write_capped_from_loaded(binned, loaded_reads, out_file, kw):
 
 def write_to_split_files(binned, loaded_reads, out_file, kw):
     """write subsample to amp-specific outfiles using loaded reads as source"""
-    logger.info("splitting selected untrimmed reads to amplicon outfiles")   
+    logger.info("splitting selected untrimmed reads to amplicon outfiles")
     for amp in binned:
         with open(f"{out_file}_{amp.name}", "w", encoding="utf-8") as outf:
             for name in amp.selected:

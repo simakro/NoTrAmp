@@ -6,12 +6,12 @@ logger = logging.getLogger(__name__)
 
 try:
     import matplotlib.pyplot as plt
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     logger.warning("Module matplotlib could not be be found.")
 
 
 def gen_overview_fig(data1: dict, data2: dict, kw: dict):
-    fig, (ax1, ax2) = plt.subplots(2, 1,figsize=(8, 10))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 10))
     plot_reads_per_amp(
         ax1,
         data1,
@@ -31,10 +31,10 @@ def plot_reads_per_amp(
         ax: object,
         data: dict,
         title: str,
-        helpline: Union[bool, int]=False,
+        helpline: Union[bool, int] = False,
         ):
     categories = list(data.keys())
-    values = list(data.values())  
+    values = list(data.values())
     ax.bar(categories, values)
     ax.set_xlabel('Amplicon')
     ax.set_ylabel('Read count')

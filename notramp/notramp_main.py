@@ -194,7 +194,7 @@ class Amp:
         except ValueError as ve:
             tb = ve.__traceback__
             raise aux.PrimerSchemeError("Amplicon").with_traceback(tb)
-    
+
     def fwp_boundary(self):
         """get inner boundary of forward primer"""
         return max(
@@ -440,7 +440,7 @@ class Primer:
                 add_info[key] = opt_cols[key](val)
             except ValueError:
                 self.unexpected_vals[(key, opt_cols[key])].append(val)
-    
+
     def get_name_infos(self):
         """extract information from primer name"""
         try:
@@ -493,19 +493,19 @@ def create_primer_objs(primer_bed, name_scheme):
                         raise aux.BedColumnError
     unexpected_bed_vals = defaultdict(list)
     for p in primers:
-        for k,v in p.unexpected_vals.items():
+        for k, v in p.unexpected_vals.items():
             unexpected_bed_vals[k].extend(v)
-    for k,l in dict(unexpected_bed_vals).items():
-            logger.info(
-                f"Expected value of type {k[1]} for optional column {k[0]}. Got"
-                f" the following values instead in {len(l)} cases:\n\t\t\t\t{l}"
+    for k, l in dict(unexpected_bed_vals).items():
+        logger.info(
+            f"Expected value of type {k[1]} for optional column {k[0]}. Got"
+            f" the following values instead in {len(l)} cases:\n\t\t\t\t{l}"
+        )
+        logger.info(
+            "Values in optional columns do not affect the functionality of"
+            " NoTrAmp. As long as the core values (start, end, name) are c"
+            "orrect there is nothing to worry about. Frequently primer seq"
+            "uences that are included in primer bed files are the reason."
             )
-            logger.info(
-                f"Values in optional columns do not affect the functionality of"
-                f" NoTrAmp. As long as the core values (start, end, name) are c"
-                f"orrect there is nothing to worry about. Frequently primer seq"
-                f"uences that are included in primer bed files are the reason."
-                )
     return sorted(primers, key=lambda x: x.end)
 
 
@@ -641,7 +641,7 @@ def run_amp_cov_cap(kw):
     cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
     try:
         mem_fit = aux.chk_mem_fit(kw)
-    except:
+    except Exception:
         mem_fit = False
         logger.warning(
             "Memory check failed, likely because module psutil could not be fou"
@@ -700,9 +700,9 @@ def get_main_logger(outdir):
         "logging.conf"
         )
     logging.config.fileConfig(
-    log_conf_path,
-    disable_existing_loggers=False,
-    defaults={'logfilename': path.join(outdir, "notramp.log")}
+        log_conf_path,
+        disable_existing_loggers=False,
+        defaults={'logfilename': path.join(outdir, "notramp.log")}
     )
     logger = logging.getLogger(__name__)
     return logger
@@ -718,7 +718,7 @@ def run_notramp():
     if not path.exists(kwargs["out_dir"]):
         os.makedirs(kwargs["out_dir"], mode=777, exist_ok=False)
         os.chmod(kwargs["out_dir"], 0o777)
-    
+
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
     logger.info("notramp started with: %s", kwargs)
@@ -730,7 +730,7 @@ def run_notramp():
                                             kwargs["name_scheme"] + ".json"
                                             )
 
-    kwargs["fastq_in"] = aux.fastq_autoscan(kwargs["reads"])                                      
+    kwargs["fastq_in"] = aux.fastq_autoscan(kwargs["reads"])
     kwargs["fq_in"] = True if kwargs["fastq_in"] else False
     if kwargs["fq_out"]:
         if not kwargs["fastq_in"]:
@@ -751,9 +751,9 @@ def run_notramp():
 
     prend = perf_counter()
     logger.info(
-        "finished notramp after %s seconds of runtime",
-         str(prend-prstart)
-         )
+            "finished notramp after %s seconds of runtime",
+            str(prend-prstart)
+        )
 
 
 if __name__ == "__main__":
