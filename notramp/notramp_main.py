@@ -305,7 +305,7 @@ class Read:
             self.qstr = self.qstr[clip_left:clip_right]
         return clip_left, qlen - clip_right
 
-    def clip_plus_strand(tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary):
+    def clip_plus_strand(self, tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary):
         clip_left = 0
         if tstart <= fwp_boundary:
             add_clip = fwp_boundary - tstart
@@ -325,7 +325,7 @@ class Read:
                 clip_right = qend + rdiff
         return clip_left, clip_right
 
-    def clip_minus_strand(tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary):
+    def clip_minus_strand(self, tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary):
         clip_right = qlen
         if tstart <= fwp_boundary:
             add_clip = fwp_boundary - tstart
