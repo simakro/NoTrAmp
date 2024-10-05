@@ -259,6 +259,38 @@ class Read:
         """return 0 if result < 0"""
         return num if num >= 0 else 0
 
+    def clip_plus_strand(amp_start, tstart, qstart, qlen, tend, amp_end, qend):
+        clip_left = 0
+        ldiff = abs(amp_start - tstart)
+        if tstart >= amp_start:
+            clip_left = Read.non_neg(qstart - ldiff)
+        else:
+            clip_left = qstart + ldiff
+
+        clip_right = qlen
+        rdiff = abs(tend - amp_end)
+        if tend <= amp_end:
+            clip_right = qend + rdiff
+        else:
+            clip_right = Read.non_neg(qend - rdiff)
+        return clip_left, clip_right
+
+    def clip_minus_strand(amp_start, tstart, qstart, qlen, tend, amp_end, qend):
+        clip_left = 0
+        ldiff = abs(tend - amp_end)
+        if tend <= amp_end:
+            clip_left = qstart - ldiff
+        else:
+            clip_left = qstart + ldiff
+
+        clip_right = qlen
+        rdiff = abs(amp_start - tstart)
+        if tstart >= amp_start:
+            clip_right = qend + rdiff
+        else:
+            clip_right = qend - rdiff
+        return clip_left, clip_right
+
     def trim_to_amp(self, amp_start, amp_end, mapping):
         """trim to amplicon boundaries including primers"""
         qlen, samestrand = mapping.qlen, mapping.samestrand
@@ -266,33 +298,39 @@ class Read:
         tstart, tend = mapping.tstart, mapping.tend
 
         if samestrand:
-            clip_left = 0
-            ldiff = abs(amp_start - tstart)
-            if tstart >= amp_start:
-                clip_left = Read.non_neg(qstart - ldiff)
-            else:
-                clip_left = qstart + ldiff
+            clip_left, clip_right = self.clip_plus_strand(
+                amp_start, tstart, qstart, qlen, tend, amp_end, qend
+                )
+            # clip_left = 0
+            # ldiff = abs(amp_start - tstart)
+            # if tstart >= amp_start:
+            #     clip_left = Read.non_neg(qstart - ldiff)
+            # else:
+            #     clip_left = qstart + ldiff
 
-            clip_right = qlen
-            rdiff = abs(tend - amp_end)
-            if tend <= amp_end:
-                clip_right = qend + rdiff
-            else:
-                clip_right = Read.non_neg(qend - rdiff)
+            # clip_right = qlen
+            # rdiff = abs(tend - amp_end)
+            # if tend <= amp_end:
+            #     clip_right = qend + rdiff
+            # else:
+            #     clip_right = Read.non_neg(qend - rdiff)
         else:
-            clip_left = 0
-            ldiff = abs(tend - amp_end)
-            if tend <= amp_end:
-                clip_left = qstart - ldiff
-            else:
-                clip_left = qstart + ldiff
+            clip_left, clip_right = self.clip_minus_strand(
+                amp_start, tstart, qstart, qlen, tend, amp_end, qend
+                )
+            # clip_left = 0
+            # ldiff = abs(tend - amp_end)
+            # if tend <= amp_end:
+            #     clip_left = qstart - ldiff
+            # else:
+            #     clip_left = qstart + ldiff
 
-            clip_right = qlen
-            rdiff = abs(amp_start - tstart)
-            if tstart >= amp_start:
-                clip_right = qend + rdiff
-            else:
-                clip_right = qend - rdiff
+            # clip_right = qlen
+            # rdiff = abs(amp_start - tstart)
+            # if tstart >= amp_start:
+            #     clip_right = qend + rdiff
+            # else:
+            #     clip_right = qend - rdiff
 
         self.seq = self.seq[clip_left:clip_right]
         if self.qstr:
