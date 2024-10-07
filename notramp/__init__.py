@@ -8,3 +8,6 @@ NoTrAmp is a Tool for read-depth normalization and trimming of amplicon
 """
 
 from .version import __version__
+
+
+VERSION = __version__
