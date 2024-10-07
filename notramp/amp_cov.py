@@ -13,6 +13,7 @@ def downsample_bins(binned, max_cov, figures, kw):
     num_selected = 0
     avail_reads = {}
     select_reads = {}
+
     for amp_bin in binned:
         amp_bin.random_sample(max_cov)
         amn = amp_bin.name
@@ -41,10 +42,17 @@ def downsample_bins(binned, max_cov, figures, kw):
 
 
 def report_binning(binned_ct, not_av, initial_mappings):
+    if initial_mappings == 0:
+        logger.warning(
+            "No mappings of any reads were created!"
+            " No capping or trimming will occur."
+            )
+    logger.info("mappings of %s reads available", str(initial_mappings))
     logger.info(
         f"{binned_ct} reads were sorted to bins. "
         f"{len(not_av)} could not be sorted to an amplicon."
         )
+    logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     if initial_mappings > 0:
         perc_binned = (binned_ct/initial_mappings)*100
         if perc_binned < 75:
@@ -59,16 +67,11 @@ def report_binning(binned_ct, not_av, initial_mappings):
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     """sort mappings to amplicons (amp_cov)"""
     logger.info("sorting mappings to amplicons (amp_cov)")
+
     initial_mappings = len(mappings)
     binned_ct = 0
     binned = []
     not_av = []
-    if initial_mappings == 0:
-        logger.warning(
-            "No mappings of any reads were created!"
-            " No capping or trimming will occur."
-            )
-    logger.info("mappings of %s reads available", str(initial_mappings))
 
     for m in mappings:
         if m.tend <= amp_bins[0].end + margins:
@@ -102,23 +105,7 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
         binned.extend(amp_bins)
 
     report_binning(binned_ct, not_av, initial_mappings)
-    # logger.info(
-    #     f"{binned_ct} reads were sorted to bins. "
-    #     f"{len(not_av)} could not be sorted to an amplicon."
-    #     )
-    # if initial_mappings > 0:
-    #     perc_binned = (binned_ct/initial_mappings)*100
-    #     if perc_binned < 75:
-    #         logger.warning(
-    #             "A high proportion (>25%) of reads could not be sorted to ampli"
-    #             "cons. This can occur if you don't use the right amplicon tilin"
-    #             "g scheme (primer bed-file) or can be an indication of sequenci"
-    #             "ng issues."
-    #             )
-
     binned = downsample_bins(binned, max_cov, figures, kw)
-
-    logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
 
 
