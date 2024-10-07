@@ -40,6 +40,22 @@ def downsample_bins(binned, max_cov, figures, kw):
     return binned
 
 
+def report_binning(binned_ct, not_av, initial_mappings):
+    logger.info(
+        f"{binned_ct} reads were sorted to bins. "
+        f"{len(not_av)} could not be sorted to an amplicon."
+        )
+    if initial_mappings > 0:
+        perc_binned = (binned_ct/initial_mappings)*100
+        if perc_binned < 75:
+            logger.warning(
+                "A high proportion (>25%) of reads could not be sorted to ampli"
+                "cons. This can occur if you don't use the right amplicon tilin"
+                "g scheme (primer bed-file) or can be an indication of sequenci"
+                "ng issues."
+                )
+
+
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     """sort mappings to amplicons (amp_cov)"""
     logger.info("sorting mappings to amplicons (amp_cov)")
@@ -85,47 +101,22 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     if len(amp_bins) > 0:
         binned.extend(amp_bins)
 
-    logger.info(
-        f"{binned_ct} reads were sorted to bins. "
-        f"{len(not_av)} could not be sorted to an amplicon."
-        )
-    if initial_mappings > 0:
-        perc_binned = (binned_ct/initial_mappings)*100
-        if perc_binned < 75:
-            logger.warning(
-                "A high proportion (>25%) of reads could not be sorted to ampli"
-                "cons. This can occur if you don't use the right amplicon tilin"
-                "g scheme (primer bed-file) or can be an indication of sequenci"
-                "ng issues."
-                )
+    report_binning(binned_ct, initial_mappings)
+    # logger.info(
+    #     f"{binned_ct} reads were sorted to bins. "
+    #     f"{len(not_av)} could not be sorted to an amplicon."
+    #     )
+    # if initial_mappings > 0:
+    #     perc_binned = (binned_ct/initial_mappings)*100
+    #     if perc_binned < 75:
+    #         logger.warning(
+    #             "A high proportion (>25%) of reads could not be sorted to ampli"
+    #             "cons. This can occur if you don't use the right amplicon tilin"
+    #             "g scheme (primer bed-file) or can be an indication of sequenci"
+    #             "ng issues."
+    #             )
 
     binned = downsample_bins(binned, max_cov, figures, kw)
-    # num_selected = 0
-    # avail_reads = {}
-    # select_reads = {}
-    # for amp_bin in binned:
-    #     amp_bin.random_sample(max_cov)
-    #     amn = amp_bin.name
-    #     rct = len(amp_bin.reads_dct)
-    #     slr = len(amp_bin.selected)
-    #     avail_reads[amn] = rct
-    #     select_reads[amn] = slr
-    #     logger.info(
-    #         "Amp_%s reads available %s selected: %s", amn, str(rct), str(slr)
-    #         )
-    #     num_selected += len(amp_bin.selected)
-    # logger.info(
-    #     "A total of %s reads was selected.", str(sum(select_reads.values()))
-    #     )
-    # if figures:
-    #     try:
-    #         import plot_amp_reads
-    #         plot_amp_reads. gen_overview_fig(avail_reads, select_reads, kw)
-    #     except Exception:
-    #         logger.warning(
-    #             "Figures could not be created. The functionality of NoTrAmp wil"
-    #             "l not be affected otherwise."
-    #             )
 
     logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
