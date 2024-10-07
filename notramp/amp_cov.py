@@ -9,6 +9,37 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def downsample_bins(binned, max_cov, figures, kw):
+    num_selected = 0
+    avail_reads = {}
+    select_reads = {}
+    for amp_bin in binned:
+        amp_bin.random_sample(max_cov)
+        amn = amp_bin.name
+        rct = len(amp_bin.reads_dct)
+        slr = len(amp_bin.selected)
+        avail_reads[amn] = rct
+        select_reads[amn] = slr
+        logger.info(
+            "Amp_%s reads available %s selected: %s", amn, str(rct), str(slr)
+            )
+        num_selected += len(amp_bin.selected)
+    logger.info(
+        "A total of %s reads was selected.", str(sum(select_reads.values()))
+        )
+
+    if figures:
+        try:
+            import plot_amp_reads
+            plot_amp_reads. gen_overview_fig(avail_reads, select_reads, kw)
+        except Exception:
+            logger.warning(
+                "Figures could not be created. The functionality of NoTrAmp wil"
+                "l not be affected otherwise."
+                )
+    return binned
+
+
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     """sort mappings to amplicons (amp_cov)"""
     logger.info("sorting mappings to amplicons (amp_cov)")
@@ -68,32 +99,33 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
                 "ng issues."
                 )
 
-    num_selected = 0
-    avail_reads = {}
-    select_reads = {}
-    for amp_bin in binned:
-        amp_bin.random_sample(max_cov)
-        amn = amp_bin.name
-        rct = len(amp_bin.reads_dct)
-        slr = len(amp_bin.selected)
-        avail_reads[amn] = rct
-        select_reads[amn] = slr
-        logger.info(
-            "Amp_%s reads available %s selected: %s", amn, str(rct), str(slr)
-            )
-        num_selected += len(amp_bin.selected)
-    logger.info(
-        "A total of %s reads was selected.", str(sum(select_reads.values()))
-        )
-    if figures:
-        try:
-            import plot_amp_reads
-            plot_amp_reads. gen_overview_fig(avail_reads, select_reads, kw)
-        except Exception:
-            logger.warning(
-                "Figures could not be created. The functionality of NoTrAmp wil"
-                "l not be affected otherwise."
-                )
+    binned = downsample_bins(binned, max_cov, figures, kw)
+    # num_selected = 0
+    # avail_reads = {}
+    # select_reads = {}
+    # for amp_bin in binned:
+    #     amp_bin.random_sample(max_cov)
+    #     amn = amp_bin.name
+    #     rct = len(amp_bin.reads_dct)
+    #     slr = len(amp_bin.selected)
+    #     avail_reads[amn] = rct
+    #     select_reads[amn] = slr
+    #     logger.info(
+    #         "Amp_%s reads available %s selected: %s", amn, str(rct), str(slr)
+    #         )
+    #     num_selected += len(amp_bin.selected)
+    # logger.info(
+    #     "A total of %s reads was selected.", str(sum(select_reads.values()))
+    #     )
+    # if figures:
+    #     try:
+    #         import plot_amp_reads
+    #         plot_amp_reads. gen_overview_fig(avail_reads, select_reads, kw)
+    #     except Exception:
+    #         logger.warning(
+    #             "Figures could not be created. The functionality of NoTrAmp wil"
+    #             "l not be affected otherwise."
+    #             )
 
     logger.debug("%s reads could not be binned to an Amp", str(len(not_av)))
     return binned
