@@ -101,7 +101,7 @@ def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
     if len(amp_bins) > 0:
         binned.extend(amp_bins)
 
-    report_binning(binned_ct, initial_mappings)
+    report_binning(binned_ct, not_av, initial_mappings)
     # logger.info(
     #     f"{binned_ct} reads were sorted to bins. "
     #     f"{len(not_av)} could not be sorted to an amplicon."
