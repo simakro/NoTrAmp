@@ -59,7 +59,18 @@ jobs:
          python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/empty_reads_file.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
-         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.logcommit
+
+    - name: Run NoTramp all mode with faulty reads-file 
+      shell: bash -el {0}
+      run: |
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/faulty_reads_file.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         echo "Showing contents of logfile:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.logcommit
     
     - name: Run NoTramp trimming mode only 
       shell: bash -el {0}
@@ -95,6 +106,7 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
     # - name: Test with pytest
     #   run: |
     #     pytest
