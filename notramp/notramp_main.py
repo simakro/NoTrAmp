@@ -353,45 +353,10 @@ class Read:
             clip_left, clip_right = self.clip_primer_plus_strand(
                 tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary
                 )
-            # clip_left = 0
-            # if tstart <= fwp_boundary:
-            #     add_clip = fwp_boundary - tstart
-            #     clip_left = qstart + add_clip
-            # else:
-            #     ldiff = tstart - fwp_boundary
-            #     if qstart >= ldiff:
-            #         clip_left = qstart - ldiff
-
-            # clip_right = qlen
-            # if tend >= revp_boundary:
-            #     sub_clip = tend - revp_boundary
-            #     clip_right = qend - sub_clip
-            # else:
-            #     rdiff = revp_boundary - tend
-            #     if qlen - qend >= rdiff:
-            #         clip_right = qend + rdiff
-
         else:
             clip_left, clip_right = self.clip_primer_minus_strand(
                 tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary
                 )
-            # clip_right = qlen
-            # if tstart <= fwp_boundary:
-            #     add_clip = fwp_boundary - tstart
-            #     clip_right = qend - add_clip
-            # else:
-            #     rdiff = tstart - fwp_boundary
-            #     if qlen - qend >= rdiff:
-            #         clip_right = qend + rdiff
-
-            # clip_left = 0
-            # if tend >= revp_boundary:
-            #     sub_clip = tend - revp_boundary
-            #     clip_left = qstart + sub_clip
-            # else:
-            #     ldiff = revp_boundary - tend
-            #     if qstart >= ldiff:
-            #         clip_left = qstart - ldiff
 
         self.seq = self.seq[clip_left:clip_right]
         if self.qstr:
