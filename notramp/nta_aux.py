@@ -67,6 +67,84 @@ def fastq_autoscan(read_file):
     return fastq
 
 
+# def fastq_gen():
+#     while True:
+#         yield "header"
+#         yield "seq"
+#         yield "plus"
+#         yield "qstring"
+
+
+# def fastq_chk(fastq_file):
+#     """Check integrity of nucleotide fastq file"""
+#     logger.info("Checking integrity of nucleotide fastq")
+#     ln_ct = 0
+#     ln_type = fastq_gen()
+#     bases = ["A", "T", "C", "G", "N"]
+#     errors = 0
+#     good_reads = 0
+
+#     with open(fastq_file, "r", encoding="utf-8") as fq:
+#         curr_read = {}
+#         for line in fq:
+#             ln_ct += 1
+#             supposed_ln = next(ln_type)
+#             if supposed_ln == "qstring":
+#                 curr_read[supposed_ln] = line
+#                 tests = [
+#                     curr_read["header"].startswith("@"),
+#                     curr_read["seq"][0].upper() in bases,
+#                     curr_read["plus"] == "+\n",
+#                     len(curr_read["qstring"]) == len(curr_read["seq"]),
+#                 ]
+#                 if all(tests):
+#                     good_reads += 1
+#                 else:
+#                     print(f"Format error in fastq in lines {ln_ct-3}-{ln_ct}")
+#                     errors += 1 
+#                 curr_read = {}
+#             else:
+#                 curr_read[supposed_ln] = line
+#     logger.info(f"Found {errors} format errors in {fastq_file}")
+#     logger.info(f"Found {good_reads} good reads in {fastq_file}")
+#     if errors > 0:
+#         pass
+
+
+def chk_fqblock_integrity(title, seq, qual):
+    """Check integrity of all entries in one fastq read-block"""
+    bases = "ATGCN"
+    if all([title, seq, qual]):
+        tests = [
+                    title.startswith("@"),
+                    seq[0].upper() in bases,
+                    # all([c.upper() in bases for c in set(seq)]),
+                    len(qual) == len(seq),
+                    ]
+        return all([tests])
+    elif any([title, seq, qual]):
+        return False
+    else:
+        return None
+
+
+def fastq_iterator(handle):
+    """Fast fastq iterator with integrity check"""
+    while True:
+        title = handle.readline().strip()
+        seq = handle.readline().strip()
+        handle.readline()  # Skip '+' line
+        qual = handle.readline().strip()
+        chk = chk_fqblock_integrity(title, seq, qual)
+        if chk:
+            yield title, seq, qual
+        elif chk == False:
+            logger.warning("Encountered irregularity in fastq file")
+        else: # if chk == None:
+            logger.info("Reached end of file")
+            break
+
+
 def chk_mem_fit(kw):
     """Check for available memory"""
     logger.info("Checking for available memory")

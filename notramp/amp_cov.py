@@ -132,7 +132,8 @@ def write_read_to_file(rname, read_fobj, out_fobj, infile_fastq, outfile_type):
 def write_capped_from_file(binned, reads, fa_out, kw):
     """write subsample to outfile using reads-file as source"""
     logger.info("writing subsample to outfile using reads-file as source")
-    fastq = kw["fq_in"]
+    # fastq = kw["fq_in"]
+    fastq = kw["fastq_in"]
     hin = "@" if fastq else ">"
     all_picks = [hin + name for amp in binned for name in amp.selected]
     with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as ofo:

@@ -538,24 +538,97 @@ def generate_amps(primers):
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
-def load_reads(kw):
+def load_fasta(kw, rfa, reads):
+    for line in rfa:
+        if line.startswith(">"):
+            header = line.strip().split(" ")[0]
+            seq = next(rfa)
+            read = Read(header, seq.strip())
+            reads[read.name] = read
+    return reads          
+
+
+# def load_fastq(kw, rfa, reads):
+#     print("Loading fastq")
+#     ln_ct = 0
+#     ln_type = aux.fastq_gen()
+#     for line in rfa:
+#         ln_ct += 1
+#         supposed_ln = next(ln_type)
+#         print(supposed_ln, line)
+#         if supposed_ln == "header" and line.startswith("@"):
+#             header = line.strip().split(" ")[0]
+#             seq = next(rfa)
+#             next(ln_type)
+#             read = Read(header, seq.strip(), fastq=True)
+#             if kw["fq_out"]:
+#                 read.plus = next(rfa)
+#                 read.qstr = next(rfa).strip()
+#                 next(ln_type)
+#                 next(ln_type)
+#             reads[read.name] = read
+#         return reads
+
+
+def load_fastq(kw, rfa, reads):
+    """Load reads from fastq file"""
+    logger.info("Loading reads from fastq file")
+    read_ct = 0
+    format_errors = []
+    for block in aux.fastq_iterator(rfa):
+        if len(block) == 3:
+            title, seq, qual = block
+            read = Read(title.split(" ")[0], seq.strip(), fastq=True)
+            read_ct += 1
+            if kw["fq_out"]:
+                read.plus = "+\n"
+                read.qstr = qual
+            reads[read.name] = read
+        else:
+            if block == False:
+                format_errors.append(block)
+    logger.info(f"Encountered {len(format_errors)} errors in fastq file.")   
+    return reads
+
+
+def load_reads(kw, step="amp_cov"):
     """load reads into memory"""
     logger.info("loading reads")
-    reads = {}
+    read_dct = {}
     fastq = kw["fastq_in"]
-    header_ind = "@" if fastq else ">"
+    if step == "map_trim":
+        fastq = kw["fq_out"]
     with open(kw["reads"], "r", encoding="utf-8") as rfa:
-        for line in rfa:
-            if line.startswith(header_ind):
-                header = line.strip().split(" ")[0]
-                seq = next(rfa)
-                read = Read(header, seq.strip(), fastq=fastq)
-                if fastq:
-                    if kw["fq_out"]:
-                        read.plus = next(rfa)
-                        read.qstr = next(rfa).strip()
-                reads[read.name] = read
+        if fastq:
+            reads = load_fastq(kw, rfa, read_dct)
+        else:
+            reads = load_fasta(kw, rfa, read_dct)
     return reads
+
+
+# def load_reads(kw):
+#     """load reads into memory"""
+#     logger.info("loading reads")
+#     reads = {}
+#     fastq = kw["fastq_in"]
+#     header_ind = "@" if fastq else ">"
+#     # tmp_loaded = []
+#     with open(kw["reads"], "r", encoding="utf-8") as rfa:
+#         for line in rfa:
+#             if line.startswith(header_ind):
+#                 header = line.strip().split(" ")[0]
+#                 seq = next(rfa)
+#                 read = Read(header, seq.strip(), fastq=fastq)
+#                 if fastq:
+#                     if kw["fq_out"]:
+#                         read.plus = next(rfa)
+#                         read.qstr = next(rfa).strip()
+#                 reads[read.name] = read
+#     #             tmp_loaded.append(read.name)
+#     # with open("loader_report.txt", "a", encoding="utf-8") as lr:
+#     #     for name in tmp_loaded:
+#     #         lr.write(name + "\n")
+#     return reads
 
 
 def name_out_paf(reads, reference, mod_name):
@@ -698,7 +771,7 @@ def run_map_trim(kw):
         mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"]
         )
     amps_bin_maps = map_trim.bin_mappings_mt(amps, mappings, kw["margins"])
-    loaded_reads = load_reads(kw)
+    loaded_reads = load_reads(kw, step="map_trim")
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
     map_trim.clip_and_write_out(
@@ -746,7 +819,7 @@ def run_notramp():
                                             )
 
     kwargs["fastq_in"] = aux.fastq_autoscan(kwargs["reads"])
-    kwargs["fq_in"] = True if kwargs["fastq_in"] else False
+    # kwargs["fq_in"] = True if kwargs["fastq_in"] else False
     if kwargs["fq_out"]:
         if not kwargs["fastq_in"]:
             kwargs["fq_out"] = False

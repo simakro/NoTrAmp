@@ -1,5 +1,6 @@
 *.cap.fasta
 *.cap.clip.fasta
+*.fastq
 *.log
 *.png
 *.paf
