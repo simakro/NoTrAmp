@@ -548,28 +548,6 @@ def load_fasta(kw, rfa, reads):
     return reads          
 
 
-# def load_fastq(kw, rfa, reads):
-#     print("Loading fastq")
-#     ln_ct = 0
-#     ln_type = aux.fastq_gen()
-#     for line in rfa:
-#         ln_ct += 1
-#         supposed_ln = next(ln_type)
-#         print(supposed_ln, line)
-#         if supposed_ln == "header" and line.startswith("@"):
-#             header = line.strip().split(" ")[0]
-#             seq = next(rfa)
-#             next(ln_type)
-#             read = Read(header, seq.strip(), fastq=True)
-#             if kw["fq_out"]:
-#                 read.plus = next(rfa)
-#                 read.qstr = next(rfa).strip()
-#                 next(ln_type)
-#                 next(ln_type)
-#             reads[read.name] = read
-#         return reads
-
-
 def load_fastq(kw, rfa, reads):
     """Load reads from fastq file"""
     logger.info("Loading reads from fastq file")
@@ -604,31 +582,6 @@ def load_reads(kw, step="amp_cov"):
         else:
             reads = load_fasta(kw, rfa, read_dct)
     return reads
-
-
-# def load_reads(kw):
-#     """load reads into memory"""
-#     logger.info("loading reads")
-#     reads = {}
-#     fastq = kw["fastq_in"]
-#     header_ind = "@" if fastq else ">"
-#     # tmp_loaded = []
-#     with open(kw["reads"], "r", encoding="utf-8") as rfa:
-#         for line in rfa:
-#             if line.startswith(header_ind):
-#                 header = line.strip().split(" ")[0]
-#                 seq = next(rfa)
-#                 read = Read(header, seq.strip(), fastq=fastq)
-#                 if fastq:
-#                     if kw["fq_out"]:
-#                         read.plus = next(rfa)
-#                         read.qstr = next(rfa).strip()
-#                 reads[read.name] = read
-#     #             tmp_loaded.append(read.name)
-#     # with open("loader_report.txt", "a", encoding="utf-8") as lr:
-#     #     for name in tmp_loaded:
-#     #         lr.write(name + "\n")
-#     return reads
 
 
 def name_out_paf(reads, reference, mod_name):
