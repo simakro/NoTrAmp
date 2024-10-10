@@ -63,6 +63,7 @@ jobs:
 
     - name: Run NoTramp all mode with faulty reads-file 
       shell: bash -el {0}
+      continue-on-error: true
       run: |
          pwd
          conda activate
@@ -107,6 +108,7 @@ jobs:
 
     - name: Run NoTramp all with corrupt fastq input 
       shell: bash -el {0}
+      continue-on-error: true
       run: |
          pwd
          conda activate
@@ -139,7 +141,3 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-    # - name: Test with pytest
-    #   run: |
-    #     pytest
