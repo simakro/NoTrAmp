@@ -95,13 +95,13 @@ jobs:
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
     
-    - name: Run NoTramp all with fastq input 
+    - name: Run NoTramp all with short-read fastq input 
       shell: bash -el {0}
       run: |
          pwd
          conda activate
          conda list
-         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v3_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -118,13 +118,13 @@ jobs:
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
 
-    - name: Run NoTramp all with fastq input and fastq output
+    - name: Run NoTramp all with fastq short-read input and fastq output
       shell: bash -el {0}
       run: |
          pwd
          conda activate
          conda list
-         python notramp/notramp_main.py -a --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python notramp/notramp_main.py -a --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v3_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
