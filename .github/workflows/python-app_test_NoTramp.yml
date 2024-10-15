@@ -61,7 +61,7 @@ jobs:
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
 
-    - name: Run NoTramp all mode with faulty reads-file 
+    - name: Run NoTramp all mode with faulty fasta reads-file 
       shell: bash -el {0}
       continue-on-error: true
       run: |

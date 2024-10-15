@@ -538,14 +538,22 @@ def generate_amps(primers):
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 
-def load_fasta(kw, rfa, reads):
+def load_fasta(rfa, reads):
+    format_errors = []
     for line in rfa:
         if line.startswith(">"):
             header = line.strip().split(" ")[0]
             seq = next(rfa)
-            read = Read(header, seq.strip())
+            header, seq = aux.chk_fablock_integrity(header, seq)
+            if all(header, seq):
+                read = Read(header, seq.strip())
+            else:
+                # ignores if all in block are empty (None), as can happen at eof
+                if header is False:
+                    format_errors.append((header, seq))
             reads[read.name] = read
-    return reads          
+    logger.info(f"Encountered {len(format_errors)} errors in fasta file.")
+    return reads        
 
 
 def load_fastq(kw, rfa, reads):
@@ -563,9 +571,10 @@ def load_fastq(kw, rfa, reads):
                 read.qstr = qual
             reads[read.name] = read
         else:
-            if block == False:
+            # ignores if all in block are empty (None), as can happen at eof
+            if block is False:
                 format_errors.append(block)
-    logger.info(f"Encountered {len(format_errors)} errors in fastq file.")   
+    logger.info(f"Encountered {len(format_errors)} errors in fastq file.")
     return reads
 
 
@@ -577,10 +586,15 @@ def load_reads(kw, step="amp_cov"):
     if step == "map_trim":
         fastq = kw["fq_out"]
     with open(kw["reads"], "r", encoding="utf-8") as rfa:
-        if fastq:
-            reads = load_fastq(kw, rfa, read_dct)
-        else:
-            reads = load_fasta(kw, rfa, read_dct)
+        try:
+            if fastq:
+                reads = load_fastq(kw, rfa, read_dct)
+            else:
+                reads = load_fasta(rfa, read_dct)
+        except Exception as e:
+            aux.analyze_read_file(rfa, fastq=fastq)
+            tb = e.__traceback__
+            raise aux.LoadReadsError().with_traceback(tb)
     return reads
 
 

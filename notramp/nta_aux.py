@@ -19,22 +19,32 @@ class BedColumnError(Exception):
     """raised when number of columns in bed file is not matching"""
 
     def __init__(self):
-        self.message = "Not all lines in primer bed have same number of" \
-                    " columns. File may be corrupt, please check integrity" \
-                    " of this file. Columns may not be empty. Take care that" \
-                    " headers or comments begin with any of the following:" \
-                    " 'track', 'browser', '#'."
+        self.message = "Not all lines in primer bed have same number of colum" \
+            "ns. File may be corrupt, please check integrity of this file. Co" \
+            "lumns may not be empty. Take care that headers or comments begin" \
+            " with any of the following: 'track', 'browser', '#'."
         super().__init__(self.message)
 
 
 class PrimerSchemeError(Exception):
-    """raised Naming scheme does not match primer name in bed file"""
+    """raised when naming scheme does not match primer name in bed file"""
 
     def __init__(self, obj_type):
-        self.message = f"Error during {obj_type}-objects generation. Naming scheme does not" \
-                f" match primer names in bed file. Please ensure that you are us" \
-                f"ing the right combination of naming scheme and primer bed-file" \
-                f" and that your primers consistently follow this scheme."
+        self.message = f"Error during {obj_type}-objects generation. Naming " \
+            f"scheme does not match primer names in bed file. Please ensure " \
+            f"that you are using the right combination of naming scheme and " \
+            f"primer bed-file and that your primers consistently follow this" \
+            f" scheme."
+        super().__init__(self.message)
+
+
+class LoadReadsError(Exception):
+    """raised upon failure of loading reads into memory"""
+
+    def __init__(self):
+        self.message = "An error occured while trying to load reads. Aborting" \
+            "NoTrAmp. This can be caused by corrupt input files. Please check" \
+            " log for details."
         super().__init__(self.message)
 
 
@@ -67,48 +77,87 @@ def fastq_autoscan(read_file):
     return fastq
 
 
-# def fastq_gen():
-#     while True:
-#         yield "header"
-#         yield "seq"
-#         yield "plus"
-#         yield "qstring"
+def analyze_read_file(file_handle, fastq=False):
+    
+    def test_header(line, kwargs):
+        correct_ind = line.startswith("@" if kwargs["fastq"] else ">")
+        return correct_ind
+    
+    def test_seq(line, kwargs):
+        bases = "ATGCN"
+        found = set(line)
+        checked = [char in bases for char in found]
+        if all(checked):
+            return True
+        else:
+            unexpect_chars = [char for char in found if char not in bases]
+            logger.warning(
+                f"Found unexpected chars {unexpect_chars} in seq-line {kwargs['l_ct']}"
+                )
+            return False
+    
+    def test_plus(line, kwargs):
+        return line == "+"
+    
+    def test_qual(line, kwargs):
+        return len(line) == kwargs["len_seq"]
+
+    test_funcs = {
+        "header": test_header,
+        "seq": test_seq,
+        "+": test_plus,
+        "qual": test_qual
+    }    
+    err_lines = {
+        "empty": [],
+        "incorrect": []
+    }
+    expect_fq = {
+        "header": "seq",
+        "seq": "+", 
+        "+": "qual",
+        "qual": "header"
+        }
+    expect_fa = {
+        "header": "seq",
+        "seq": "header"
+        }
+
+    l_ct = 0
+    exp_curr = "header"
+    len_last_seq = 0
+    line_dct = expect_fq if fastq else expect_fa
+    # with open(file_path, "r") as f:
+    for l in file_handle:
+        l = l.strip()
+        l_ct += 1
+        if len(l) == 0:
+            err_lines["empty"].append(l_ct)
+        if exp_curr == "seq":
+            len_last_seq = len(l)
+        kwargs = {"len_seq": len_last_seq, "fastq": fastq, "l_ct": l_ct}
+        chk = test_funcs[exp_curr](l, kwargs)
+        if not chk:
+            err_lines["incorrect"].append(l_ct)
+        exp_curr = line_dct[exp_curr]
+    logger.warning(f"Detected {len(err_lines['incorrect'])} irregular lines in the input sequence file.")
+    logger.warning(f"Detected {len(err_lines['empty'])} empty lines in the input sequence file.")
+    logger.info(f"Analyzed file has {l_ct} lines.") 
 
 
-# def fastq_chk(fastq_file):
-#     """Check integrity of nucleotide fastq file"""
-#     logger.info("Checking integrity of nucleotide fastq")
-#     ln_ct = 0
-#     ln_type = fastq_gen()
-#     bases = ["A", "T", "C", "G", "N"]
-#     errors = 0
-#     good_reads = 0
-
-#     with open(fastq_file, "r", encoding="utf-8") as fq:
-#         curr_read = {}
-#         for line in fq:
-#             ln_ct += 1
-#             supposed_ln = next(ln_type)
-#             if supposed_ln == "qstring":
-#                 curr_read[supposed_ln] = line
-#                 tests = [
-#                     curr_read["header"].startswith("@"),
-#                     curr_read["seq"][0].upper() in bases,
-#                     curr_read["plus"] == "+\n",
-#                     len(curr_read["qstring"]) == len(curr_read["seq"]),
-#                 ]
-#                 if all(tests):
-#                     good_reads += 1
-#                 else:
-#                     print(f"Format error in fastq in lines {ln_ct-3}-{ln_ct}")
-#                     errors += 1 
-#                 curr_read = {}
-#             else:
-#                 curr_read[supposed_ln] = line
-#     logger.info(f"Found {errors} format errors in {fastq_file}")
-#     logger.info(f"Found {good_reads} good reads in {fastq_file}")
-#     if errors > 0:
-#         pass
+def chk_fablock_integrity(title, seq):
+    """Check integrity of all entries in one fasta read-block"""
+    bases = "ATGCN"
+    if all([title, seq]):
+        tests = [
+                    title.startswith(">"),
+                    seq[0].upper() in bases,
+                    ]
+        return all([tests])
+    elif any([title, seq]):
+        return False, False
+    else:
+        return None, None
 
 
 def chk_fqblock_integrity(title, seq, qual):
@@ -138,7 +187,7 @@ def fastq_iterator(handle):
         chk = chk_fqblock_integrity(title, seq, qual)
         if chk:
             yield title, seq, qual
-        elif chk == False:
+        elif chk is False:
             logger.warning("Encountered irregularity in fastq file")
         else: # if chk == None:
             logger.info("Reached end of file")
