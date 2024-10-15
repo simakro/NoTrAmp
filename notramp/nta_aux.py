@@ -142,6 +142,7 @@ class SeqReadFileAnalyzer():
         self.messages["infos"].append(f"Analyzed file has {self.l_ct} lines.")
 
     def analyze_read_file(self):
+        logger.info("Analyzing read file!")
         exp_curr = "header"
         line_dct = self.expect_fq if self.fastq else self.expect_fa
         with open(self.file_path, "r", encoding="utf-8") as f:
@@ -156,7 +157,7 @@ class SeqReadFileAnalyzer():
                 if not chk:
                     self.err_lines[exp_curr].append(self.l_ct)
                 exp_curr = line_dct[exp_curr]
-                line = self.last_line
+                self.last_line = line
         self.prepare_report()
 
     def report_results(self):
