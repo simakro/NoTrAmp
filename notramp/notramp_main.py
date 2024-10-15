@@ -539,21 +539,18 @@ def generate_amps(primers):
 
 
 def load_fasta(rfa, reads):
-    # format_errors = []
     for line in rfa:
         if line.startswith(">"):
             header = line.strip().split(" ")[0]
             seq = next(rfa)
-            header, seq = aux.chk_fablock_integrity(header, seq)
-            if all(header, seq):
+            chk = aux.chk_fablock_integrity(header, seq)
+            if all(chk):
                 read = Read(header, seq.strip())
             else:
                 # ignores if all in block are empty (None), as can happen at eof
-                if header is False:
-                    # format_errors.append((header, seq))
+                if chk[0] is False:
                     raise aux.LoadReadsError()
             reads[read.name] = read
-    # logger.info(f"Encountered {len(format_errors)} errors in fasta file.")
     return reads        
 
 
@@ -561,7 +558,6 @@ def load_fastq(kw, rfa, reads):
     """Load reads from fastq file"""
     logger.info("Loading reads from fastq file")
     read_ct = 0
-    # format_errors = []
     for block in aux.fastq_iterator(rfa):
         if len(block) == 3:
             title, seq, qual = block
@@ -574,10 +570,7 @@ def load_fastq(kw, rfa, reads):
         else:
             # ignores if all in block are empty (None), as can happen at eof
             if block is False:
-                # format_errors.append(block)
-                raise aux.LoadReadsError()
-    # logger.info(f"Encountered {len(format_errors)} errors in fastq file.")
-    
+                raise aux.LoadReadsError()    
     return reads
 
 

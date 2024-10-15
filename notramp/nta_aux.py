@@ -157,9 +157,9 @@ def chk_fablock_integrity(title, seq):
     if all([title, seq]):
         tests = [
                     title.startswith(">"),
-                    seq[0].upper() in bases,
+                    seq[0].upper() in bases
                     ]
-        return all([tests])
+        return tests
     elif any([title, seq]):
         return False, False
     else:
