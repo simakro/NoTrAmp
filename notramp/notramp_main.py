@@ -551,7 +551,7 @@ def load_fasta(rfa, reads):
                 if chk[0] is False:
                     raise aux.LoadReadsError()
             reads[read.name] = read
-    return reads        
+    return reads
 
 
 def load_fastq(kw, rfa, reads):
@@ -570,7 +570,7 @@ def load_fastq(kw, rfa, reads):
         else:
             # ignores if all in block are empty (None), as can happen at eof
             if block is False:
-                raise aux.LoadReadsError()    
+                raise aux.LoadReadsError()
     return reads
 
 

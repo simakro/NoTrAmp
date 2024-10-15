@@ -80,11 +80,11 @@ def fastq_autoscan(read_file):
 def analyze_read_file(file_path, fastq=False):
     """Parse entire fasta/q file and report all irregularities and errors"""
     logger.info("Analyzing readfile to identify potential errors.")
-    
+
     def test_header(line, kwargs):
         correct_ind = line.startswith("@" if kwargs["fastq"] else ">")
         return correct_ind
-    
+
     def test_seq(line, kwargs):
         bases = "ATGCN"
         header_inds = [">", "@"]
@@ -100,11 +100,11 @@ def analyze_read_file(file_path, fastq=False):
                     f"{kwargs['l_ct']}"
                     )
             return False
-    
+
     def test_plus(line, kwargs):
         kwargs = kwargs
         return line == "+"
-    
+
     def test_qual(line, kwargs):
         return len(line) == kwargs["len_seq"]
 
@@ -113,14 +113,14 @@ def analyze_read_file(file_path, fastq=False):
         "seq": test_seq,
         "+": test_plus,
         "qual": test_qual
-    }    
+    }
     err_lines = {
         "empty": [],
         "incorrect": []
     }
     expect_fq = {
         "header": "seq",
-        "seq": "+", 
+        "seq": "+",
         "+": "qual",
         "qual": "header"
         }
@@ -134,8 +134,8 @@ def analyze_read_file(file_path, fastq=False):
     len_last_seq = 0
     line_dct = expect_fq if fastq else expect_fa
     with open(file_path, "r", encoding="utf-8") as f:
-        for l in f:
-            l = l.strip()
+        for line in f:
+            l = line.strip()
             l_ct += 1
             if len(l) == 0:
                 err_lines["empty"].append(l_ct)
@@ -148,7 +148,7 @@ def analyze_read_file(file_path, fastq=False):
             exp_curr = line_dct[exp_curr]
     logger.warning(f"Detected {len(err_lines['incorrect'])} irregular lines in the input sequence file.")
     logger.warning(f"Detected {len(err_lines['empty'])} empty lines in the input sequence file.")
-    logger.info(f"Analyzed file has {l_ct} lines.") 
+    logger.info(f"Analyzed file has {l_ct} lines.")
 
 
 def chk_fablock_integrity(title, seq):
@@ -196,7 +196,7 @@ def fastq_iterator(handle):
         elif chk is False:
             logger.warning("Encountered irregularity in fastq file")
             yield chk
-        else: # if chk == None:
+        else:  # if chk == None:
             logger.info("Reached end of file")
             break
 
