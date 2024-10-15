@@ -539,7 +539,7 @@ def generate_amps(primers):
 
 
 def load_fasta(rfa, reads):
-    format_errors = []
+    # format_errors = []
     for line in rfa:
         if line.startswith(">"):
             header = line.strip().split(" ")[0]
@@ -550,9 +550,10 @@ def load_fasta(rfa, reads):
             else:
                 # ignores if all in block are empty (None), as can happen at eof
                 if header is False:
-                    format_errors.append((header, seq))
+                    # format_errors.append((header, seq))
+                    raise aux.LoadReadsError()
             reads[read.name] = read
-    logger.info(f"Encountered {len(format_errors)} errors in fasta file.")
+    # logger.info(f"Encountered {len(format_errors)} errors in fasta file.")
     return reads        
 
 
@@ -560,7 +561,7 @@ def load_fastq(kw, rfa, reads):
     """Load reads from fastq file"""
     logger.info("Loading reads from fastq file")
     read_ct = 0
-    format_errors = []
+    # format_errors = []
     for block in aux.fastq_iterator(rfa):
         if len(block) == 3:
             title, seq, qual = block
@@ -573,8 +574,10 @@ def load_fastq(kw, rfa, reads):
         else:
             # ignores if all in block are empty (None), as can happen at eof
             if block is False:
-                format_errors.append(block)
-    logger.info(f"Encountered {len(format_errors)} errors in fastq file.")
+                # format_errors.append(block)
+                raise aux.LoadReadsError()
+    # logger.info(f"Encountered {len(format_errors)} errors in fastq file.")
+    
     return reads
 
 
@@ -585,16 +588,16 @@ def load_reads(kw, step="amp_cov"):
     fastq = kw["fastq_in"]
     if step == "map_trim":
         fastq = kw["fq_out"]
-    with open(kw["reads"], "r", encoding="utf-8") as rfa:
-        try:
+    try:
+        with open(kw["reads"], "r", encoding="utf-8") as rfa:
             if fastq:
                 reads = load_fastq(kw, rfa, read_dct)
             else:
                 reads = load_fasta(rfa, read_dct)
-        except Exception as e:
-            aux.analyze_read_file(rfa, fastq=fastq)
-            tb = e.__traceback__
-            raise aux.LoadReadsError().with_traceback(tb)
+    except Exception as e:
+        aux.analyze_read_file(kw["reads"], fastq=fastq)
+        tb = e.__traceback__
+        raise aux.LoadReadsError().with_traceback(tb)
     return reads
 
 
