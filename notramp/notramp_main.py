@@ -539,7 +539,9 @@ def generate_amps(primers):
 
 
 def load_fasta(rfa, reads):
+    l_ct = 0
     for line in rfa:
+        l_ct += 1
         if line.startswith(">"):
             header = line.strip().split(" ")[0]
             seq = next(rfa)
@@ -551,6 +553,9 @@ def load_fasta(rfa, reads):
                 if chk[0] is False:
                     raise aux.LoadReadsError()
             reads[read.name] = read
+    if l_ct != len(reads):
+        # helps detect duplicate read names
+        raise aux.LoadReadsError()
     return reads
 
 
@@ -558,7 +563,9 @@ def load_fastq(kw, rfa, reads):
     """Load reads from fastq file"""
     logger.info("Loading reads from fastq file")
     read_ct = 0
+    block_ct = 0
     for block in aux.fastq_iterator(rfa):
+        block_ct += 1
         if len(block) == 3:
             title, seq, qual = block
             read = Read(title.split(" ")[0], seq.strip(), fastq=True)
@@ -571,6 +578,9 @@ def load_fastq(kw, rfa, reads):
             # ignores if all in block are empty (None), as can happen at eof
             if block is False:
                 raise aux.LoadReadsError()
+    if block_ct != len(reads):
+        # helps detect duplicate read names
+        raise aux.LoadReadsError()
     return reads
 
 
@@ -588,7 +598,6 @@ def load_reads(kw, step="amp_cov"):
             else:
                 reads = load_fasta(rfa, read_dct)
     except Exception as e:
-        # aux.analyze_read_file(kw["reads"], fastq=fastq)
         res = aux.SeqReadFileAnalyzer(kw["reads"], fastq=fastq)
         res.report_results()
         tb = e.__traceback__

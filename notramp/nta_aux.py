@@ -62,7 +62,10 @@ class SeqReadFileAnalyzer():
                         }
         self.err_lines = {
                             "empty": [],
-                            "incorrect": []
+                            "header": [],
+                            "seq": [],
+                            "+": [],
+                            "qual": []
                         }
         self.expect_fq = {
                             "header": "seq",
@@ -75,12 +78,16 @@ class SeqReadFileAnalyzer():
                             "seq": "header"
                             }
         self.l_ct = 0
+        self.last_line = ""
         self.len_last_seq = 0
+        self.read_names = []
         self.messages = {"infos": [], "warnings": [], "errors": []}
         self.analyze_read_file()
 
     def test_header(self, line):
         correct_ind = line.startswith("@" if self.fastq else ">")
+        if correct_ind:
+            self.read_names.append(line.split(" ")[0])
         return correct_ind
 
     def test_seq(self, line):
@@ -93,7 +100,7 @@ class SeqReadFileAnalyzer():
         else:
             unexpect_chars = [char for char in found if char not in bases]
             if line[0] not in header_inds:
-                logger.warning(
+                logger.info(
                     f"Found unexpected chars {unexpect_chars} in seq-line "
                     f"{self.l_ct}"
                     )
@@ -103,7 +110,36 @@ class SeqReadFileAnalyzer():
         return line == "+"
 
     def test_qual(self, line):
-        return len(line) == self.len_last_seq
+        chk = len(line) == self.len_last_seq
+        if not chk:
+            if self.last_line == "+":
+                logger.info(
+                    f"Quality string in line {self.l_ct} does not have the same"
+                    f" length as previous seq-line."
+                    )
+        return chk
+
+    def prepare_report(self):
+        unique_names = set(self.read_names)
+        if not len(unique_names) == len(self.read_names):
+            duplicate_ct = len(self.read_names) - len(unique_names)
+            self.messages["errors"].append(
+                f"File contains at least {duplicate_ct} duplicate read-name(s)"
+            )
+        if not self.fastq:
+            self.err_lines.pop("qual")
+            self.err_lines.pop("+")
+        for l_type in self.err_lines:
+            level = "warnings" if len(l_type) > 0 else "infos"
+            self.messages[level].append(
+                f"Found {len(self.err_lines[l_type])} erroneous {l_type} lines "
+                f"in the input sequence file."
+            )
+        total_err = sum([len(self.err_lines[k]) for k in self.err_lines])
+        self.messages["warnings"].append(
+                f"Detected a total of {total_err} errors in the input file."
+            )
+        self.messages["infos"].append(f"Analyzed file has {self.l_ct} lines.")
 
     def analyze_read_file(self):
         exp_curr = "header"
@@ -118,17 +154,10 @@ class SeqReadFileAnalyzer():
                     self.len_last_seq = len(line)
                 chk = self.test_funcs[exp_curr](line)
                 if not chk:
-                    self.err_lines["incorrect"].append(self.l_ct)
+                    self.err_lines[exp_curr].append(self.l_ct)
                 exp_curr = line_dct[exp_curr]
-        self.messages["warnings"].append(
-            f"Detected {len(self.err_lines['incorrect'])} irregular lines in "
-            f"the input sequence file."
-            )
-        self.messages["warnings"].append(
-            f"Detected {len(self.err_lines['empty'])} empty lines in the input "
-            f"sequence file."
-            )
-        self.messages["infos"].append(f"Analyzed file has {self.l_ct} lines.")
+                line = self.last_line
+        self.prepare_report()
 
     def report_results(self):
         reporter = {
@@ -192,7 +221,6 @@ def chk_fqblock_integrity(title, seq, qual):
         tests = [
                     title.startswith("@"),
                     seq[0].upper() in bases,
-                    # all([c.upper() in bases for c in set(seq)]),
                     len(qual) == len(seq),
                     ]
         return all([tests])
