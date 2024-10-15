@@ -101,7 +101,7 @@ jobs:
          pwd
          conda activate
          conda list
-         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -113,7 +113,7 @@ jobs:
          pwd
          conda activate
          conda list
-         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_irregular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_irregular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -124,7 +124,7 @@ jobs:
          pwd
          conda activate
          conda list
-         python notramp/notramp_main.py -a --set_min_len 100 --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular_fq.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+         python notramp/notramp_main.py -a --set_min_len 100 --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
