@@ -588,7 +588,9 @@ def load_reads(kw, step="amp_cov"):
             else:
                 reads = load_fasta(rfa, read_dct)
     except Exception as e:
-        aux.analyze_read_file(kw["reads"], fastq=fastq)
+        # aux.analyze_read_file(kw["reads"], fastq=fastq)
+        res = aux.SeqReadFileAnalyzer(kw["reads"], fastq=fastq)
+        res.report_results()
         tb = e.__traceback__
         raise aux.LoadReadsError().with_traceback(tb)
     return reads

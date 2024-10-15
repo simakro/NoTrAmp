@@ -48,6 +48,98 @@ class LoadReadsError(Exception):
         super().__init__(self.message)
 
 
+class SeqReadFileAnalyzer():
+    """Class for analyis of and error detection in fasta/q files"""
+
+    def __init__(self, file_path, fastq=False):
+        self.file_path = file_path
+        self.fastq = fastq
+        self.test_funcs = {
+                            "header": self.test_header,
+                            "seq": self.test_seq,
+                            "+": self.test_plus,
+                            "qual": self.test_qual
+                        }
+        self.err_lines = {
+                            "empty": [],
+                            "incorrect": []
+                        }
+        self.expect_fq = {
+                            "header": "seq",
+                            "seq": "+",
+                            "+": "qual",
+                            "qual": "header"
+                            }
+        self.expect_fa = {
+                            "header": "seq",
+                            "seq": "header"
+                            }
+        self.l_ct = 0
+        self.len_last_seq = 0
+        self.messages = {"infos": [], "warnings": [], "errors": []}
+        self.analyze_read_file()
+    
+    def test_header(self, line):
+        correct_ind = line.startswith("@" if self.fastq else ">")
+        return correct_ind
+    
+    def test_seq(self, line):
+        bases = "ATGCN"
+        header_inds = [">", "@"]
+        found = set(line)
+        checked = [char in bases for char in found]
+        if all(checked):
+            return True
+        else:
+            unexpect_chars = [char for char in found if char not in bases]
+            if line[0] not in header_inds:
+                logger.warning(
+                    f"Found unexpected chars {unexpect_chars} in seq-line "
+                    f"{self.l_ct}"
+                    )
+            return False
+    
+    def test_plus(self, line):
+        return line == "+"
+    
+    def test_qual(self, line):
+        return len(line) == self.len_last_seq
+    
+    def analyze_read_file(self):
+        exp_curr = "header"
+        line_dct = self.expect_fq if self.fastq else self.expect_fa
+        with open(self.file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                self.l_ct += 1
+                if len(line) == 0:
+                    self.err_lines["empty"].append(self.l_ct)
+                if exp_curr == "seq":
+                    self.len_last_seq = len(line)
+                kwargs = {
+                    "len_seq": self.len_last_seq,
+                    "fastq": self.fastq,
+                    "l_ct": self.l_ct
+                    }
+                chk = self.test_funcs[exp_curr](line)
+                if not chk:
+                    self.err_lines["incorrect"].append(self.l_ct)
+                exp_curr = line_dct[exp_curr]
+        self.messages["warnings"].append(f"Detected {len(self.err_lines['incorrect'])} irregular lines in the input sequence file.")
+        self.messages["warnings"].append(f"Detected {len(self.err_lines['empty'])} empty lines in the input sequence file.")
+        self.messages["infos"].append(f"Analyzed file has {self.l_ct} lines.")
+
+    def report_results(self):
+            reporter = {
+                "infos": logger.info,
+                "warnings": logger.warning,
+                "errors": logger.error,
+            }
+            for key in self.messages:
+                for msg in self.messages[key]:
+                    reporter[key](msg)
+
+
 def exception_handler(exception_type, exception, tb):
     logger.error(f"{exception_type.__name__}, {exception}")
     tb_str = "".join(trace.format_list(trace.extract_tb(tb)))
@@ -76,79 +168,79 @@ def fastq_autoscan(read_file):
                 break
     return fastq
 
+         
+# def analyze_read_file(file_path, fastq=False):
+#     """Parse entire fasta/q file and report all irregularities and errors"""
+#     logger.info("Analyzing readfile to identify potential errors.")
 
-def analyze_read_file(file_path, fastq=False):
-    """Parse entire fasta/q file and report all irregularities and errors"""
-    logger.info("Analyzing readfile to identify potential errors.")
+#     def test_header(line, kwargs):
+#         correct_ind = line.startswith("@" if kwargs["fastq"] else ">")
+#         return correct_ind
 
-    def test_header(line, kwargs):
-        correct_ind = line.startswith("@" if kwargs["fastq"] else ">")
-        return correct_ind
+#     def test_seq(line, kwargs):
+#         bases = "ATGCN"
+#         header_inds = [">", "@"]
+#         found = set(line)
+#         checked = [char in bases for char in found]
+#         if all(checked):
+#             return True
+#         else:
+#             unexpect_chars = [char for char in found if char not in bases]
+#             if line[0] not in header_inds:
+#                 logger.warning(
+#                     f"Found unexpected chars {unexpect_chars} in seq-line "
+#                     f"{kwargs['l_ct']}"
+#                     )
+#             return False
 
-    def test_seq(line, kwargs):
-        bases = "ATGCN"
-        header_inds = [">", "@"]
-        found = set(line)
-        checked = [char in bases for char in found]
-        if all(checked):
-            return True
-        else:
-            unexpect_chars = [char for char in found if char not in bases]
-            if line[0] not in header_inds:
-                logger.warning(
-                    f"Found unexpected chars {unexpect_chars} in seq-line "
-                    f"{kwargs['l_ct']}"
-                    )
-            return False
+#     def test_plus(line, kwargs):
+#         kwargs = kwargs
+#         return line == "+"
 
-    def test_plus(line, kwargs):
-        kwargs = kwargs
-        return line == "+"
+#     def test_qual(line, kwargs):
+#         return len(line) == kwargs["len_seq"]
 
-    def test_qual(line, kwargs):
-        return len(line) == kwargs["len_seq"]
+#     test_funcs = {
+#         "header": test_header,
+#         "seq": test_seq,
+#         "+": test_plus,
+#         "qual": test_qual
+#     }
+#     err_lines = {
+#         "empty": [],
+#         "incorrect": []
+#     }
+#     expect_fq = {
+#         "header": "seq",
+#         "seq": "+",
+#         "+": "qual",
+#         "qual": "header"
+#         }
+#     expect_fa = {
+#         "header": "seq",
+#         "seq": "header"
+#         }
 
-    test_funcs = {
-        "header": test_header,
-        "seq": test_seq,
-        "+": test_plus,
-        "qual": test_qual
-    }
-    err_lines = {
-        "empty": [],
-        "incorrect": []
-    }
-    expect_fq = {
-        "header": "seq",
-        "seq": "+",
-        "+": "qual",
-        "qual": "header"
-        }
-    expect_fa = {
-        "header": "seq",
-        "seq": "header"
-        }
-
-    l_ct = 0
-    exp_curr = "header"
-    len_last_seq = 0
-    line_dct = expect_fq if fastq else expect_fa
-    with open(file_path, "r", encoding="utf-8") as f:
-        for line in f:
-            l = line.strip()
-            l_ct += 1
-            if len(l) == 0:
-                err_lines["empty"].append(l_ct)
-            if exp_curr == "seq":
-                len_last_seq = len(l)
-            kwargs = {"len_seq": len_last_seq, "fastq": fastq, "l_ct": l_ct}
-            chk = test_funcs[exp_curr](l, kwargs)
-            if not chk:
-                err_lines["incorrect"].append(l_ct)
-            exp_curr = line_dct[exp_curr]
-    logger.warning(f"Detected {len(err_lines['incorrect'])} irregular lines in the input sequence file.")
-    logger.warning(f"Detected {len(err_lines['empty'])} empty lines in the input sequence file.")
-    logger.info(f"Analyzed file has {l_ct} lines.")
+#     l_ct = 0
+#     exp_curr = "header"
+#     len_last_seq = 0
+#     line_dct = expect_fq if fastq else expect_fa
+#     with open(file_path, "r", encoding="utf-8") as f:
+#         for line in f:
+#             line = line.strip()
+#             l_ct += 1
+#             if len(line) == 0:
+#                 err_lines["empty"].append(l_ct)
+#             if exp_curr == "seq":
+#                 len_last_seq = len(line)
+#             kwargs = {"len_seq": len_last_seq, "fastq": fastq, "l_ct": l_ct}
+#             chk = test_funcs[exp_curr](line, kwargs)
+#             if not chk:
+#                 err_lines["incorrect"].append(l_ct)
+#             exp_curr = line_dct[exp_curr]
+#     logger.warning(f"Detected {len(err_lines['incorrect'])} irregular lines in the input sequence file.")
+#     logger.warning(f"Detected {len(err_lines['empty'])} empty lines in the input sequence file.")
+#     logger.info(f"Analyzed file has {l_ct} lines.")
 
 
 def chk_fablock_integrity(title, seq):
