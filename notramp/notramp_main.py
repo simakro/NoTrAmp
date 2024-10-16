@@ -528,13 +528,27 @@ def generate_amps(primers):
     """generate amplicon objects"""
     logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
+    expect_amps = int(len([p for p in primers if p.type=="primary"])/2)
+    print("expect_amps", expect_amps)
     amps = []
     amp_lens = []
     for num in amp_nums:
-        amp_obj = Amp(num, [primer for primer in primers if primer.amp_no == num])
+        amp_obj = Amp(
+            num,
+            [primer for primer in primers if primer.amp_no == num]
+            )
         amps.append(amp_obj)
         amp_lens.append(amp_obj.get_max_len())
-    av_amp_len = sum(amp_lens) / len(amp_lens)
+
+    try:
+        av_amp_len = sum(amp_lens) / len(amp_lens)
+        logger.info(f"{len(amps)} amplicons were generated.")
+    except ZeroDivisionError:
+        raise aux.AmpliconGenerationError(expect_amps, len(amps))
+    
+    if not 0.75*expect_amps < len(amps) < 1.25*expect_amps:
+        raise aux.AmpliconGenerationError(expect_amps, len(amps))
+    print("len(amps)", len(amps))
     return sorted(amps, key=lambda x: x.name), av_amp_len
 
 

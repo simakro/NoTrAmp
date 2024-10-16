@@ -21,8 +21,8 @@ class BedColumnError(Exception):
     def __init__(self):
         self.message = "Not all lines in primer bed have same number of colum" \
             "ns. File may be corrupt, please check integrity of this file. Co" \
-            "lumns may not be empty. Take care that headers or comments begin" \
-            " with any of the following: 'track', 'browser', '#'."
+            "lumns may not be empty. Take care that headers or comments (if p" \
+            "resent) begin with any of the following: 'track', 'browser', '#'."
         super().__init__(self.message)
 
 
@@ -45,6 +45,17 @@ class LoadReadsError(Exception):
         self.message = "An error occured while trying to load reads. Aborting" \
             "NoTrAmp. This can be caused by corrupt input files. Please check" \
             " log for details."
+        super().__init__(self.message)
+
+
+class AmpliconGenerationError(Exception):
+    """raised if amplicon generation fails or yields unexpected results"""
+
+    def __init__(self, expect_amps, gen_amps):
+        self.message = f"Amplicon generation yielded unexpected results. Expe" \
+            f"cted {expect_amps} amps. Amplicons generated: {gen_amps}. Pleas" \
+            f"e check if you are using the right Primer(.bed) and Primer-sche" \
+            f"me(.json) files. Aborting NoTrAmp."
         super().__init__(self.message)
 
 
@@ -236,7 +247,7 @@ def fastq_iterator(handle):
     while True:
         title = handle.readline().strip()
         seq = handle.readline().strip()
-        handle.readline()  # Skip '+' line
+        handle.readline()  # Skip over plus-line
         qual = handle.readline().strip()
         chk = chk_fqblock_integrity(title, seq, qual)
         if chk:
