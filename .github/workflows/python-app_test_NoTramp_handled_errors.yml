@@ -1,0 +1,112 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: test_NoTramp
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest # ubuntu-20.04 
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install conda   
+      uses: conda-incubator/setup-miniconda@v3
+      with: 
+          # auto-update-conda: true
+          python-version: "3.10"
+          auto-activate-base: true
+
+    - name: Install dependencies
+      shell: bash -el {0}
+      run: |
+          conda activate
+          python -m pip install --upgrade pip
+          pip install psutil
+          conda install -c bioconda minimap2
+
+    - name: Run NoTramp all mode with faulty fasta reads-file 
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_faulty.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+
+    - name: Run NoTramp all with corrupt fastq input 
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_irregular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp all with fasta input containing duplicate read-names  
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_duplicate_read_names.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp all with fastq input containing duplicate read-names and short qstring  
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_short_qstring+duplicate_read.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+     
+    - name: Run NoTramp all mode with empty reads-file 
+      shell: bash -el {0}
+      run: |
+         echo "Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_empty.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         echo "Showing contents of logfile:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+
+    # - name: Install linter
+    #   run: |
+    #     python -m pip install --upgrade pip
+    #     pip install flake8 pytest
+    #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    # - name: Lint with flake8
+    #   run: |
+    #     # stop the build if there are Python syntax errors or undefined names
+    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
