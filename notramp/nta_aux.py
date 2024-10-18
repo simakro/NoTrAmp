@@ -26,6 +26,21 @@ class BedColumnError(Exception):
         super().__init__(self.message)
 
 
+class TargetReferenceError(Exception):
+    """raised if more than one sequence entry is found in the reference fasta"""
+
+    def __init__(self):
+        self.message = "More than one sequence entry was found in the referen" \
+        "ce fasta. Multiple reference sequences are currently not supported " \
+        "in NoTrAmp and could lead to unexpected results. Amplicon tiling sch" \
+        "emes typically aim at a single longer contiguous sequence. Please ru" \
+        "n tiling panels for independent target sequences separetly. If there" \
+        " is interest to combine multiple targets that can not be represented" \
+        " in a single fasta entry, please contact the developer/mantainer to " \
+        "request this feature."
+        super().__init__(self.message)
+
+
 class PrimerSchemeError(Exception):
     """raised when naming scheme does not match primer name in bed file"""
 

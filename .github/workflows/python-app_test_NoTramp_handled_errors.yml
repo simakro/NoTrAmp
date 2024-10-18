@@ -132,6 +132,17 @@ jobs:
         conda list
         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/artic_v4-1_ncov-2019-primer_column_error.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v5.3.2.json
 
+    - name: Run NoTramp all with with multiple references and primers with different root-names => TargetReferenceError
+      shell: bash -el {0}
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_3amps.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_multiple_references.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_multiple_references.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v5.3.2.json
+
     - name: Run NoTramp all mode with empty reads-file 
       shell: bash -el {0}
       run: |
