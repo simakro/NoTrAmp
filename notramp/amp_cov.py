@@ -42,11 +42,6 @@ def downsample_bins(binned, max_cov, figures, kw):
 
 
 def report_binning(binned_ct, not_av, initial_mappings):
-    if initial_mappings == 0:
-        logger.warning(
-            "No mappings of any reads were created!"
-            " No capping or trimming will occur."
-            )
     logger.info("mappings of %s reads available", str(initial_mappings))
     logger.info(
         f"{binned_ct} reads were sorted to bins. "
@@ -62,6 +57,11 @@ def report_binning(binned_ct, not_av, initial_mappings):
                 "g scheme (primer bed-file) or can be an indication of sequenci"
                 "ng issues."
                 )
+    else:
+        logger.warning(
+            "No mappings of any reads were created!"
+            " No capping or trimming will occur."
+            )
 
 
 def bin_mappings_ac(amp_bins, mappings, max_cov, margins, figures, kw):
@@ -132,7 +132,6 @@ def write_read_to_file(rname, read_fobj, out_fobj, infile_fastq, outfile_type):
 def write_capped_from_file(binned, reads, fa_out, kw):
     """write subsample to outfile using reads-file as source"""
     logger.info("writing subsample to outfile using reads-file as source")
-    # fastq = kw["fq_in"]
     fastq = kw["fastq_in"]
     hin = "@" if fastq else ">"
     all_picks = [hin + name for amp in binned for name in amp.selected]

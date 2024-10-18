@@ -60,7 +60,8 @@ def get_arguments():
         )
     required_args.add_argument(
         "-g", "--reference", required=True,
-        help="Path to reference (genome)"
+        help="Path to reference (genome) fasta file. Must contain only one targ"
+        "et sequence. Multiple target sequences are not currently supported."
         )
 
     read_input = required_args.add_mutually_exclusive_group(required=True)
