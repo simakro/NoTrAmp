@@ -41,12 +41,11 @@ def get_arguments():
 
     parser = argparse.ArgumentParser(
         prog="notramp", usage=usg_msg,
-        description="NoTrAmp is a Tool for read-depth normalization and"
-        " trimming of amplicon reads generated with long read technologies"
-        " (ONT/PacBio). It can be used in amplicon-tiling approaches to cap"
-        " coverage of each amplicon and to trim amplicons to their appropriate"
-        " length removing barcodes, adpaters and primers (if desired) in a"
-        " single clipping step.",
+        description="NoTrAmp is a Tool for read-depth normalization and trimmin"
+        "g of reads in amplicon-tiling approaches. It trims amplicons to their "
+        "appropriate length removing barcodes, adpaters and primers (if desired"
+        ") in a single clipping step and can be used to cap coverage of all amp"
+        "licons at a chosen value.",
         add_help=False
         )
     required_args = parser.add_argument_group('Required arguments')
@@ -126,18 +125,17 @@ def get_arguments():
     optional_args.add_argument(
         "--set_min_len", dest='set_min_len',
         default=False, type=bool,
-        help="Set a minimum required length for alignments of reads to "
-        "amplicon. If this is not set the min_len will be 0.5*average_amp_len."
-        " If amplicon sizes are relatively homogenous this parameter is not"
-        " required [default=False]"
+        help="Set a minimum required length for alignments of reads to amplicon"
+        "s. If this is not set the min_len will be 0.8*shortest_amp_len. When u"
+        "sing reads that are shorter than amplicon sizes use this argument to a"
+        "djust. For long reads this option is usually not required."
         )
     optional_args.add_argument(
         "--set_max_len", dest='set_max_len',
         default=False, type=bool,
         help="Set a maximum allowed length for alignments of reads to"
-        " amplicon. If this is not set the max_len will be 1.5*average_amp_len."
-        " If amplicon sizes are relatively homogenous this parameter is not "
-        " required [default=False]"
+        " amplicon. If this is not set the max_len will be 1.2*longest_amp_len."
+        " The default setting normally doesn't need to be changed."
         )
     optional_args.add_argument(
         "--set_margins", dest='margins',
@@ -529,7 +527,6 @@ def generate_amps(primers):
     logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
     expect_amps = int(len([p for p in primers if p.type=="primary"])/2)
-    print("expect_amps", expect_amps)
     amps = []
     amp_lens = []
     for num in amp_nums:
@@ -540,16 +537,16 @@ def generate_amps(primers):
         amps.append(amp_obj)
         amp_lens.append(amp_obj.get_max_len())
 
-    try:
-        av_amp_len = sum(amp_lens) / len(amp_lens)
-        logger.info(f"{len(amps)} amplicons were generated.")
-    except ZeroDivisionError:
-        raise aux.AmpliconGenerationError(expect_amps, len(amps))
-    
+    logger.info(f"{len(amps)} amplicons were generated.")
+    max_amp_len = max(amp_lens)
+    min_amp_len = min(amp_lens)
+    # try:
+    #     av_amp_len = sum(amp_lens) / len(amp_lens)
+    # except ZeroDivisionError:
+    #     raise aux.AmpliconGenerationError(expect_amps, len(amps))
     if not 0.75*expect_amps < len(amps) < 1.25*expect_amps:
         raise aux.AmpliconGenerationError(expect_amps, len(amps))
-    print("len(amps)", len(amps))
-    return sorted(amps, key=lambda x: x.name), av_amp_len
+    return sorted(amps, key=lambda x: x.name), min_amp_len, max_amp_len # av_amp_len
 
 
 def load_fasta(rfa, reads):
@@ -680,11 +677,13 @@ def filter_read_mappings(mappings, min_len, max_len):
     return mappings
 
 
-def create_filt_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
+def create_filt_mappings(mm2_paf, min_amp_len, max_amp_len, set_min_len, set_max_len): # av_amp_len, 
     """create filtered mapping objects"""
     logger.info("creating filtered mapping objects")
-    min_len = av_amp_len*0.5 if not set_min_len else set_min_len
-    max_len = av_amp_len*1.5 if not set_max_len else set_max_len
+    # min_len = av_amp_len*0.5 if not set_min_len else set_min_len
+    # max_len = av_amp_len*1.5 if not set_max_len else set_max_len
+    min_len = min_amp_len*0.8 if not set_min_len else set_min_len
+    max_len = max_amp_len*1.2 if not set_max_len else set_max_len
     map_dct = gen_mapping_objs(mm2_paf)
     mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
     mappings = [m for k, l in map_dct.items() for m in l]
@@ -707,9 +706,9 @@ def run_amp_cov_cap(kw):
     primers = create_primer_objs(kw["primers"], kw["name_scheme"])
     out_paf = name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    amps, av_amp_len = generate_amps(primers)
+    amps, min_amp_len, max_amp_len = generate_amps(primers) # av_amp_len
     mappings = create_filt_mappings(
-        mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"]
+        mm2_paf, min_amp_len, max_amp_len, kw["set_min_len"], kw["set_max_len"]
         )
     binned = amp_cov.bin_mappings_ac(
         amps, mappings, kw["max_cov"], kw["margins"], kw["figures"], kw
@@ -742,7 +741,7 @@ def run_amp_cov_cap(kw):
                 "."
                 )
     os.remove(out_paf)
-    return cap_out, primers, amps, av_amp_len
+    return cap_out, primers # amps, av_amp_len
 
 
 def run_map_trim(kw):
@@ -752,11 +751,11 @@ def run_map_trim(kw):
         primers = kw["primer_objects"]
     else:
         primers = create_primer_objs(kw["primers"], kw["name_scheme"])
-    amps, av_amp_len = generate_amps(primers)
+    amps, min_amp_len, max_amp_len = generate_amps(primers)
     out_paf = name_out_paf(kw["reads"], kw["reference"], "trim")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
     mappings = create_filt_mappings(
-        mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"]
+        mm2_paf, min_amp_len, max_amp_len, kw["set_min_len"], kw["set_max_len"]
         )
     amps_bin_maps = map_trim.bin_mappings_mt(amps, mappings, kw["margins"])
     loaded_reads = load_reads(kw, step="map_trim")
@@ -818,7 +817,7 @@ def run_notramp():
     elif kwargs["trim"]:
         run_map_trim(kwargs)
     elif kwargs["all"]:
-        capped_reads, prims, amps, amp_lens = run_amp_cov_cap(kwargs)
+        capped_reads, prims = run_amp_cov_cap(kwargs) # amps, amp_lens
         kwargs["reads"] = capped_reads
         kwargs["primer_objects"] = prims
         run_map_trim(kwargs)
