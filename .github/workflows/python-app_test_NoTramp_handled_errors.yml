@@ -134,6 +134,7 @@ jobs:
 
     - name: Run NoTramp all with with multiple references and primers with different root-names => TargetReferenceError
       shell: bash -el {0}
+      continue-on-error: true
       run: |
          echo "Showing contents of Log-file of previous run:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log

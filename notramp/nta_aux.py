@@ -36,8 +36,8 @@ class TargetReferenceError(Exception):
         "emes typically aim at a single longer contiguous sequence. Please ru" \
         "n tiling panels for independent target sequences separetly. If there" \
         " is interest to combine multiple targets that can not be represented" \
-        " in a single fasta entry, please contact the developer/mantainer to " \
-        "request this feature."
+        " in a single fasta entry, please contact the developer/maintainer to" \
+        " request this feature."
         super().__init__(self.message)
 
 
