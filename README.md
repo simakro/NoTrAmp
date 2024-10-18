@@ -12,7 +12,7 @@ Normalization and Trimming of amplicon sequencing data
 ## <a name="intro"></a>Introduction
 
 NoTrAmp is a Tool for super fast trimming and read-depth normalization of amplicon reads.
-It is designed to be used in amplicon-tiling panels (or other multiplexed amplicon sequencing approaches) to cap coverage of each amplicon and to trim amplicons to their
+It is designed to be used in amplicon-tiling panels (or similar multiplexed amplicon sequencing approaches) to cap coverage of each amplicon and to trim amplicons to their
 appropriate length removing barcodes, adpaters and primers (if desired) in a single clipping step.  
 
 Amplicon-tiling schemes are employed to target and amplify specific sequences and enable coverage of longer regions of DNA with small, contiguous segments using overlapping amplicons. 

@@ -540,13 +540,9 @@ def generate_amps(primers):
     logger.info(f"{len(amps)} amplicons were generated.")
     max_amp_len = max(amp_lens)
     min_amp_len = min(amp_lens)
-    # try:
-    #     av_amp_len = sum(amp_lens) / len(amp_lens)
-    # except ZeroDivisionError:
-    #     raise aux.AmpliconGenerationError(expect_amps, len(amps))
     if not 0.75*expect_amps < len(amps) < 1.25*expect_amps:
         raise aux.AmpliconGenerationError(expect_amps, len(amps))
-    return sorted(amps, key=lambda x: x.name), min_amp_len, max_amp_len # av_amp_len
+    return sorted(amps, key=lambda x: x.name), min_amp_len, max_amp_len
 
 
 def load_fasta(rfa, reads):
@@ -677,11 +673,9 @@ def filter_read_mappings(mappings, min_len, max_len):
     return mappings
 
 
-def create_filt_mappings(mm2_paf, min_amp_len, max_amp_len, set_min_len, set_max_len): # av_amp_len, 
+def create_filt_mappings(mm2_paf, min_amp_len, max_amp_len, set_min_len, set_max_len):
     """create filtered mapping objects"""
     logger.info("creating filtered mapping objects")
-    # min_len = av_amp_len*0.5 if not set_min_len else set_min_len
-    # max_len = av_amp_len*1.5 if not set_max_len else set_max_len
     min_len = min_amp_len*0.8 if not set_min_len else set_min_len
     max_len = max_amp_len*1.2 if not set_max_len else set_max_len
     map_dct = gen_mapping_objs(mm2_paf)
@@ -706,7 +700,7 @@ def run_amp_cov_cap(kw):
     primers = create_primer_objs(kw["primers"], kw["name_scheme"])
     out_paf = name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    amps, min_amp_len, max_amp_len = generate_amps(primers) # av_amp_len
+    amps, min_amp_len, max_amp_len = generate_amps(primers)
     mappings = create_filt_mappings(
         mm2_paf, min_amp_len, max_amp_len, kw["set_min_len"], kw["set_max_len"]
         )
@@ -741,7 +735,7 @@ def run_amp_cov_cap(kw):
                 "."
                 )
     os.remove(out_paf)
-    return cap_out, primers # amps, av_amp_len
+    return cap_out, primers
 
 
 def run_map_trim(kw):
@@ -806,7 +800,6 @@ def run_notramp():
                                             )
 
     kwargs["fastq_in"] = aux.fastq_autoscan(kwargs["reads"])
-    # kwargs["fq_in"] = True if kwargs["fastq_in"] else False
     if kwargs["fq_out"]:
         if not kwargs["fastq_in"]:
             kwargs["fq_out"] = False
@@ -817,7 +810,7 @@ def run_notramp():
     elif kwargs["trim"]:
         run_map_trim(kwargs)
     elif kwargs["all"]:
-        capped_reads, prims = run_amp_cov_cap(kwargs) # amps, amp_lens
+        capped_reads, prims = run_amp_cov_cap(kwargs)
         kwargs["reads"] = capped_reads
         kwargs["primer_objects"] = prims
         run_map_trim(kwargs)
