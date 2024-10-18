@@ -638,9 +638,23 @@ def name_out_reads(reads, suffix, outdir, kw):
     return out_path
 
 
+def chk_reference(ref_path):
+    """Confirm there is only one sequence in reference fasta"""
+    entries = 0
+    with open(ref_path, "r") as ref:
+        for line in ref:
+            if line.startswith(">"):
+                entries += 1
+    if entries > 1:
+        raise aux.TargetReferenceError()
+
+
+
+
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
     """mapping reads"""
     logger.info("mapping reads")
+    chk_reference(reference)
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
