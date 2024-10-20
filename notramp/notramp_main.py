@@ -527,7 +527,7 @@ def generate_amps(primers):
     """generate amplicon objects"""
     logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
-    expect_amps = int(len([p for p in primers if p.type=="primary"])/2)
+    expect_amps = int(len([p for p in primers if p.type == "primary"])/2)
     amps = []
     amp_lens = []
     for num in amp_nums:
@@ -647,8 +647,6 @@ def chk_reference(ref_path):
                 entries += 1
     if entries > 1:
         raise aux.TargetReferenceError()
-
-
 
 
 def map_reads(reads, reference, out_paf, seq_tech="ont"):

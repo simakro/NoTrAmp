@@ -31,13 +31,13 @@ class TargetReferenceError(Exception):
 
     def __init__(self):
         self.message = "More than one sequence entry was found in the referen" \
-        "ce fasta. Multiple reference sequences are currently not supported " \
-        "in NoTrAmp and could lead to unexpected results. Amplicon tiling sch" \
-        "emes typically aim at a single longer contiguous sequence. Please ru" \
-        "n tiling panels for independent target sequences separetly. If there" \
-        " is interest to combine multiple targets that can not be represented" \
-        " in a single fasta entry, please contact the developer/maintainer to" \
-        " request this feature."
+            "ce fasta. Multiple reference sequences are currently not support" \
+            "ed in NoTrAmp and could lead to unexpected results. Amplicon til" \
+            "ing schemes typically aim at a single longer contiguous sequence" \
+            ". Please run tiling panels for independent target sequences sepa" \
+            "retly. If there is interest to combine multiple targets that can" \
+            " not be represented in a single fasta entry, please contact the " \
+            "developer/maintainer to request this feature."
         super().__init__(self.message)
 
 
