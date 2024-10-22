@@ -138,7 +138,7 @@ def write_capped_from_file(binned, reads, fa_out, kw):
     with open(reads, "r", encoding="utf-8") as rfi, open(fa_out, "w", encoding="utf-8") as ofo:
         for line in rfi:
             if line.startswith(hin):
-                readname = line.split(" ")[0]
+                readname = line.split(" ")[0].strip()
                 if readname in all_picks:
                     write_read_to_file(readname, rfi, ofo, fastq, kw["fq_out"])
 

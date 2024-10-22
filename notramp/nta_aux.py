@@ -1,7 +1,9 @@
-from os import path
+from os import path, getcwd
+import sys
 import logging
 import logging.config
 import traceback as trace
+import subprocess as sp
 
 try:
     import psutil
@@ -195,6 +197,99 @@ class SeqReadFileAnalyzer():
         for key in self.messages:
             for msg in self.messages[key]:
                 reporter[key](msg)
+
+
+class SelfTest():
+    """Class for self testing of NoTrAmp"""
+
+    def __init__(self):
+        self.pkg_path = path.split(path.abspath(__file__))[0]
+        self.py_ver = self._get_py()
+        self.py_call_sfx = ""
+        self.main = path.join(self.pkg_path, "notramp_main.py")
+        self.mode = "-a"
+        self.ref = path.join(
+            self.pkg_path, "test", "MN908947.3_SARS-CoV2_Wuhan-reference.fasta"
+            )
+        self.reads = path.join(
+            self.pkg_path, "test", "ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta"
+            )
+        self.prim_scheme =  path.join(
+            self.pkg_path, "resources", "artic_nCoV_scheme_v5.3.2.json"
+            )
+        self.prim_bed = path.join(
+            self.pkg_path, "test", "ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed"
+            )
+        self.outdir = path.join(self.pkg_path, "test", "selftest")
+        self.run_selftest()
+        self.log = path.join(self.outdir, "notramp.log")
+        self.print_log()
+    
+
+    def  run_selftest(self):
+        try:
+            stdo_log = sp.run(
+                    [
+                        f"python{self.py_call_sfx}",
+                        self.main,
+                        self.mode,
+                        "-p", self.prim_bed,
+                        "-g", self.ref,
+                        "-r", self.reads,
+                        "-n", self.prim_scheme,
+                        "-o", self.outdir
+                        ],
+                    check=True,
+                    capture_output=True
+                    ).stdout.decode()
+            return stdo_log
+        except Exception as e:
+            tb = e.__traceback__
+            return False, False
+    
+    def print_log(self):
+        with open(self.log, "r") as log:
+            for line in log:
+                print(line.strip())
+
+    def _py_ver_sp(self, suffix):
+        try:
+            py_ver = sp.run(
+                    [f"python{suffix}", "--version"],
+                    check=True,
+                    capture_output=True
+                    ).stdout.decode().strip()
+            return py_ver, suffix
+        except FileNotFoundError:
+            return False, False
+    
+    def _chk_pyver(self, version_str):
+        version = version_str.split(" ")[1].split(".")
+        major, minor = version[0], version[1]
+        checks = [False, False]
+        if int(major) >= 3:
+            checks[0] == True
+        if int(minor) >= 6:
+            checks[1] == True
+        if all(checks):
+            return version_str
+        else:
+            return False
+
+    def _get_py(self):
+        py_ver, sfx = self._py_ver_sp("3")
+        if not py_ver:
+            py_ver, sfx = self._py_ver_sp("")
+        if not py_ver:
+            logger.error("Python is not installed! Aborting NoTrAmp")
+            sys.exit()
+        v_chk = self._chk_pyver(py_ver)
+        self.py_ver, self.py_call_sfx = v_chk, sfx
+    
+    def _get_main(self):
+        return path.join(self.pkg_path, "notramp_main.py")
+     
+
 
 
 def exception_handler(exception_type, exception, tb):

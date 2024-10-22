@@ -165,6 +165,13 @@ def get_arguments():
         " to amplicon specific files (can be a lot)."
         )
     optional_args.add_argument(
+        "--selftest", dest='selftest',
+        default=False, action="store_true",
+        help="Run a selftest of NoTrAmp using included test-data. Overrides all"
+        " other arguments and parameters. Useful for checking how NoTrAmp runs "
+        "in your environment."
+        )
+    optional_args.add_argument(
         "-v", "--version", action="version",
         version=f"notramp {__version__}",
         help="Print version and exit"
@@ -576,7 +583,7 @@ def load_fastq(kw, rfa, reads):
         block_ct += 1
         if len(block) == 3:
             title, seq, qual = block
-            read = Read(title.split(" ")[0], seq.strip(), fastq=True)
+            read = Read(title.split(" ")[0].strip(), seq.strip(), fastq=True)
             read_ct += 1
             if kw["fq_out"]:
                 read.plus = "+\n"
@@ -792,6 +799,11 @@ def get_main_logger(outdir):
 
 def run_notramp():
     """NoTramp main function"""
+
+    if "--selftest" in sys.argv:
+        aux.SelfTest()
+        sys.exit()
+
     prstart = perf_counter()
     kwargs = vars(get_arguments())
 
