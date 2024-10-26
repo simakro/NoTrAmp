@@ -252,7 +252,7 @@ class SelfTest():
                 "quirement of 3.6. Please use a newer version or set up a ded"
                 "icated environment with a more recent version of python."
                 )
-    
+
     def print_log(self):
         with open(self.log, "r") as log:
             for line in log:
