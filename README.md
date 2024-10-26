@@ -227,6 +227,10 @@ Generic primer scheme (see also "notramp/resources/artic_nCoV_scheme_v5.json"):
 
 
 ## <a name="depend"></a>Requirements/Dependencies
+required:
 - Python >= 3.6
 - minimap2
+recommended:
 - psutil
+optional:
+- matplotlib (for figures if desired)

@@ -663,12 +663,26 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
-            ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"],
+            [
+                "minimap2", 
+                "-x",
+                seq_tech,
+                reference,
+                reads,
+                "-o",
+                out_paf,
+                "--secondary=no"
+            ],
             check=True,
             capture_output=True
         )
     except subprocess.CalledProcessError as err:
         log_sp_error(err, "Mapping of reads to reference failed")
+    except FileNotFoundError as err:
+        logger.error(
+            "The minimap2 executable could is not available. Please install min"
+            "imap2 or add it to your path if you've already installed it."
+            )
     return out_paf
 
 
@@ -815,6 +829,7 @@ def run_notramp():
 
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
+    logger.info("python version %s", sys.version)
     logger.info("notramp started with: %s", kwargs)
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:

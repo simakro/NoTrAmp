@@ -1,4 +1,4 @@
-from os import path, getcwd
+from os import path, getcwd, environ
 import sys
 import logging
 import logging.config
@@ -204,8 +204,8 @@ class SelfTest():
 
     def __init__(self):
         self.pkg_path = path.split(path.abspath(__file__))[0]
-        self.py_ver = self._get_py()
-        self.py_call_sfx = ""
+        self.python = sys.executable
+        self.py_ok = self._chk_pyver()
         self.main = path.join(self.pkg_path, "notramp_main.py")
         self.mode = "-a"
         self.ref = path.join(
@@ -221,81 +221,121 @@ class SelfTest():
             self.pkg_path, "test", "ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed"
             )
         self.outdir = path.join(self.pkg_path, "test", "selftest")
+        # _chk_deps()
         self.run_selftest()
         self.log = path.join(self.outdir, "notramp.log")
         self.print_log()
-    
 
     def  run_selftest(self):
-        try:
-            stdo_log = sp.run(
-                    [
-                        f"python{self.py_call_sfx}",
-                        self.main,
-                        self.mode,
-                        "-p", self.prim_bed,
-                        "-g", self.ref,
-                        "-r", self.reads,
-                        "-n", self.prim_scheme,
-                        "-o", self.outdir
+        if self.py_ok:
+            try:
+                stdo_log = sp.run(
+                        [
+                            self.python,
+                            self.main,
+                            self.mode,
+                            "--figures",
+                            "-p", self.prim_bed,
+                            "-g", self.ref,
+                            "-r", self.reads,
+                            "-n", self.prim_scheme,
+                            "-o", self.outdir
                         ],
-                    check=True,
-                    capture_output=True
-                    ).stdout.decode()
-            return stdo_log
-        except Exception as e:
-            tb = e.__traceback__
-            return False, False
+                        check=True,
+                        capture_output=True
+                        ).stdout.decode()
+                return stdo_log
+            except Exception as e:
+                tb = e.__traceback__
+                return False
+        else:
+            logger.error(
+                f"The python version you are using is older than the minimum re"
+                f"quirement of 3.6. Please use a newer version or set up a ded"
+                f"icated environment with a more recent version of python."
+                )
     
     def print_log(self):
         with open(self.log, "r") as log:
             for line in log:
                 print(line.strip())
 
-    def _py_ver_sp(self, suffix):
-        try:
-            py_ver = sp.run(
-                    [f"python{suffix}", "--version"],
-                    check=True,
-                    capture_output=True
-                    ).stdout.decode().strip()
-            return py_ver, suffix
-        except FileNotFoundError:
-            return False, False
-    
-    def _chk_pyver(self, version_str):
-        version = version_str.split(" ")[1].split(".")
+    def _chk_pyver(self):
+        version_str = sys.version
+        version = version_str.split(" ")[0].split(".")
         major, minor = version[0], version[1]
         checks = [False, False]
         if int(major) >= 3:
-            checks[0] == True
+            checks[0] = True
         if int(minor) >= 6:
-            checks[1] == True
+            checks[1] = True
         if all(checks):
             return version_str
         else:
             return False
 
-    def _get_py(self):
-        py_ver, sfx = self._py_ver_sp("3")
-        if not py_ver:
-            py_ver, sfx = self._py_ver_sp("")
-        if not py_ver:
-            logger.error("Python is not installed! Aborting NoTrAmp")
-            sys.exit()
-        v_chk = self._chk_pyver(py_ver)
-        self.py_ver, self.py_call_sfx = v_chk, sfx
-    
     def _get_main(self):
         return path.join(self.pkg_path, "notramp_main.py")
      
-
-
 
 def exception_handler(exception_type, exception, tb):
     logger.error(f"{exception_type.__name__}, {exception}")
     tb_str = "".join(trace.format_list(trace.extract_tb(tb)))
     logger.info(tb_str)
+
+
+# def chk_mm2_dep():
+#     try:
+#         mm2 = sp.run(
+#             ["minimap2", "--version"],
+#             check=True,
+#             capture_output=True
+#             )
+#     except FileNotFoundError:
+#         logger.error(
+#             "The minimap2 executable is not available. Please install minim"
+#             "ap2 or add it to your path if you've already installed it."
+#             )
+#         logger.error("Aborting NoTrAmp SelfTest")
+#         sys.exit()
+#     except Exception as e:
+#         tb = e.__traceback__
+#         logger.warning("An unforseen minimap2 error occurred.")
+#         logger.warning(tb)
+#     return mm2
+    
+# def _chk_py_deps(py_exe):
+#     py_deps = {"psutil": None, "matplotlib": None}
+#     for dep in py_deps:
+#         # try:
+#         py_ver = sp.run(
+#                     [py_exe, "--version"],
+#                     check=True,
+#                     capture_output=True,
+#                     env=environ
+#                     ).stdout.decode().strip()
+#         print(py_ver)
+#         cmd = [py_exe, "-c", f"import {dep}; print({dep}.__version__)"]
+#         cmd = [py_exe, "-c", f"import collections"]
+#         # cmd = [py_exe, "-c", "print('Hello World')"]
+#         chk = sp.run(
+#             cmd,
+#             check=True,
+#             capture_output=True,
+#             timeout=5
+#             )
+#         print(dep, py_exe, "chk", chk)
+#         py_deps[dep] = chk
+#         # except Exception as e:
+#         #     print(e)
+#         #     print(e.__traceback__)
+        
+
+# def _chk_deps():
+#     mm2 = chk_mm2_dep()
+#     py_exes = ["python"] # ,"python3"
+#     for exe in py_exes:
+#         _chk_py_deps(exe)
 
 
 def fastq_autoscan(read_file):
