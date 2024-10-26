@@ -130,7 +130,7 @@ jobs:
     - name: Install optional dependencies
       shell: bash -el {0}
       run: |
-          pip install matplotlib
+          pip3 install matplotlib
     
     - name: Run NoTramp all mode with single amplicons as reads with figures
       shell: bash -el {0}

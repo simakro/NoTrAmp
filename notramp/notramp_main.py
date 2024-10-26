@@ -477,15 +477,6 @@ class Primer:
             raise aux.PrimerSchemeError("Primer").with_traceback(tb)
 
 
-def log_sp_error(error, message):
-    """custom logging of subprocess errors"""
-    logger.error(message)
-    print("Check notramp.log for error details")
-    logger.error(error.stdout.decode('utf-8'))
-    logger.error("Exiting notramp")
-    sys.exit()
-
-
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
@@ -664,7 +655,7 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
         seq_tech = "map-" + seq_tech
         subprocess.run(
             [
-                "minimap2", 
+                "minimap2",
                 "-x",
                 seq_tech,
                 reference,
@@ -677,8 +668,8 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
             capture_output=True
         )
     except subprocess.CalledProcessError as err:
-        log_sp_error(err, "Mapping of reads to reference failed")
-    except FileNotFoundError as err:
+        aux.log_sp_error(err, "Mapping of reads to reference failed")
+    except FileNotFoundError:
         logger.error(
             "The minimap2 executable could is not available. Please install min"
             "imap2 or add it to your path if you've already installed it."

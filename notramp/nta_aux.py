@@ -1,4 +1,4 @@
-from os import path, getcwd, environ
+from os import path
 import sys
 import logging
 import logging.config
@@ -214,19 +214,18 @@ class SelfTest():
         self.reads = path.join(
             self.pkg_path, "test", "ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta"
             )
-        self.prim_scheme =  path.join(
+        self.prim_scheme = path.join(
             self.pkg_path, "resources", "artic_nCoV_scheme_v5.3.2.json"
             )
         self.prim_bed = path.join(
             self.pkg_path, "test", "ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed"
             )
         self.outdir = path.join(self.pkg_path, "test", "selftest")
-        # _chk_deps()
         self.run_selftest()
         self.log = path.join(self.outdir, "notramp.log")
         self.print_log()
 
-    def  run_selftest(self):
+    def run_selftest(self):
         if self.py_ok:
             try:
                 stdo_log = sp.run(
@@ -245,14 +244,13 @@ class SelfTest():
                         capture_output=True
                         ).stdout.decode()
                 return stdo_log
-            except Exception as e:
-                tb = e.__traceback__
-                return False
+            except sp.CalledProcessError as err:
+                log_sp_error(err, "SelfTest NoTrAmp subprocess failed.")
         else:
             logger.error(
-                f"The python version you are using is older than the minimum re"
-                f"quirement of 3.6. Please use a newer version or set up a ded"
-                f"icated environment with a more recent version of python."
+                "The python version you are using is older than the minimum re"
+                "quirement of 3.6. Please use a newer version or set up a ded"
+                "icated environment with a more recent version of python."
                 )
     
     def print_log(self):
@@ -276,7 +274,7 @@ class SelfTest():
 
     def _get_main(self):
         return path.join(self.pkg_path, "notramp_main.py")
-     
+
 
 def exception_handler(exception_type, exception, tb):
     logger.error(f"{exception_type.__name__}, {exception}")
@@ -284,58 +282,13 @@ def exception_handler(exception_type, exception, tb):
     logger.info(tb_str)
 
 
-# def chk_mm2_dep():
-#     try:
-#         mm2 = sp.run(
-#             ["minimap2", "--version"],
-#             check=True,
-#             capture_output=True
-#             )
-#     except FileNotFoundError:
-#         logger.error(
-#             "The minimap2 executable is not available. Please install minim"
-#             "ap2 or add it to your path if you've already installed it."
-#             )
-#         logger.error("Aborting NoTrAmp SelfTest")
-#         sys.exit()
-#     except Exception as e:
-#         tb = e.__traceback__
-#         logger.warning("An unforseen minimap2 error occurred.")
-#         logger.warning(tb)
-#     return mm2
-    
-# def _chk_py_deps(py_exe):
-#     py_deps = {"psutil": None, "matplotlib": None}
-#     for dep in py_deps:
-#         # try:
-#         py_ver = sp.run(
-#                     [py_exe, "--version"],
-#                     check=True,
-#                     capture_output=True,
-#                     env=environ
-#                     ).stdout.decode().strip()
-#         print(py_ver)
-#         cmd = [py_exe, "-c", f"import {dep}; print({dep}.__version__)"]
-#         cmd = [py_exe, "-c", f"import collections"]
-#         # cmd = [py_exe, "-c", "print('Hello World')"]
-#         chk = sp.run(
-#             cmd,
-#             check=True,
-#             capture_output=True,
-#             timeout=5
-#             )
-#         print(dep, py_exe, "chk", chk)
-#         py_deps[dep] = chk
-#         # except Exception as e:
-#         #     print(e)
-#         #     print(e.__traceback__)
-        
-
-# def _chk_deps():
-#     mm2 = chk_mm2_dep()
-#     py_exes = ["python"] # ,"python3"
-#     for exe in py_exes:
-#         _chk_py_deps(exe)
+def log_sp_error(error, message):
+    """custom logging of subprocess errors"""
+    logger.error(message)
+    print("Check notramp.log for error details")
+    logger.error(error.stdout.decode('utf-8'))
+    logger.error("Exiting notramp")
+    sys.exit()
 
 
 def fastq_autoscan(read_file):
