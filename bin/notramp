@@ -55,7 +55,8 @@ def get_arguments():
         )
     required_args.add_argument(
         "-g", "--reference", required=True,
-        help="Path to reference (genome)"
+        help="Path to reference (genome) fasta file. Must contain only one targ"
+        "et sequence. Multiple target sequences are not currently supported."
         )
 
     read_input = required_args.add_mutually_exclusive_group(required=True)
@@ -157,6 +158,13 @@ def get_arguments():
         default=False, action="store_true",
         help="Set this flag to request output of capped, untrimmed reads split"
         " to amplicon specific files (can be a lot)."
+        )
+    optional_args.add_argument(
+        "--selftest", dest='selftest',
+        default=False, action="store_true",
+        help="Run a selftest of NoTrAmp using included test-data. Overrides all"
+        " other arguments and parameters. Useful for checking how NoTrAmp runs "
+        "in your environment."
         )
     optional_args.add_argument(
         "-v", "--version", action="version",
@@ -464,15 +472,6 @@ class Primer:
             raise aux.PrimerSchemeError("Primer").with_traceback(tb)
 
 
-def log_sp_error(error, message):
-    """custom logging of subprocess errors"""
-    logger.error(message)
-    print("Check notramp.log for error details")
-    logger.error(error.stdout.decode('utf-8'))
-    logger.error("Exiting notramp")
-    sys.exit()
-
-
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
@@ -521,7 +520,7 @@ def generate_amps(primers):
     """generate amplicon objects"""
     logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
-    expect_amps = int(len([p for p in primers if p.type=="primary"])/2)
+    expect_amps = int(len([p for p in primers if p.type == "primary"])/2)
     amps = []
     amp_lens = []
     for num in amp_nums:
@@ -570,7 +569,7 @@ def load_fastq(kw, rfa, reads):
         block_ct += 1
         if len(block) == 3:
             title, seq, qual = block
-            read = Read(title.split(" ")[0], seq.strip(), fastq=True)
+            read = Read(title.split(" ")[0].strip(), seq.strip(), fastq=True)
             read_ct += 1
             if kw["fq_out"]:
                 read.plus = "+\n"
@@ -632,18 +631,44 @@ def name_out_reads(reads, suffix, outdir, kw):
     return out_path
 
 
+def chk_reference(ref_path):
+    """Confirm there is only one sequence in reference fasta"""
+    entries = 0
+    with open(ref_path, "r") as ref:
+        for line in ref:
+            if line.startswith(">"):
+                entries += 1
+    if entries > 1:
+        raise aux.TargetReferenceError()
+
+
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
     """mapping reads"""
     logger.info("mapping reads")
+    chk_reference(reference)
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
-            ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"],
+            [
+                "minimap2",
+                "-x",
+                seq_tech,
+                reference,
+                reads,
+                "-o",
+                out_paf,
+                "--secondary=no"
+            ],
             check=True,
             capture_output=True
         )
     except subprocess.CalledProcessError as err:
-        log_sp_error(err, "Mapping of reads to reference failed")
+        aux.log_sp_error(err, "Mapping of reads to reference failed")
+    except FileNotFoundError:
+        logger.error(
+            "The minimap2 executable could is not available. Please install min"
+            "imap2 or add it to your path if you've already installed it."
+            )
     return out_paf
 
 
@@ -774,6 +799,11 @@ def get_main_logger(outdir):
 
 def run_notramp():
     """NoTramp main function"""
+
+    if "--selftest" in sys.argv:
+        aux.SelfTest()
+        sys.exit()
+
     prstart = perf_counter()
     kwargs = vars(get_arguments())
 
@@ -785,6 +815,7 @@ def run_notramp():
 
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
+    logger.info("python version %s", sys.version)
     logger.info("notramp started with: %s", kwargs)
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:
