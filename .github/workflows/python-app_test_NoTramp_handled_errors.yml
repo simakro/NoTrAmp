@@ -1,0 +1,159 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: test_NoTramp_handled_errors
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest # ubuntu-20.04 
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install conda   
+      uses: conda-incubator/setup-miniconda@v3
+      with: 
+          # auto-update-conda: true
+          python-version: "3.10"
+          auto-activate-base: true
+
+    - name: Install required and recommended dependencies
+      shell: bash -el {0}
+      run: |
+          conda activate
+          python -m pip install --upgrade pip
+          pip install psutil
+          conda install -c bioconda minimap2
+
+    - name: Run NoTramp all mode with faulty fasta reads-file 
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_faulty.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+
+    - name: Run NoTramp all with corrupt fastq input 
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_irregular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp all with fasta input containing duplicate read-names  
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_duplicate_read_names.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp all with fastq input containing duplicate read-names and short qstring  
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_short_qstring+duplicate_read.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp with wrong combination of primer.bed (v5) and naming-scheme.json (v1-4) + ARTICv5-reads => AmpliconGenerationError
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+        echo "Showing contents of Log-file of previous run:"
+        cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        pwd
+        conda activate
+        conda list
+        python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp with empty primer.bed => AmpliconGenerationError
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+        echo "Showing contents of Log-file of previous run:"
+        cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        pwd
+        conda activate
+        conda list
+        python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/artic_vX_empty_bed_file.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+
+    - name: Run NoTramp with wrong combination of primer.bed (v3) and naming-scheme.json (v5) + ARTICv5-reads => PrimerSchemeError
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+        echo "Showing contents of Log-file of previous run:"
+        cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        pwd
+        conda activate
+        conda list
+        python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v3_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v5.3.2.json
+
+    - name: Run NoTramp with faulty primer.bed => BedColumnError
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+        echo "Showing contents of Log-file of previous run:"
+        cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+        pwd
+        conda activate
+        conda list
+        python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/artic_v4-1_ncov-2019-primer_column_error.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v5.3.2.json
+
+    - name: Run NoTramp all with with multiple references and primers with different root-names => TargetReferenceError
+      shell: bash -el {0}
+      continue-on-error: true
+      run: |
+         echo "Showing contents of Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_3amps.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_multiple_references.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_multiple_references.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v5.3.2.json
+
+    - name: Run NoTramp all mode with empty reads-file 
+      shell: bash -el {0}
+      run: |
+         echo "Log-file of previous run:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         pwd
+         conda activate
+         conda list
+         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_empty.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         echo "Showing contents of logfile:"
+         cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
+         rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log

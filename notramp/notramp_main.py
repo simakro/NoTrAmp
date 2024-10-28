@@ -19,15 +19,18 @@ if __name__ == "__main__":
     import nta_aux as aux
     import amp_cov as amp_cov
     import map_trim as map_trim
+    from defaults import DEFAULTS
     from version import __version__
 else:
     import notramp.nta_aux as aux
     import notramp.amp_cov as amp_cov
     import notramp.map_trim as map_trim
+    from notramp.defaults import DEFAULTS
     from notramp.version import __version__
 
 
 logger = logging.getLogger(__name__)
+sys.excepthook = aux.exception_handler
 
 
 def get_arguments():
@@ -38,12 +41,11 @@ def get_arguments():
 
     parser = argparse.ArgumentParser(
         prog="notramp", usage=usg_msg,
-        description="NoTrAmp is a Tool for read-depth normalization and"
-        " trimming of amplicon reads generated with long read technologies"
-        " (ONT/PacBio). It can be used in amplicon-tiling approaches to cap"
-        " coverage of each amplicon and to trim amplicons to their appropriate"
-        " length removing barcodes, adpaters and primers (if desired) in a"
-        " single clipping step.",
+        description="NoTrAmp is a Tool for read-depth normalization and trimmin"
+        "g of reads in amplicon-tiling approaches. It trims amplicons to their "
+        "appropriate length removing barcodes, adpaters and primers (if desired"
+        ") in a single clipping step and can be used to cap coverage of all amp"
+        "licons at a chosen value.",
         add_help=False
         )
     required_args = parser.add_argument_group('Required arguments')
@@ -58,7 +60,8 @@ def get_arguments():
         )
     required_args.add_argument(
         "-g", "--reference", required=True,
-        help="Path to reference (genome)"
+        help="Path to reference (genome) fasta file. Must contain only one targ"
+        "et sequence. Multiple target sequences are not currently supported."
         )
 
     read_input = required_args.add_mutually_exclusive_group(required=True)
@@ -97,9 +100,9 @@ def get_arguments():
         )
     optional_args.add_argument(
         "-m", dest='max_cov',
-        default=200, type=int,
-        help="Provide threshold for maximum read-depth per amplicon as integer"
-        " value. [default=200]"
+        default=DEFAULTS["max_cov"], type=int,
+        help=f"Provide threshold for maximum read-depth per amplicon as integer"
+        f" value. [default={DEFAULTS['max_cov']}]"
         )
     optional_args.add_argument(
         "--incl_prim", dest='incl_prim',
@@ -110,42 +113,63 @@ def get_arguments():
         )
     optional_args.add_argument(
         "-s", dest='seq_tec',
-        default="ont",
-        help="Specify long-read sequencing technology (ont/pb). [default='ont']"
+        default=DEFAULTS['seq_tec'],
+        help=f"Specify long-read sequencing technology (ont/pb)."
+        f" [default={DEFAULTS['seq_tec']}]"
         )
     optional_args.add_argument(
         "-n", dest='name_scheme',
-        default="artic_nCoV_scheme",
-        help="Provide path to json-file containing a naming scheme which is "
-        "consistently used for all primers. [default='artic_nCoV_scheme']"
+        default=DEFAULTS["name_scheme"],
+        help=f"Provide path to json-file containing a naming scheme which is "
+        f"consistently used for all primers.[default={DEFAULTS['name_scheme']}]"
         )
     optional_args.add_argument(
         "--set_min_len", dest='set_min_len',
         default=False, type=bool,
-        help="Set a minimum required length for alignments of reads to "
-        "amplicon. If this is not set the min_len will be 0.5*average_amp_len."
-        " If amplicon sizes are relatively homogenous this parameter is not"
-        " required [default=False]"
+        help="Set a minimum required length for alignments of reads to amplicon"
+        "s. If this is not set the min_len will be 0.8*shortest_amp_len. When u"
+        "sing reads that are shorter than amplicon sizes use this argument to a"
+        "djust. For long reads this option is usually not required."
         )
     optional_args.add_argument(
         "--set_max_len", dest='set_max_len',
         default=False, type=bool,
-        help="Set a maximum required length for alignments of reads to"
-        " amplicon. If this is not set the max_len will be 1.5*average_amp_len."
-        " If amplicon sizes are relatively homogenous this parameter is not "
-        " required [default=False]"
+        help="Set a maximum allowed length for alignments of reads to"
+        " amplicon. If this is not set the max_len will be 1.2*longest_amp_len."
+        " The default setting normally doesn't need to be changed."
         )
     optional_args.add_argument(
         "--set_margins", dest='margins',
-        default=5, type=int,
-        help="Set length of tolerance margins for sorting of mappings to "
-        " amplicons. [default=5]"
+        default=DEFAULTS["margins"], type=int,
+        help=f"Set length of tolerance margins for sorting of mappings to "
+        f" amplicons. [default={DEFAULTS['margins']}]"
+        )
+    optional_args.add_argument(
+        "--figures", dest='figures',
+        default=False, action="store", const=20, nargs='?',
+        help="Set to generate figures of input and output read_counts. Availabl"
+        "e for --all and --cov modes. You can optionally provide a value to dra"
+        "w a red helper line in the output read plot, showing a threshold, e.g."
+        " min. required reads. [default=False; default_threshold=20]"
         )
     optional_args.add_argument(
         "--fastq", dest='fq_out',
         default=False, action="store_true",
         help="Set this flag to request output in fastq format. By default"
-        " output is in fasta format."
+        " output is in fasta format. Has no effect if input file is fasta."
+        )
+    optional_args.add_argument(
+        "--split", dest='split_out',
+        default=False, action="store_true",
+        help="Set this flag to request output of capped, untrimmed reads split"
+        " to amplicon specific files (can be a lot)."
+        )
+    optional_args.add_argument(
+        "--selftest", dest='selftest',
+        default=False, action="store_true",
+        help="Run a selftest of NoTrAmp using included test-data. Overrides all"
+        " other arguments and parameters. Useful for checking how NoTrAmp runs "
+        "in your environment."
         )
     optional_args.add_argument(
         "-v", "--version", action="version",
@@ -162,7 +186,7 @@ class Amp:
     handle and process data of attached Primer, Mapping and Read objects"""
 
     def __init__(self, amp_no, primers):
-        self.name = int(amp_no)
+        self.name = self._set_name(amp_no)
         self.primers = primers
         self.start = min([primer.start for primer in primers])
         self.end = max([primer.end for primer in primers])
@@ -170,17 +194,24 @@ class Amp:
         self.reads_dct = {}
         self.selected = []
 
+    def _set_name(self, amp_no):
+        try:
+            return int(amp_no)
+        except ValueError as ve:
+            tb = ve.__traceback__
+            raise aux.PrimerSchemeError("Amplicon").with_traceback(tb)
+
     def fwp_boundary(self):
         """get inner boundary of forward primer"""
         return max(
-            [prim for prim in self.primers if prim.pos == prim.scheme["fw_indicator"]],
+            [p for p in self.primers if p.pos == p.scheme["fw_indicator"]],
             key=lambda x: x.end
         ).end
 
     def revp_boundary(self):
         """get inner boundary of reverse primer"""
         return min(
-            [prim for prim in self.primers if prim.pos == prim.scheme["rev_indicator"]],
+            [p for p in self.primers if p.pos == p.scheme["rev_indicator"]],
             key=lambda x: x.start
         ).start
 
@@ -274,6 +305,50 @@ class Read:
             self.qstr = self.qstr[clip_left:clip_right]
         return clip_left, qlen - clip_right
 
+    def clip_primer_plus_strand(
+            self, tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary
+            ):
+        clip_left = 0
+        if tstart <= fwp_boundary:
+            add_clip = fwp_boundary - tstart
+            clip_left = qstart + add_clip
+        else:
+            ldiff = tstart - fwp_boundary
+            if qstart >= ldiff:
+                clip_left = qstart - ldiff
+
+        clip_right = qlen
+        if tend >= revp_boundary:
+            sub_clip = tend - revp_boundary
+            clip_right = qend - sub_clip
+        else:
+            rdiff = revp_boundary - tend
+            if qlen - qend >= rdiff:
+                clip_right = qend + rdiff
+        return clip_left, clip_right
+
+    def clip_primer_minus_strand(
+            self, tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary
+            ):
+        clip_right = qlen
+        if tstart <= fwp_boundary:
+            add_clip = fwp_boundary - tstart
+            clip_right = qend - add_clip
+        else:
+            rdiff = tstart - fwp_boundary
+            if qlen - qend >= rdiff:
+                clip_right = qend + rdiff
+
+        clip_left = 0
+        if tend >= revp_boundary:
+            sub_clip = tend - revp_boundary
+            clip_left = qstart + sub_clip
+        else:
+            ldiff = revp_boundary - tend
+            if qstart >= ldiff:
+                clip_left = qstart - ldiff
+        return clip_left, clip_right
+
     def clip_primers(self, fwp_boundary, revp_boundary, mapping):
         """trim to amplicon boundaries excluding primers"""
         qlen, samestrand = mapping.qlen, mapping.samestrand
@@ -281,42 +356,13 @@ class Read:
         tstart, tend = mapping.tstart, mapping.tend
 
         if samestrand:
-            clip_left = 0
-            if tstart <= fwp_boundary:
-                add_clip = fwp_boundary - tstart
-                clip_left = qstart + add_clip
-            else:
-                ldiff = tstart - fwp_boundary
-                if qstart >= ldiff:
-                    clip_left = qstart - ldiff
-
-            clip_right = qlen
-            if tend >= revp_boundary:
-                sub_clip = tend - revp_boundary
-                clip_right = qend - sub_clip
-            else:
-                rdiff = revp_boundary - tend
-                if qlen - qend >= rdiff:
-                    clip_right = qend + rdiff
-
+            clip_left, clip_right = self.clip_primer_plus_strand(
+                tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary
+                )
         else:
-            clip_right = qlen
-            if tstart <= fwp_boundary:
-                add_clip = fwp_boundary - tstart
-                clip_right = qend - add_clip
-            else:
-                rdiff = tstart - fwp_boundary
-                if qlen - qend >= rdiff:
-                    clip_right = qend + rdiff
-
-            clip_left = 0
-            if tend >= revp_boundary:
-                sub_clip = tend - revp_boundary
-                clip_left = qstart + sub_clip
-            else:
-                ldiff = revp_boundary - tend
-                if qstart >= ldiff:
-                    clip_left = qstart - ldiff
+            clip_left, clip_right = self.clip_primer_minus_strand(
+                tstart, qstart, qlen, tend, qend, fwp_boundary, revp_boundary
+                )
 
         self.seq = self.seq[clip_left:clip_right]
         if self.qstr:
@@ -373,67 +419,69 @@ class Mapping:
 class Primer:
     """class for storage and handling of primer information"""
 
-    def __init__(self, start, end, name, add_info, naming_scheme):
-        self.start = int(start)
-        self.end = int(end)
-        self.name = name
-        self.add_info = add_info
+    def __init__(self, split_bed_line, naming_scheme):
+        self.start = None
+        self.end = None
+        self.name = None
+        self.add_info = None
         self.type = "primary"
         self.scheme = naming_scheme
+        self.unexpected_vals = defaultdict(list)
+        self.get_col_infos(split_bed_line)
         self.get_name_infos()
+
+    def get_col_infos(self, split_bed_line):
+        """generate class attributes from bed columns"""
+        opt_cols = {
+            "score": str,
+            "strand": str,
+            "thickStart": int,
+            "thickEnd": int,
+            "itemRgb": str,
+            "blockCount": int,
+            "blockSizes": str,
+            "blockStarts": str,
+        }
+        chrom, start, end, name = split_bed_line[:4]
+        try:
+            self.start = int(start)
+            self.end = int(end)
+        except ValueError as e:
+            logger.error(
+                "Faulty primer bed file. Both start and end must be of type int"
+                )
+            logger.error(e)
+        self.name = name
+        add_info = {"chrom": chrom}
+
+        add_cols = split_bed_line[4:]
+        zip_col = zip(list(opt_cols.keys())[:len(add_cols)], add_cols)
+        for key, val in zip_col:
+            try:
+                add_info[key] = opt_cols[key](val)
+            except ValueError:
+                self.unexpected_vals[(key, opt_cols[key])].append(val)
 
     def get_name_infos(self):
         """extract information from primer name"""
-        lsp = self.name.split(self.scheme["sep"])
-        if len(lsp) == self.scheme["max_len"]:
-            self.type = "alt"
-            self.alt_name = lsp[self.scheme["alt"]]
-        self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
-        self.__dict__["pos"] = lsp[self.scheme["position"]]
-
-    def get_len(self):
-        """get primer length"""
-        return self.end - self.start + 1
-
-
-def log_sp_error(error, message):
-    """custom logging of subprocess errors"""
-    logger.error(message)
-    print("Check notramp.log for error details")
-    logger.error(error.stdout.decode('utf-8'))
-    logger.error("Exiting notramp")
-    sys.exit()
-
-
-def gen_primer_instance(split_line, prim_scheme):
-    """generate class attributes from positional info in mapping output"""
-    chrom, start, end, name = split_line[:4]
-    add_cols = split_line[4:]
-    add_info = {"chrom": chrom}
-
-    col_dict = {
-        "score": str,
-        "strand": str,
-        "thickStart": int,
-        "thickEnd": int,
-        "itemRgb": str,
-        "blockCount": int,
-        "blockSizes": str,
-        "blockStarts": str,
-    }
-    zip_col = zip(list(col_dict.keys())[:len(add_cols)], add_cols)
-    for key, val in zip_col:
-        add_info[key] = col_dict[key](val)
-
-    prim = Primer(start, end, name, add_info, prim_scheme)
-    return prim
+        try:
+            lsp = self.name.split(self.scheme["sep"])
+            self.__dict__["amp_no"] = lsp[self.scheme["amp_num"]]
+            self.__dict__["pos"] = lsp[self.scheme["position"]]
+            if "alt" in self.scheme:
+                if len(lsp) == self.scheme["max_len"]:
+                    self.type = "alt"
+                    self.alt_name = lsp[self.scheme["alt"]]
+        except Exception as e:
+            tb = e.__traceback__
+            raise aux.PrimerSchemeError("Primer").with_traceback(tb)
 
 
 def create_primer_objs(primer_bed, name_scheme):
     """generate primer objects"""
     logger.info("generating primer objects")
     with open(name_scheme, "r", encoding="utf-8") as scheme:
-        psd = json.loads(scheme.read())
+        naming_scheme = json.loads(scheme.read())
 
     col_num, headers = aux.bed_scan(primer_bed)
     with open(primer_bed, "r", encoding="utf-8") as bed:
@@ -444,7 +492,7 @@ def create_primer_objs(primer_bed, name_scheme):
             else:
                 lst = line.strip().split("\t")
                 if len(lst) == col_num:
-                    prim = gen_primer_instance(lst, psd)
+                    prim = Primer(lst, naming_scheme)
                     primers.append(prim)
                 else:
                     if headers:
@@ -455,6 +503,21 @@ def create_primer_objs(primer_bed, name_scheme):
                             raise aux.BedColumnError
                     else:
                         raise aux.BedColumnError
+    unexpected_bed_vals = defaultdict(list)
+    for p in primers:
+        for k, v in p.unexpected_vals.items():
+            unexpected_bed_vals[k].extend(v)
+    for k, l in dict(unexpected_bed_vals).items():
+        logger.info(
+            f"Expected value of type {k[1]} for optional column {k[0]}. Got"
+            f" the following values instead in {len(l)} cases:\n\t\t\t\t{l}"
+        )
+        logger.info(
+            "Values in optional columns do not affect the functionality of"
+            " NoTrAmp. As long as the core values (start, end, name) are c"
+            "orrect there is nothing to worry about. Frequently primer seq"
+            "uences that are included in primer bed files are the reason."
+            )
     return sorted(primers, key=lambda x: x.end)
 
 
@@ -462,33 +525,89 @@ def generate_amps(primers):
     """generate amplicon objects"""
     logger.info("generating amplicon objects")
     amp_nums = set([primer.amp_no for primer in primers])
+    expect_amps = int(len([p for p in primers if p.type == "primary"])/2)
     amps = []
     amp_lens = []
     for num in amp_nums:
-        amp_obj = Amp(num, [primer for primer in primers if primer.amp_no == num])
+        amp_obj = Amp(
+            num,
+            [primer for primer in primers if primer.amp_no == num]
+            )
         amps.append(amp_obj)
         amp_lens.append(amp_obj.get_max_len())
-    av_amp_len = sum(amp_lens) / len(amp_lens)
-    return sorted(amps, key=lambda x: x.name), av_amp_len
+
+    logger.info(f"{len(amps)} amplicons were generated.")
+    max_amp_len = max(amp_lens)
+    min_amp_len = min(amp_lens)
+    if not 0.75*expect_amps < len(amps) < 1.25*expect_amps:
+        raise aux.AmpliconGenerationError(expect_amps, len(amps))
+    return sorted(amps, key=lambda x: x.name), min_amp_len, max_amp_len
 
 
-def load_reads(read_file, output_fq):
+def load_fasta(rfa, reads):
+    l_ct = 0
+    for line in rfa:
+        l_ct += 1
+        if line.startswith(">"):
+            header = line.strip().split(" ")[0]
+            seq = next(rfa)
+            chk = aux.chk_fablock_integrity(header, seq)
+            if all(chk):
+                read = Read(header, seq.strip())
+            else:
+                # ignores if all in block are empty (None), as can happen at eof
+                if chk[0] is False:
+                    raise aux.LoadReadsError()
+            reads[read.name] = read
+    if l_ct != len(reads):
+        # helps detect duplicate read names
+        raise aux.LoadReadsError()
+    return reads
+
+
+def load_fastq(kw, rfa, reads):
+    """Load reads from fastq file"""
+    logger.info("Loading reads from fastq file")
+    read_ct = 0
+    block_ct = 0
+    for block in aux.fastq_iterator(rfa):
+        block_ct += 1
+        if len(block) == 3:
+            title, seq, qual = block
+            read = Read(title.split(" ")[0].strip(), seq.strip(), fastq=True)
+            read_ct += 1
+            if kw["fq_out"]:
+                read.plus = "+\n"
+                read.qstr = qual
+            reads[read.name] = read
+        else:
+            # ignores if all in block are empty (None), as can happen at eof
+            if block is False:
+                raise aux.LoadReadsError()
+    if block_ct != len(reads):
+        # helps detect duplicate read names
+        raise aux.LoadReadsError()
+    return reads
+
+
+def load_reads(kw, step="amp_cov"):
     """load reads into memory"""
     logger.info("loading reads")
-    reads = {}
-    fastq = aux.fastq_autoscan(read_file)
-    header_ind = "@" if fastq else ">"
-    with open(read_file, "r", encoding="utf-8") as rfa:
-        for line in rfa:
-            if line.startswith(header_ind):
-                header = line.strip().split(" ")[0]
-                seq = next(rfa)
-                read = Read(header, seq.strip(), fastq=fastq)
-                if fastq:
-                    if output_fq:
-                        read.plus = next(rfa)
-                        read.qstr = next(rfa).strip()
-                reads[read.name] = read
+    read_dct = {}
+    fastq = kw["fastq_in"]
+    if step == "map_trim":
+        fastq = kw["fq_out"]
+    try:
+        with open(kw["reads"], "r", encoding="utf-8") as rfa:
+            if fastq:
+                reads = load_fastq(kw, rfa, read_dct)
+            else:
+                reads = load_fasta(rfa, read_dct)
+    except Exception as e:
+        res = aux.SeqReadFileAnalyzer(kw["reads"], fastq=fastq)
+        res.report_results()
+        tb = e.__traceback__
+        raise aux.LoadReadsError().with_traceback(tb)
     return reads
 
 
@@ -517,23 +636,50 @@ def name_out_reads(reads, suffix, outdir, kw):
     return out_path
 
 
+def chk_reference(ref_path):
+    """Confirm there is only one sequence in reference fasta"""
+    entries = 0
+    with open(ref_path, "r") as ref:
+        for line in ref:
+            if line.startswith(">"):
+                entries += 1
+    if entries > 1:
+        raise aux.TargetReferenceError()
+
+
 def map_reads(reads, reference, out_paf, seq_tech="ont"):
     """mapping reads"""
     logger.info("mapping reads")
+    chk_reference(reference)
     try:
         seq_tech = "map-" + seq_tech
         subprocess.run(
-            ["minimap2", "-x", seq_tech, reference, reads, "-o", out_paf, "--secondary=no"],
+            [
+                "minimap2",
+                "-x",
+                seq_tech,
+                reference,
+                reads,
+                "-o",
+                out_paf,
+                "--secondary=no"
+            ],
             check=True,
             capture_output=True
         )
     except subprocess.CalledProcessError as err:
-        log_sp_error(err, "Mapping of reads to reference failed")
+        aux.log_sp_error(err, "Mapping of reads to reference failed")
+    except FileNotFoundError:
+        logger.error(
+            "The minimap2 executable could is not available. Please install min"
+            "imap2 or add it to your path if you've already installed it."
+            )
     return out_paf
 
 
 def gen_mapping_objs(mm2_paf):
     """generate mapping objects"""
+    logger.info("creating mapping objects")
     with open(mm2_paf, "r", encoding="utf-8") as paf:
         map_dct = defaultdict(list)
         for line in paf:
@@ -552,11 +698,11 @@ def filter_read_mappings(mappings, min_len, max_len):
     return mappings
 
 
-def create_filt_mappings(mm2_paf, av_amp_len, set_min_len, set_max_len):
+def create_filt_mappings(mm2_paf, min_amp_len, max_amp_len, set_min_len, set_max_len):
     """create filtered mapping objects"""
     logger.info("creating filtered mapping objects")
-    min_len = av_amp_len*0.5 if not set_min_len else set_min_len
-    max_len = av_amp_len*1.5 if not set_max_len else set_max_len
+    min_len = min_amp_len*0.8 if not set_min_len else set_min_len
+    max_len = max_amp_len*1.2 if not set_max_len else set_max_len
     map_dct = gen_mapping_objs(mm2_paf)
     mult_maps = {n: ml for n, ml in map_dct.items() if len(ml) > 1}
     mappings = [m for k, l in map_dct.items() for m in l]
@@ -579,34 +725,64 @@ def run_amp_cov_cap(kw):
     primers = create_primer_objs(kw["primers"], kw["name_scheme"])
     out_paf = name_out_paf(kw["reads"], kw["reference"], "cap")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    amps, av_amp_len = generate_amps(primers)
-    mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    binned = amp_cov.bin_mappings(amps, mappings, kw["max_cov"], kw["margins"])
+    amps, min_amp_len, max_amp_len = generate_amps(primers)
+    mappings = create_filt_mappings(
+        mm2_paf, min_amp_len, max_amp_len, kw["set_min_len"], kw["set_max_len"]
+        )
+    binned = amp_cov.bin_mappings_ac(
+        amps, mappings, kw["max_cov"], kw["margins"], kw["figures"], kw
+        )
     cap_out = name_out_reads(kw["reads"], "cap", kw["out_dir"], kw)
-    mem_fit = aux.chk_mem_fit(kw)
+    try:
+        mem_fit = aux.chk_mem_fit(kw)
+    except Exception:
+        mem_fit = False
+        logger.warning(
+            "Memory check failed, likely because module psutil could not be fou"
+            "nd. NoTrAmp will still work, but for safety reasons all writing an"
+            "d loading of reads will be performed from file instead from memory"
+            ". This can increase runtime significantly."
+            )
+
     if mem_fit:
-        loaded_reads = load_reads(kw["reads"], kw["fq_out"])
+        loaded_reads = load_reads(kw)
         amp_cov.write_capped_from_loaded(binned, loaded_reads, cap_out, kw)
+        if kw["split_out"]:
+            amp_cov.write_to_split_files(binned, loaded_reads, cap_out, kw)
         del loaded_reads
     else:
         amp_cov.write_capped_from_file(binned, kw["reads"], cap_out, kw)
+        if kw["split_out"]:
+            logger.warning(
+                "Writing to split files could not be performed, because reads w"
+                "ere not loaded into memory. This can occur if the in-file is t"
+                "oo large for your memory or when NoTrAmp is run without psutil"
+                "."
+                )
     os.remove(out_paf)
-    return cap_out
+    return cap_out, primers
 
 
 def run_map_trim(kw):
     """trimming/clipping of reads"""
     logger.info("Start trimming/clipping of reads")
-    primers = create_primer_objs(kw["primers"], kw["name_scheme"])
-    amps, av_amp_len = generate_amps(primers)
+    if kw["all"]:
+        primers = kw["primer_objects"]
+    else:
+        primers = create_primer_objs(kw["primers"], kw["name_scheme"])
+    amps, min_amp_len, max_amp_len = generate_amps(primers)
     out_paf = name_out_paf(kw["reads"], kw["reference"], "trim")
     mm2_paf = map_reads(kw["reads"], kw["reference"], out_paf, kw["seq_tec"])
-    mappings = create_filt_mappings(mm2_paf, av_amp_len, kw["set_min_len"], kw["set_max_len"])
-    amps_bin_maps = map_trim.bin_mappings(amps, mappings, kw["margins"])
-    loaded_reads = load_reads(kw["reads"], kw["fq_out"])
+    mappings = create_filt_mappings(
+        mm2_paf, min_amp_len, max_amp_len, kw["set_min_len"], kw["set_max_len"]
+        )
+    amps_bin_maps = map_trim.bin_mappings_mt(amps, mappings, kw["margins"])
+    loaded_reads = load_reads(kw, step="map_trim")
     amps_bin_reads = map_trim.load_amps_with_reads(amps_bin_maps, loaded_reads)
     clipped_out = name_out_reads(kw["reads"], "clip", kw["out_dir"], kw)
-    map_trim.clip_and_write_out(amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"])
+    map_trim.clip_and_write_out(
+        amps_bin_reads, clipped_out, kw["incl_prim"], kw["fq_out"]
+        )
     os.remove(out_paf)
     return clipped_out
 
@@ -618,9 +794,9 @@ def get_main_logger(outdir):
         "logging.conf"
         )
     logging.config.fileConfig(
-    log_conf_path,
-    disable_existing_loggers=False,
-    defaults={'logfilename': path.join(outdir, "notramp.log")}
+        log_conf_path,
+        disable_existing_loggers=False,
+        defaults={'logfilename': path.join(outdir, "notramp.log")}
     )
     logger = logging.getLogger(__name__)
     return logger
@@ -628,6 +804,11 @@ def get_main_logger(outdir):
 
 def run_notramp():
     """NoTramp main function"""
+
+    if "--selftest" in sys.argv:
+        aux.SelfTest()
+        sys.exit()
+
     prstart = perf_counter()
     kwargs = vars(get_arguments())
 
@@ -636,23 +817,22 @@ def run_notramp():
     if not path.exists(kwargs["out_dir"]):
         os.makedirs(kwargs["out_dir"], mode=777, exist_ok=False)
         os.chmod(kwargs["out_dir"], 0o777)
-    
+
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
+    logger.info("python version %s", sys.version)
     logger.info("notramp started with: %s", kwargs)
-
     pkg_dir = path.split(path.abspath(__file__))[0]
-    if kwargs["name_scheme"] == 'artic_nCoV_scheme':
+    if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:
         kwargs["name_scheme"] = path.join(
                                             pkg_dir,
                                             "resources",
                                             kwargs["name_scheme"] + ".json"
                                             )
-                                            
-    fastq_in = aux.fastq_autoscan(kwargs["reads"])
-    kwargs["fq_in"] = True if fastq_in else False
+
+    kwargs["fastq_in"] = aux.fastq_autoscan(kwargs["reads"])
     if kwargs["fq_out"]:
-        if not fastq_in:
+        if not kwargs["fastq_in"]:
             kwargs["fq_out"] = False
             logger.warning("No fastq input. Outfile-type was changed to fasta")
 
@@ -661,17 +841,18 @@ def run_notramp():
     elif kwargs["trim"]:
         run_map_trim(kwargs)
     elif kwargs["all"]:
-        capped_reads = run_amp_cov_cap(kwargs)
+        capped_reads, prims = run_amp_cov_cap(kwargs)
         kwargs["reads"] = capped_reads
+        kwargs["primer_objects"] = prims
         run_map_trim(kwargs)
     else:
         print("Missing argument for notramp operation mode")
 
     prend = perf_counter()
     logger.info(
-        "finished notramp after %s seconds of runtime",
-         str(prend-prstart)
-         )
+            "finished notramp after %s seconds of runtime",
+            str(prend-prstart)
+        )
 
 
 if __name__ == "__main__":

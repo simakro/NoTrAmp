@@ -1,5 +1,7 @@
 from setuptools import setup
 
+
+__version__ = ""
 exec(open('notramp/version.py').read())
 
 with open("README.md", "r", encoding="utf-8") as desc:

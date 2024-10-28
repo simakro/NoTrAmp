@@ -1,0 +1,9 @@
+*.cap.fasta
+*.cap.clip.fasta
+*.fastq
+*.log
+*.png
+*.paf
+*.ipynb
+*_test_data_set.fasta
+selftest
