@@ -1,3 +1,7 @@
+![PyPI Version](https://img.shields.io/pypi/v/notramp)
+![PyPI Downloads](https://img.shields.io/pypi/dm/notramp)
+[![Downloads](https://static.pepy.tech/badge/notramp)](https://pepy.tech/project/notramp)
+
 # NoTrAmp
 Normalization and Trimming of amplicon sequencing data
 
