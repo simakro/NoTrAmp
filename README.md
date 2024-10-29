@@ -120,7 +120,7 @@ filtering of data is performed before running NoTramp.
 Additionaly a log-file ("notramp.log") is generated, that also contains detailed information about processed and selected reads, read coverage/amplicon and trimmed bases. 
 A visual representation (see below) of input and output reads can also be requested by setting the --figures flag.
 <p align="center">
-  <img src="https://github.com/simakro/NoTrAmp/blob/emptyfaultydata/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="600" height="auto" align="center"/>
+  <img src="https://github.com/simakro/NoTrAmp/blob/main/notramp/resources/notramp_amplicon_coverage_large_test_data_thr30x.png" width="600" height="auto" align="center"/>
 </p>
 Upper plot: Input reads (before)  
 Lower plot: Capped output reads (after)
