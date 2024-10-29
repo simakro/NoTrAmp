@@ -1,8 +1,8 @@
 ![PyPI Version](https://img.shields.io/pypi/v/notramp)
 ![PyPI monthly Downloads](https://img.shields.io/pypi/dm/notramp)
 [![PyPI total Downloads](https://static.pepy.tech/badge/notramp)](https://pepy.tech/project/notramp)
-![bioconda total Downloads flat] https://img.shields.io/conda/dn/bioconda/notramp.svg?style=flat
-![bioconda total Downloads biolabel] https://img.shields.io/conda/dn/bioconda/notramp.svg?label=Bioconda
+![bioconda total Downloads flat](https://img.shields.io/conda/dn/bioconda/notramp.svg?style=flat)
+![bioconda total Downloads biolabel](https://img.shields.io/conda/dn/bioconda/notramp.svg?label=Bioconda)
 
 # NoTrAmp
 Normalization and Trimming of amplicon sequencing data
