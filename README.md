@@ -1,10 +1,11 @@
 ![PyPI Version](https://img.shields.io/pypi/v/notramp)
 ![PyPI monthly Downloads](https://img.shields.io/pypi/dm/notramp.svg?label=PyPI)
-![PyPI total Downloads](https://img.shields.io/pypi/dn/notramp.svg?label=PyPI)
-[![PyPI total Downloads pepy](https://static.pepy.tech/badge/notramp.svg?label=PyPI)](https://pepy.tech/project/notramp)
-
-![bioconda total Downloads biolabel](https://img.shields.io/conda/dn/bioconda/notramp.svg?label=Bioconda)
+[![PyPI total Downloads pepy](https://static.pepy.tech/badge/notramp)](https://pepy.tech/project/notramp)
 ![bioconda version](https://img.shields.io/conda/v/bioconda/notramp.svg?label=Bioconda)
+![bioconda total Downloads biolabel](https://img.shields.io/conda/dn/bioconda/notramp.svg?label=Bioconda)
+[![Py versions](https://img.shields.io/pypi/pyversions/notramp.svg)](https://pypi.org/project/notramp)
+[![GitHub actions standard workflow status](https://img.shields.io/github/actions/workflow/status/simakro/notramp/python-app_test_NoTramp.yml?label=tests)]
+
 
 # NoTrAmp
 Normalization and Trimming of amplicon sequencing data
