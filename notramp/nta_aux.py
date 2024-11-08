@@ -1,9 +1,10 @@
-from os import path
+from os import path, getcwd
 import sys
 import logging
 import logging.config
 import traceback as trace
 import subprocess as sp
+from time import strftime, localtime
 
 try:
     import psutil
@@ -209,18 +210,25 @@ class SelfTest():
         self.main = path.join(self.pkg_path, "notramp_main.py")
         self.mode = "-a"
         self.ref = path.join(
-            self.pkg_path, "test", "MN908947.3_SARS-CoV2_Wuhan-reference.fasta"
+            self.pkg_path, "test_self",
+            "MN908947.3_SARS-CoV2_Wuhan-reference.fasta"
             )
         self.reads = path.join(
-            self.pkg_path, "test", "ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta"
+            self.pkg_path, "test_self",
+            "ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta"
             )
         self.prim_scheme = path.join(
-            self.pkg_path, "resources", "artic_nCoV_scheme_v5.3.2.json"
+            self.pkg_path, "test_self",
+            "artic_nCoV_scheme_v5.3.2.json"
             )
         self.prim_bed = path.join(
-            self.pkg_path, "test", "ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed"
+            self.pkg_path, "test_self",
+            "ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed"
             )
-        self.outdir = path.join(self.pkg_path, "test", "selftest")
+        self.outdir = path.join(
+            getcwd(),
+            f"{strftime('%Y%m%d_%H-%M-%S', localtime())}_notramp-selftest"
+            )
         self.run_selftest()
         self.log = path.join(self.outdir, "notramp.log")
         self.print_log()
