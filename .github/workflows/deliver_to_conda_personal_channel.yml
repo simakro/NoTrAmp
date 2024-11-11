@@ -15,15 +15,15 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.6'
 
     - name: setup conda
       uses: conda-incubator/setup-miniconda@v3
       with:
         # miniforge-version: latest
-        python-version: 3.9
+        python-version: 3.6
         auto-activate-base: true
         use-mamba: true
         channels: bioconda, conda-forge
