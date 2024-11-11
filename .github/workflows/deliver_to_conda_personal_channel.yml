@@ -50,6 +50,6 @@ jobs:
 
     - name: Upload to personal channel
       run: |
-        conda acitvate base
+        conda activate base
         anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
         anaconda upload --user myname path/to/built/package.tar.bz2
