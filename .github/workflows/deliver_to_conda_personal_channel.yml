@@ -22,12 +22,12 @@ jobs:
     - name: setup conda
       uses: conda-incubator/setup-miniconda@v3
       with:
-        # miniforge-version: latest
+        miniforge-version: latest
         python-version: 3.6
         auto-activate-base: true
         use-mamba: true
-        channels: bioconda, conda-forge
-        channel-priority: strict
+        channels: defaults, bioconda, conda-forge
+        # channel-priority: strict
       # run: |
       #   conda config --add channels bioconda
       #   conda config --add channels conda-forge
@@ -51,4 +51,4 @@ jobs:
     - name: Upload to personal channel
       run: |
         anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-        anaconda upload --user simakro path/to/built/package.tar.bz2
+        anaconda upload --user myname path/to/built/package.tar.bz2
