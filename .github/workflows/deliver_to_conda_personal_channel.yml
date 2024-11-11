@@ -36,7 +36,7 @@ jobs:
         pwd
         ls -al
 
-    # - name: Upload to personal channel
-    #   run: |
-    #     anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-    #     anaconda upload --user YOUR_CHANNEL_NAME path/to/built/package.tar.bz2
+    - name: Upload to personal channel
+      run: |
+        anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+        anaconda upload --user YOUR_CHANNEL_NAME path/to/built/package.tar.bz2
