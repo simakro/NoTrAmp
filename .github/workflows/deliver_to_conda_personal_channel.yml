@@ -35,6 +35,7 @@ jobs:
       run: |
         pwd
         ls -al
+
     # - name: Upload to personal channel
     #   run: |
     #     anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
