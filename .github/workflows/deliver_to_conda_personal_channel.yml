@@ -1,0 +1,32 @@
+name: Build and Upload Conda Package
+
+on:
+  workflow_dispatch:
+  # release:
+  #   types: [published] # Trigger on publ. of new release
+  # push:
+  #   tags:
+  #     - 'v*'  # Trigger on version tags
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    - name: Install conda-build
+      run: |
+        conda install conda-build anaconda-client
+    - name: Build conda package
+      run: conda build .
+    - name: Show cwd and files
+      run: |
+        pwd
+        ls -al
+    # - name: Upload to personal channel
+    #   run: |
+    #     anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+    #     anaconda upload --user YOUR_CHANNEL_NAME path/to/built/package.tar.bz2

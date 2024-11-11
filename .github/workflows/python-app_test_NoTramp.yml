@@ -8,14 +8,23 @@ on:
     branches: [ "**" ]
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [ "created" ]
 
 permissions:
   contents: read
 
 jobs:
   build:
+    runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest # ubuntu-20.04 
+  # strategy:
+  #   matrix:
+  #     python-version: ["3.9", "3.10", "3.11", "3.12", "3.x"]
+  # steps:
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: ${{ matrix.python-version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -23,13 +32,21 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
+        # python-version: "3.x"
 
     - name: Install conda   
       uses: conda-incubator/setup-miniconda@v3
       with: 
           # auto-update-conda: true
-          python-version: "3.10"
+          # channels: bioconda, conda-forge
+          # channel-priority: strict
+          # activate-environment: env_name
+          miniforge-version: latest
+          # python-version: "3.10"
+          python-version: "3.x"
           auto-activate-base: true
+          conda-remove-defaults: true
+          use-mamba: true
 
     - name: Install required and recommended dependencies
       shell: bash -el {0}
