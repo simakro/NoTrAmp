@@ -38,5 +38,5 @@ jobs:
 
     - name: Upload to personal channel
       run: |
-        anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-        anaconda upload --user YOUR_CHANNEL_NAME path/to/built/package.tar.bz2
+        anaconda-client login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
+        anaconda-client upload --user YOUR_CHANNEL_NAME path/to/built/package.tar.bz2
