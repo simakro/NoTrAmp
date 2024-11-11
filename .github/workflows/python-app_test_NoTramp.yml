@@ -46,7 +46,7 @@ jobs:
           python-version: "3.x"
           auto-activate-base: true
           conda-remove-defaults: true
-          use-mamba: true
+          # use-mamba: true
 
     - name: Install required and recommended dependencies
       shell: bash -el {0}
