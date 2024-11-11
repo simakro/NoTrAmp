@@ -26,19 +26,13 @@ jobs:
         python-version: 3.9
         auto-activate-base: true
         use-mamba: true
-        channels: defaults, bioconda, conda-forge
-        # channel-priority: strict
-      # run: |
-      #   conda config --add channels bioconda
-      #   conda config --add channels conda-forge
-        
+        channels: defaults, bioconda, conda-forge        
 
     - name: Install conda-build
       run: |
         conda install conda-build anaconda-client conda-verify
         conda list
         conda install anaconda-client
-        
 
     - name: Build conda package
       run: |
@@ -52,7 +46,5 @@ jobs:
 
     - name: Upload to personal channel
       run: |
-        # conda init
-        # conda activate base
         conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
         conda run -n base anaconda upload --user simakro /home/runner/miniconda3/conda-bld/noarch/notramp-1.1.6-py_0.tar.bz2
