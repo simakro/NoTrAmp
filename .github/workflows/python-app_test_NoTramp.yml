@@ -31,8 +31,8 @@ jobs:
     - name: Set up Python 3.10
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
-        # python-version: "3.x"
+        # python-version: "3.10"
+        python-version: "3.x"
 
     - name: Install conda   
       uses: conda-incubator/setup-miniconda@v3
@@ -42,8 +42,8 @@ jobs:
           # channel-priority: strict
           # activate-environment: env_name
           miniforge-version: latest
-          python-version: "3.10"
-          # python-version: 3.x
+          # python-version: "3.10"
+          python-version: 3.x
           auto-activate-base: true
           conda-remove-defaults: true
           use-mamba: true
