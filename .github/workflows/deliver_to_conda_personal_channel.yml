@@ -90,6 +90,6 @@ jobs:
       run: |
         PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-${{ env.VERSION_NO }}-py_0.tar.bz2
         echo "PKG_PATH is $PKG_PATH"
-        echo "Owner is $OWNER"
+        echo "Owner is ${{ env.OWNER }}"
         echo "conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}"
         echo "conda run -n base anaconda upload --user ${{ env.OWNER }} PKG_PATH"
