@@ -101,11 +101,13 @@ jobs:
         
         echo "Checksum for $PACKAGE_NAME version $VERSION is $CHECKSUM"
         echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV  # Set the checksum as an environment variable
+        echo "VERSION=$VERSION" >> $GITHUB_ENV  # Set the version as an environment variable
 
     - name: Update Checksum in meta.yaml
       run: |
         CONFIG_FILE="meta.yaml"
         sed -i.bak "s/sha256:.*/sha256: ${{ env.CHECKSUM }}/" $CONFIG_FILE
+        sed -i.bak "s/version:.*/version: ${{ env.VERSION }}/" $CONFIG_FILE
 
     - name: Install conda-build
       run: |
@@ -115,6 +117,7 @@ jobs:
 
     - name: Build conda package
       run: |
+        cat meta.yaml
         conda build . -c bioconda
         # conda-verify path/to/your/package.tar.bz2
 

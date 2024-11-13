@@ -1,10 +1,11 @@
 {% set name = "notramp" %}
-{% set version = load_setup_py_data()['version'] %}
+# {% set version = load_setup_py_data()['version'] %}
 
 
 package:
   name: "{{ name|lower }}"
-  version: "{{ version }}"
+  # version: "{{ version }}"
+  version: "to be filled by deliver_to_conda_personal_channel.yml workflow"
 
 source:
   url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
