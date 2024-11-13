@@ -130,7 +130,7 @@ jobs:
 
     - name: Upload to personal channel
       run: |
-        PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-$VERSION-py_0.tar.bz2
+        PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-${{ env.VERSION_NO }}-py_0.tar.bz2
         echo "PKG_PATH is $PKG_PATH"
         echo "Owner is $OWNER"
         # conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
