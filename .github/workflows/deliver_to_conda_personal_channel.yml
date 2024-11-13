@@ -35,6 +35,7 @@ jobs:
           PACKAGE_NAME="notramp"
           VERSION=env.LATEST_TAG
           CHECKSUM_URL="https://pypi.org/pypi/$PACKAGE_NAME/$VERSION/json"
+          echo "CHECKSUM_URL is $CHECKSUM_URL"
           
           # Fetch the JSON data and extract the checksum
           CHECKSUM=$(curl -s $CHECKSUM_URL | jq -r '.urls[] | select(.packagetype == "sdist") | .digests.sha256')
