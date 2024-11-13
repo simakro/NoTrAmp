@@ -89,8 +89,9 @@ jobs:
     - name: Upload to personal channel
       run: |
         BUILD_NO=$(grep '^  number:' meta.yaml | awk '{print $2}')
-        echo "BUILD_NO=$BUILD_NO" >> $GITHUB_ENV
-        PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-${{ env.VERSION_NO }}-py_${{ env.BUILD_NO }}.tar.bz2
+        echo "BUILD_NO is $BUILD_NO"
+        # echo "BUILD_NO=$BUILD_NO" >> $GITHUB_ENV
+        PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-${{ env.VERSION_NO }}-py_$BUILD_NO.tar.bz2
         echo "PKG_PATH is $PKG_PATH"
         echo "Owner is ${{ env.OWNER }}"
         conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
