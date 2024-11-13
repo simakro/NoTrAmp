@@ -9,56 +9,12 @@ on:
   #     - 'v*'  # Trigger on version tags
 
 jobs:
-
-  # update-dist-info:
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-      # - name: Get latest tag from GitHub
-      #   id: get_latest_tag
-      #   run: |
-      #       OWNER="simakro"
-      #       REPO="notramp"
-      #       # Fetch tags from GitHub API
-      #       TAGS=$(curl -s "https://api.github.com/repos/simakro/$REPO/tags" | jq -r '.[].name')
-      #       # Get the latest tag (assuming semantic versioning)
-      #       LATEST_TAG=$(echo "$TAGS" | sort -V | tail -n 1)
-      #       echo $LATEST_TAG
-
-      #       # Set the latest tag as an environment variable
-      #       echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV  
-
-      # - name: Fetch latest checksum from PyPI
-      #   id: fetch_checksum
-      #   run: |
-      #     PACKAGE_NAME="notramp"
-      #     VERSION=$LATEST_TAG
-      #     CHECKSUM_URL="https://pypi.org/pypi/$PACKAGE_NAME/$VERSION/json"
-      #     echo "CHECKSUM_URL is $CHECKSUM_URL"
-          
-      #     # Fetch the JSON data and extract the checksum
-      #     CHECKSUM=$(curl -s $CHECKSUM_URL | jq -r '.urls[] | select(.packagetype == "sdist") | .digests.sha256')
-          
-      #     echo "Checksum for $PACKAGE_NAME version $VERSION is $CHECKSUM"
-      #     echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV  # Set the checksum as an environment variable
-
-      # - name: Update Checksum in meta.yaml
-      #   run: |
-      #     CONFIG_FILE="meta.yaml"
-      #     sed -i.bak "s/sha256:.*/sha256: ${{ env.CHECKSUM }}/" $CONFIG_FILE
-        
+      
   build:
-    # needs: update-dist-info
     runs-on: ubuntu-latest
-    # needs: update-checksum
+
     steps:
     - uses: actions/checkout@v4
-
-    # - name: chk meta.yaml
-    #   run: cat meta.yaml
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -79,14 +35,16 @@ jobs:
       run: |
           OWNER="simakro"
           REPO="notramp"
+          echo "OWNER=$OWNER" >> $GITHUB_ENV
+          echo "REPO=$REPO" >> $GITHUB_ENV
           # Fetch tags from GitHub API
-          TAGS=$(curl -s "https://api.github.com/repos/simakro/$REPO/tags" | jq -r '.[].name')
+          TAGS=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags" | jq -r '.[].name')
           # Get the latest tag (assuming semantic versioning)
           LATEST_TAG=$(echo "$TAGS" | sort -V | tail -n 1)
           echo $LATEST_TAG
 
           # Set the latest tag as an environment variable
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV  
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV 
 
     - name: Fetch latest checksum from PyPI
       id: fetch_checksum
@@ -133,5 +91,5 @@ jobs:
         PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-${{ env.VERSION_NO }}-py_0.tar.bz2
         echo "PKG_PATH is $PKG_PATH"
         echo "Owner is $OWNER"
-        # conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-        # conda run -n base anaconda upload --user $OWNER 
+        echo "conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}"
+        echo "conda run -n base anaconda upload --user ${{ env.OWNER }} PKG_PATH"
