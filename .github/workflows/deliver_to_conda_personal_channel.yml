@@ -33,7 +33,7 @@ jobs:
         id: fetch_checksum
         run: |
           PACKAGE_NAME="notramp"
-          VERSION=env.LATEST_TAG
+          VERSION=$LATEST_TAG
           CHECKSUM_URL="https://pypi.org/pypi/$PACKAGE_NAME/$VERSION/json"
           echo "CHECKSUM_URL is $CHECKSUM_URL"
           
