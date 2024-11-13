@@ -6,4 +6,5 @@
 *.paf
 *.ipynb
 *_test_data_set.fasta
+temp*
 selftest

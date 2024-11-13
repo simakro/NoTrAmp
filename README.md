@@ -1,3 +1,5 @@
+<!-- ![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/notramp/README.html) -->
+<!-- ![License](https://anaconda.org/bioconda/notramp/badges/license.svg) -->
 ![PyPI Version](https://img.shields.io/pypi/v/notramp)
 ![PyPI monthly Downloads](https://img.shields.io/pypi/dm/notramp.svg?label=PyPI)
 [![PyPI total Downloads pepy](https://static.pepy.tech/badge/notramp)](https://pepy.tech/project/notramp)
