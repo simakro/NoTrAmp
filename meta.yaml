@@ -1,19 +1,17 @@
 {% set name = "notramp" %}
-# {% set version = load_setup_py_data()['version'] %}
 {% set version = filled by workflow %}
 
 
 package:
   name: "{{ name|lower }}"
   version: "{{ version }}"
-  # version: "to be filled by deliver_to_conda_personal_channel.yml workflow"
 
 source:
   url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
   sha256: "to be filled by deliver_to_conda_personal_channel.yml workflow"
 
 build:
-  number: 2
+  number: 0
   entry_points:
     - notramp = notramp.notramp_main:run_notramp
   script: "{{ PYTHON }} -m pip install . -vv"
