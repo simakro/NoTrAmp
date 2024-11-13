@@ -51,10 +51,14 @@ jobs:
           sed -i.bak "s/sha256:.*/sha256: ${{ env.CHECKSUM }}/" $CONFIG_FILE
         
   build:
+    needs: update-dist-info
     runs-on: ubuntu-latest
     # needs: update-checksum
     steps:
     - uses: actions/checkout@v4
+
+    - name: chk meta.yaml
+      run: cat meta.yaml
 
     - name: Set up Python
       uses: actions/setup-python@v5
