@@ -99,7 +99,7 @@ jobs:
         # Fetch the JSON data and extract the checksum
         CHECKSUM=$(curl -s $CHECKSUM_URL | jq -r '.urls[] | select(.packagetype == "sdist") | .digests.sha256')
         
-        VERSION_NO = "${VERSION:1}" # verion number w.o. "v" e.g. "1.1.6" instead of "v1.1.6"
+        VERSION_NO="${VERSION:1}" # version number w.o. "v" e.g. "1.1.6" instead of "v1.1.6"
         echo "Checksum for $PACKAGE_NAME version $VERSION is $CHECKSUM"
         echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV  # Set the checksum as an environment variable
         echo "VERSION_NO=$VERSION_NO" >> $GITHUB_ENV  # Set the VERSION_NO as an environment variable
@@ -107,9 +107,9 @@ jobs:
     - name: Update Checksum in meta.yaml
       run: |
         CONFIG_FILE="meta.yaml"
-        sed -i.bak "s/version:.*/version: ${{ env.VERSION_NO }}/" $CONFIG_FILE
+        # sed -i.bak "s/version:.*/version: ${{ env.VERSION_NO }}/" $CONFIG_FILE
         sed -i.bak "s/sha256:.*/sha256: ${{ env.CHECKSUM }}/" $CONFIG_FILE
-        # sed -i.bak "s/set version = filled by workflow/set version = '${{ env.VERSION_NO }}'/" $CONFIG_FILE
+        sed -i.bak "s/set version = filled by workflow/set version = '${{ env.VERSION_NO }}'/" $CONFIG_FILE
 
     - name: Install conda-build
       run: |
