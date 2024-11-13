@@ -94,4 +94,4 @@ jobs:
         echo "PKG_PATH is $PKG_PATH"
         echo "Owner is ${{ env.OWNER }}"
         conda run -n base anaconda login --username ${{ secrets.ANACONDA_USERNAME }} --password ${{ secrets.ANACONDA_PASSWORD }}
-        conda run -n base anaconda upload --user ${{ env.OWNER }} PKG_PATH
+        conda run -n base anaconda upload --user ${{ env.OWNER }} $PKG_PATH
