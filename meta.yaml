@@ -1,5 +1,4 @@
 {% set name = "notramp" %}
-# {% set version = "1.1.6" %}
 {% set version = load_setup_py_data()['version'] %}
 
 
@@ -9,10 +8,10 @@ package:
 
 source:
   url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
-  sha256: d17dafed1f9afa119c48aca5486c59049774590ca5b90b6802a011d9eaec85ca
+  sha256: "to be filled by deliver_to_conda_personal_channel.yml workflow"
 
 build:
-  number: 1
+  number: 2
   entry_points:
     - notramp = notramp.notramp_main:run_notramp
   script: "{{ PYTHON }} -m pip install . -vv"
