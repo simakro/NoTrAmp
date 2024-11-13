@@ -24,6 +24,7 @@ jobs:
             TAGS=$(curl -s "https://api.github.com/repos/simakro/notramp/tags" | jq -r '.[].name')
             # Get the latest tag (assuming semantic versioning)
             LATEST_TAG=$(echo "$TAGS" | sort -V | tail -n 1)
+            echo $LATEST_TAG
 
             # Set the latest tag as an environment variable
             echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV  
