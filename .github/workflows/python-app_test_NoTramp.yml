@@ -47,15 +47,14 @@ jobs:
           # python-version: 3.*
           python-version: ${{ matrix.python-version == '3.x' && '3.*' || matrix.python-version }}
           auto-activate-base: true
-          conda-remove-defaults: true
-          use-mamba: true
-      run: |
-        PY_VER=${{ matrix.python-version == '3.x' && '3.*' || matrix.python-version }}
-        echo "PY_VER=$PY_VER" >> $GITHUB_ENV
+          # conda-remove-defaults: true
+          # use-mamba: true
     
     - name: create dedicated conda env
       shell: bash -el {0}
       run: |
+          PY_VER=${{ matrix.python-version == '3.x' && '3.*' || matrix.python-version }}
+          echo "PY_VER=$PY_VER" >> $GITHUB_ENV
           conda create -n tests python=${{ env.PY_VER }} --yes
 
     - name: Install required and recommended dependencies
