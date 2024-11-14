@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.10
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         # python-version: "3.10"
@@ -42,13 +42,21 @@ jobs:
           # channels: bioconda, conda-forge
           # channel-priority: strict
           # activate-environment: env_name
-          miniforge-version: latest
+          # miniforge-version: latest
           # python-version: "3.10"
           # python-version: 3.*
           python-version: ${{ matrix.python-version == '3.x' && '3.*' || matrix.python-version }}
           auto-activate-base: true
           conda-remove-defaults: true
           use-mamba: true
+    
+    # - name: create dedicated conda env
+    #   shell: bash -el {0}
+    #   run: |
+    #       conda activate
+    #       python -m pip install --upgrade pip
+    #       pip install psutil
+    #       conda install -c bioconda minimap2
 
     - name: Install required and recommended dependencies
       shell: bash -el {0}
