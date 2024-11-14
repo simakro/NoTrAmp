@@ -53,7 +53,7 @@ jobs:
     - name: create dedicated conda env
       shell: bash -el {0}
       run: |
-          conda create -n tests python=${{ matrix.python-version }}
+          conda create -n tests python=${{ matrix.python-version }} --yes
 
     - name: Install required and recommended dependencies
       shell: bash -el {0}
