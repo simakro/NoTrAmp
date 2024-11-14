@@ -50,18 +50,18 @@ jobs:
           conda-remove-defaults: true
           use-mamba: true
 
-    - name: Install required and recommended dependencies
-      shell: bash -el {0}
-      run: |
-          conda activate
-          python -m pip install --upgrade pip
-          pip install psutil
-          conda install -c bioconda minimap2
-
     - name: create dedicated conda env
       shell: bash -el {0}
       run: |
-          conda create -n tests python=${{ matrix.python-version }}
+          conda create -n tests python=${{ matrix.python-version == '3.x' && '3.*' || matrix.python-version }}
+  
+    - name: Install required and recommended dependencies
+      shell: bash -el {0}
+      run: |
+          conda activate tests
+          python -m pip install --upgrade pip
+          pip install psutil
+          conda install -c bioconda minimap2
     
     - name: Run NoTramp all mode with single amplicons as reads
       shell: bash -el {0}
