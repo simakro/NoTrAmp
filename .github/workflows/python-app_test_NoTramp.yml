@@ -42,7 +42,7 @@ jobs:
           # channels: bioconda, conda-forge
           # channel-priority: strict
           # activate-environment: env_name
-          # miniforge-version: latest
+          miniforge-version: latest
           # python-version: "3.10"
           # python-version: 3.*
           python-version: ${{ matrix.python-version == '3.x' && '3.*' || matrix.python-version }}
@@ -50,29 +50,26 @@ jobs:
           conda-remove-defaults: true
           use-mamba: true
     
-    # - name: create dedicated conda env
-    #   shell: bash -el {0}
-    #   run: |
-    #       conda activate
-    #       python -m pip install --upgrade pip
-    #       pip install psutil
-    #       conda install -c bioconda minimap2
+    - name: create dedicated conda env
+      shell: bash -el {0}
+      run: |
+          conda create -n tests python=${{ matrix.python-version }}
 
     - name: Install required and recommended dependencies
       shell: bash -el {0}
       run: |
-          conda activate
-          python -m pip install --upgrade pip
-          pip install psutil
+          conda activate tests
+          python3 -m pip install --upgrade pip
+          pip3 install psutil
           conda install -c bioconda minimap2
     
     - name: Run NoTramp all mode with single amplicons as reads
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -81,9 +78,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -a --incl_prim -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -a --incl_prim -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -92,9 +89,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -a --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -a --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -103,9 +100,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_empty.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_empty.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -114,9 +111,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -t -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -t -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -125,9 +122,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -c -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -c -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -136,9 +133,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+         python3 notramp/notramp_main.py --set_min_len 100 -a -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -147,9 +144,9 @@ jobs:
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -a --set_min_len 100 --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
+         python3 notramp/notramp_main.py -a --set_min_len 100 --fastq -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v4.1_nCoV-2019.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/reads_file_regular.fq -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta -n /home/runner/work/NoTrAmp/NoTrAmp/notramp/resources/artic_nCoV_scheme_v1-v4.json
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
@@ -157,23 +154,23 @@ jobs:
     - name: Install optional dependencies
       shell: bash -el {0}
       run: |
-          conda activate
-          pip install matplotlib
+          conda activate tests
+          pip3 install matplotlib
     
     - name: Run NoTramp all mode with single amplicons as reads with figures
       shell: bash -el {0}
       run: |
          pwd
-         conda activate
+         conda activate tests
          conda list
-         python notramp/notramp_main.py -a --figures -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
+         python3 notramp/notramp_main.py -a --figures -p /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_SARS-CoV-2_v5.3.2_400.primer.bed -r /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/ARTIC_v5.3.2_Amplicons_Wuhan1_reference.fasta -g /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/MN908947.3_SARS-CoV2_Wuhan-reference.fasta
          echo "Showing contents of logfile:"
          cat /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
          rm /home/runner/work/NoTrAmp/NoTrAmp/notramp/test/notramp.log
 
     - name: Install linter
       run: |
-        python -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
