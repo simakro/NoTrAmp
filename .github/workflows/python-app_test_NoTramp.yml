@@ -66,7 +66,7 @@ jobs:
           if [ "${{ matrix.minimap2-version }}" = "latest" ]; then
             conda install -c bioconda -c conda-forge minimap2
           else
-            conda install -c bioconda minimap2=${{ matrix.minimap2-version }}
+            conda install -c bioconda -c conda-forge minimap2=${{ matrix.minimap2-version }}
           fi
           # conda install -c bioconda -c conda-forge minimap2=${{ matrix.minimap2-version }}
     
