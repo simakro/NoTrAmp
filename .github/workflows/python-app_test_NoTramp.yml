@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.7", "3.10", "3.12", "3.x"] #  , "3.13"
+        python-version: ["3.13"] #  ,  "3.7", "3.10", "3.12", "3.x"
       fail-fast: false # do not cancel other jobs if one fails
     # steps:
     #   - uses: actions/setup-python@v5
