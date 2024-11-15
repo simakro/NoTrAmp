@@ -47,16 +47,22 @@ install with conda:
 ```sh
 conda create -n notramp
 conda activate notramp
-conda install -c simakro notramp
+conda install -c bioconda -c conda-forge notramp
 ```
 
 or
 
 ```
-conda create -n notramp -c simakro notramp
+conda create -n notramp -c bioconda -c conda-forge notramp
 conda activate notramp
 ```
 
+Alternatively notramp is also available from channel simakro.
+
+```
+conda create -n notramp -c simakro notramp
+conda activate notramp
+```
 
 ## <a name="usage"></a>Usage
 install notramp package and run:
@@ -240,7 +246,7 @@ Generic primer scheme (see also "notramp/resources/artic_nCoV_scheme_v5.json"):
 ## <a name="depend"></a>Requirements/Dependencies
 required:   
 - Python >= 3.7
-- minimap2  
+- minimap2 (>= 2.16 recommended)
 
 recommended:   
 - psutil  

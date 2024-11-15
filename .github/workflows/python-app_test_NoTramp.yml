@@ -20,7 +20,8 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.13"] #  ,  "3.7", "3.10", "3.12", "3.x"
+        python-version: ["3.7", "3.10", "3.x"] #   "3.12", "3.13"
+        minimap2-version: ["2.16", "latest"]
       fail-fast: false # do not cancel other jobs if one fails
     # steps:
     #   - uses: actions/setup-python@v5
@@ -62,7 +63,12 @@ jobs:
           conda activate tests
           python -m pip install --upgrade pip
           pip install psutil
-          conda install -c bioconda minimap2
+          if [ "${{ matrix.minimap2-version }}" = "latest" ]; then
+            conda install -c bioconda -c conda-forge minimap2
+          else
+            conda install -c bioconda minimap2=${{ matrix.minimap2-version }}
+          fi
+          # conda install -c bioconda -c conda-forge minimap2=${{ matrix.minimap2-version }}
     
     - name: Run NoTramp all mode with single amplicons as reads
       shell: bash -el {0}

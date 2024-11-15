@@ -200,6 +200,10 @@ class SeqReadFileAnalyzer():
                 reporter[key](msg)
 
 
+# class DependcyChecker():
+#     """Class for self testing of NoTrAmp"""
+
+
 class SelfTest():
     """Class for self testing of NoTrAmp"""
 
