@@ -654,8 +654,7 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     chk_reference(reference)
     try:
         seq_tech = "map-" + seq_tech
-        subprocess.run(
-            [
+        cmd = [
                 "minimap2",
                 "-x",
                 seq_tech,
@@ -664,15 +663,19 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
                 "-o",
                 out_paf,
                 "--secondary=no"
-            ],
+            ]
+        mm2_stdout = subprocess.run(
+            cmd,
             check=True,
             capture_output=True
         )
+        logger.info(f"minimap2 command: {(' ').join(cmd)}")
+        logger.info(mm2_stdout)
     except subprocess.CalledProcessError as err:
         aux.log_sp_error(err, "Mapping of reads to reference failed")
     except FileNotFoundError:
         logger.error(
-            "The minimap2 executable could is not available. Please install min"
+            "The minimap2 executable is not available. Please install min"
             "imap2 or add it to your path if you've already installed it."
             )
     return out_paf
