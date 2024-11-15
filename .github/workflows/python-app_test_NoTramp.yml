@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.7", "3.10", "3.x"] #   "3.12", "3.13"
-        minimap2-version: ["2.16", "latest"]
+        minimap2-version: ["2.16", "2.28"] # "latest"
       fail-fast: false # do not cancel other jobs if one fails
     # steps:
     #   - uses: actions/setup-python@v5
