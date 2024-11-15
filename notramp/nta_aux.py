@@ -200,8 +200,39 @@ class SeqReadFileAnalyzer():
                 reporter[key](msg)
 
 
-# class DependcyChecker():
+# class NonPyDepChecker():
 #     """Class for self testing of NoTrAmp"""
+#     def __init__(self):
+#         self.deps = ["minimap2"]
+#         self.cmds = {"minimap2": "--version"}
+#         self.vers = {}
+    
+    # def test_dep(self, dep):
+    #     try:
+    #         dep_ver = sp.run([self.dep, self.cmds[self.dep]], stdout=sp.PIPE)
+    #         dep_ver = dep_ver.stdout.replace(
+    #                                         b',', b';'
+    #                                     ).replace(
+    #                                             b'\n', b''
+    #                                         ).replace(
+    #                                                 b'\r', b''
+    #                                             ).decode("utf-8")
+    #         logger.info(f"{dep} installed and responsive")
+    #         logger.info(dep_ver)
+    #         # if dep=="minimap2":
+    #         #     chk_minimap_version(dep_ver, args)
+    #     except sp.CalledProcessError as ce:
+    #         logger.error(f"{dep} check CalledProcessError: {ce}")
+    #         logger.error(
+    #             f"The {dep} executable is installed but appears not"
+    #             f" to be working properly. Check logs for more info."
+    #             )
+    #         logger.error(dep_unavail_msg)
+    #         # args.__dict__[dep.split(".")[0]] = False
+    #     except FileNotFoundError as fe:
+    #         logger.error(f"Dependency check {dep}: FileNotFoundError: {fe}")
+    #         pf = sys.platform
+
 
 
 class SelfTest():
