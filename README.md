@@ -39,30 +39,48 @@ NoTrAmp addresses these issues by limiting the read depth at each amplicon to a 
 NoTrAmp is suitable for use with both long (e.g. ONT/PacBio) and short reads (e.g Illumina). However, when using reads that are significantly shorter than amplicon sizes, you should adjust the minimum required alignment length using the --set_min_len argument (see below).
 
 ## <a name="install"></a>Installation
-install with pip:
+### install with pip:
 ```sh
 pip install notramp
 ```
-install with conda:
+When installing with pip you have to install minimap2 separetly.
+If you already have minimap2, make sure it is in your PATH variable.
+
+### install with mamba/conda:
+Use conda or mamba (latter recommended) depending on your preference.
+
+Preferred way (this will install all dependencies incl. python):
+
+```sh
+mamba create -n notramp -c bioconda -c conda-forge notramp
+mamba activate notramp
+```
+
+or first create env and then install (will use system python if available):
 ```sh
 conda create -n notramp
 conda activate notramp
 conda install -c bioconda -c conda-forge notramp
 ```
 
-or
+Alternatively notramp is also available from channel simakro:
 
-```
-conda create -n notramp -c bioconda -c conda-forge notramp
+```sh
+conda create -n notramp -c simakro -c conda-forge notramp
 conda activate notramp
 ```
 
-Alternatively notramp is also available from channel simakro.
+### test installation
+To show notramp version:
+```sh
+notramp --version
+```
 
+To test that notramp and all required dependecies are installed and fully functional:
+ ```sh
+notramp --selftest
 ```
-conda create -n notramp -c simakro notramp
-conda activate notramp
-```
+This will perform a testrun with some example data and print all logging information to stdout.
 
 ## <a name="usage"></a>Usage
 install notramp package and run:
