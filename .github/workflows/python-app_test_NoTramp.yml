@@ -15,12 +15,34 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  get-python-versions:
     runs-on: ubuntu-latest
+    outputs: 
+      python-versions: ${{ steps.set-python-versions.outputs.versions }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: get-python-versions
+        uses: snok/latest-python-versions@v1
+        id: get-python-versions
+        with:
+          min-version: "3.7"
+      - name: set-python-versions
+        id: set-python-versions
+        run: |
+            pinned_versions='["3.7", "3.10"]'
+            # Get all versions and extract the penultimate one
+            all_versions=$(echo '${{ steps.get-python-versions.outputs.latest-python-versions }}' | jq -r '.[]')
+            penultimate=$(echo "$all_versions" | tail -n 2 | head -n 1)
+            combined_versions=$(echo $manual_versions | jq '. + ["'"$penultimate"'"]')
+            echo "Current penultimate major python version is $penultimate"
+            echo "versions=$combined_versions" >> $GITHUB_OUTPUT
 
+  build:
+    needs: get-python-versions
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.10", "3.12"] # "3.x" add to test for latest
+        python-version: ${{ fromJson(needs.get-python-versions.outputs.python-versions) }} # ["3.7", "3.10", "3.12"] # "3.x" add to test for latest
         minimap2-version: ["2.16", "latest"] #  "2.28"
       fail-fast: false # do not cancel other jobs if one fails
 
