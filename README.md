@@ -82,15 +82,16 @@ notramp --selftest
 ```
 This will perform a testrun with some example data and print all logging information to stdout.
 
-### latest python version
-Sometimes it can take a while till all required packages catch up to the very latest python version.
-At the time of writing, if you enforce installation of python 3.13.0 (the current latest version) conda/mamba
- will install an outdated version of minimap2 (e.g. v2.1.1),
-because of a perceived conflict between libzlib, minimap2>=2.16 and python 3.13.0.
-However, they actually work fine together and the issue can be easily resolved by installing a correct minimap2 version into the activated environment.
+### latest python versions
+Sometimes it can take a while till all required packages catch up to the newest python version.
+At the time of writing, if you enforce (pin) installation of python 3.13.0 (the current latest version) conda/mamba
+ will install an outdated version of minimap2 (e.g. v2.1.1), because of a perceived conflict between libzlib, minimap2>=2.16 and python 3.13.0.
+However, they actually work fine together. If you insist to use the very latest python release the issue can be easily resolved by installing a 
+correct minimap2 version into the activated environment.
 ```sh
 mamba install minimap2=2.28
 ```
+To avoid such inconvenience, just follow the preferred installation method above.
 
 ## <a name="usage"></a>Usage
 install notramp package and run:
