@@ -509,8 +509,8 @@ def create_primer_objs(primer_bed, name_scheme):
             unexpected_bed_vals[k].extend(v)
     for k, l in dict(unexpected_bed_vals).items():
         logger.info(
-            f"Expected value of type {k[1]} for optional column {k[0]}. Got"
-            f" the following values instead in {len(l)} cases:\n\t\t\t\t{l}"
+            f"Expected value of type {k[1]} for optional column {k[0]}. Got val"
+            f"ues of the following kind instead in {len(l)} cases:\n{l[:10]}."
         )
         logger.info(
             "Values in optional columns do not affect the functionality of"
