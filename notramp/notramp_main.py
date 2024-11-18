@@ -825,6 +825,7 @@ def run_notramp():
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
     logger.info("python version %s", sys.version)
+    aux.NonPyDepChecker()
     logger.info("notramp started with: %s", kwargs)
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:

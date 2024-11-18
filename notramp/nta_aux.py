@@ -200,39 +200,42 @@ class SeqReadFileAnalyzer():
                 reporter[key](msg)
 
 
-# class NonPyDepChecker():
-#     """Class for self testing of NoTrAmp"""
-#     def __init__(self):
-#         self.deps = ["minimap2"]
-#         self.cmds = {"minimap2": "--version"}
-#         self.vers = {}
+class NonPyDepChecker():
+    """Class for self testing of NoTrAmp"""
+    def __init__(self):
+        self.deps = ["minimap2"]
+        self.cmds = {"minimap2": "--version"}
+        self.vers = {}
+        self.test_all()
+        
+    def test_all(self):
+        for dep in self.cmds:
+            self.test_dep(dep)
     
-    # def test_dep(self, dep):
-    #     try:
-    #         dep_ver = sp.run([self.dep, self.cmds[self.dep]], stdout=sp.PIPE)
-    #         dep_ver = dep_ver.stdout.replace(
-    #                                         b',', b';'
-    #                                     ).replace(
-    #                                             b'\n', b''
-    #                                         ).replace(
-    #                                                 b'\r', b''
-    #                                             ).decode("utf-8")
-    #         logger.info(f"{dep} installed and responsive")
-    #         logger.info(dep_ver)
-    #         # if dep=="minimap2":
-    #         #     chk_minimap_version(dep_ver, args)
-    #     except sp.CalledProcessError as ce:
-    #         logger.error(f"{dep} check CalledProcessError: {ce}")
-    #         logger.error(
-    #             f"The {dep} executable is installed but appears not"
-    #             f" to be working properly. Check logs for more info."
-    #             )
-    #         logger.error(dep_unavail_msg)
-    #         # args.__dict__[dep.split(".")[0]] = False
-    #     except FileNotFoundError as fe:
-    #         logger.error(f"Dependency check {dep}: FileNotFoundError: {fe}")
-    #         pf = sys.platform
-
+    def test_dep(self, dep):
+        try:
+            dep_ver = sp.run([dep, self.cmds[dep]], stdout=sp.PIPE)
+            dep_ver = dep_ver.stdout.replace(
+                                            b',', b';'
+                                        ).replace(
+                                                b'\n', b''
+                                            ).replace(
+                                                    b'\r', b''
+                                                ).decode("utf-8")
+            logger.info(f"{dep} version {dep_ver}")
+            self.vers[dep] = dep_ver
+        except sp.CalledProcessError as ce:
+            logger.error(f"{dep} check CalledProcessError: {ce}")
+            logger.error(
+                f"The {dep} executable is installed but appears not"
+                f" to be working properly. Check logs for more info."
+                )
+        except FileNotFoundError as fe:
+            logger.error(f"Dependency check {dep}: FileNotFoundError: {fe}")
+            logger.error(
+                f"The {dep} executable is not available. Make sure it is "
+                f"installed an in your PATH variable."
+                )
 
 
 class SelfTest():
