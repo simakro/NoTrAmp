@@ -34,7 +34,7 @@ jobs:
             all_versions=$(echo '${{ steps.get-python-versions.outputs.latest-python-versions }}' | jq -r '.[]')
             sorted_versions=$(echo "$all_versions" | sort -V)
             penultimate=$(echo "$sorted_versions" | tail -n 2 | head -n 1)
-            combined_versions=$(echo $manual_versions | jq '. + ["'"$penultimate"'"]')
+            combined_versions=$(echo $pinned_versions | jq '. + ["'"$penultimate"'"]')
             echo "Current penultimate major python version is $penultimate"
             echo "versions=$combined_versions" >> $GITHUB_OUTPUT
             echo "Combined versions: $combined_versions"
