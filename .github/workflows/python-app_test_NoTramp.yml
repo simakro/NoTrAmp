@@ -32,17 +32,19 @@ jobs:
             pinned_versions='["3.7", "3.10"]'
             # Get all versions and extract the penultimate one
             all_versions=$(echo '${{ steps.get-python-versions.outputs.latest-python-versions }}' | jq -r '.[]')
-            penultimate=$(echo "$all_versions" | tail -n 2 | head -n 1)
+            sorted_versions=$(echo "$all_versions" | sort -V)
+            penultimate=$(echo "$sorted_versions" | tail -n 2 | head -n 1)
             combined_versions=$(echo $manual_versions | jq '. + ["'"$penultimate"'"]')
             echo "Current penultimate major python version is $penultimate"
             echo "versions=$combined_versions" >> $GITHUB_OUTPUT
+            echo "Combined versions: $combined_versions"
 
   build:
     needs: get-python-versions
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ${{ fromJson(needs.get-python-versions.outputs.python-versions) }} # ["3.7", "3.10", "3.12"] # "3.x" add to test for latest
+        python-version: ${{ needs.get-python-versions.outputs.python-versions }} # ["3.7", "3.10", "3.12"] # "3.x" add to test for latest
         minimap2-version: ["2.16", "latest"] #  "2.28"
       fail-fast: false # do not cancel other jobs if one fails
 
