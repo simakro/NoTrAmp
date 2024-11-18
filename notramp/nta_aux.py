@@ -207,11 +207,11 @@ class NonPyDepChecker():
         self.cmds = {"minimap2": "--version"}
         self.vers = {}
         self.test_all()
-        
+
     def test_all(self):
         for dep in self.cmds:
             self.test_dep(dep)
-    
+
     def test_dep(self, dep):
         try:
             dep_ver = sp.run([dep, self.cmds[dep]], stdout=sp.PIPE)
