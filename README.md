@@ -28,7 +28,7 @@ appropriate length removing barcodes, adpaters and primers (if desired) in a sin
 
 Amplicon-tiling schemes are employed to target and amplify specific sequences and enable coverage of longer regions of DNA with small, contiguous segments using overlapping amplicons. 
 This approach is particularly useful for detection of mutations, characterization of genetic variation and allows generation of high quality assemblies from low input, fragmented DNA. 
-It is frequently utilized for the sequencing of viral genomes and has seen extensive use during the SARS-CoV2 pandemic or during Ebola outbreaks [link to ARTIC](https://artic.network/quick-guide-to-tiling-amplicon-sequencing-bioinformatics.html), but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
+It is frequently utilized for the sequencing of viral genomes and has seen extensive use during the [SARS-CoV2](https://artic.network/ncov-2019) pandemic or during [Zika and Ebola outbreaks](https://artic.network/quick-guide-to-tiling-amplicon-sequencing-bioinformatics.html), but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
 
 Amplicon-tiling protocols include amplification of the target sequences in separate multiplex PCRs build on (typically) two complementary primer pools.
 The performance of individual amplicons in these multiplex PCRs can be vastly different, resulting in large variations of read counts for different regions of the target sequence.
@@ -242,7 +242,7 @@ Target-Gene_3_REV
 ```
 
 <!-- use v5 scheme here instead show scheme and examples (excerpt from artic-ncov2019 v5 primer panel)-->
-If no custom scheme is supplied, the current default is the Artic SARS-CoV2 v5.3.2 primer scheme:
+If no custom scheme is supplied, the current default is the [Artic](https://artic.network/) SARS-CoV2 [v5.3.2](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V5.3.2) primer scheme:
 Generic primer scheme (see also "notramp/resources/artic_nCoV_scheme_v5.json"):
 ```sh
 {
