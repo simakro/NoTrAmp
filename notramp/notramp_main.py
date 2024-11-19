@@ -618,7 +618,6 @@ def name_out_paf(reads, reference, mod_name):
     reads_name = ".".join(reads_file.split(".")[:-1])
     ref_name = ".".join(path.split(reference)[1].split(".")[:-1])
     paf_name = f"{reads_name}_mapto_{ref_name}.{mod_name}.paf"
-    print(f"Mapping file path: {path.join(read_dir, paf_name)}")
     return path.join(read_dir, paf_name)
 
 
