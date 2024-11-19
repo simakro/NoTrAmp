@@ -28,7 +28,7 @@ appropriate length removing barcodes, adpaters and primers (if desired) in a sin
 
 Amplicon-tiling schemes are employed to target and amplify specific sequences and enable coverage of longer regions of DNA with small, contiguous segments using overlapping amplicons. 
 This approach is particularly useful for detection of mutations, characterization of genetic variation and allows generation of high quality assemblies from low input, fragmented DNA. 
-It is frequently utilized for the sequencing of viral genomes and has seen extensive use during the SARS-CoV2 pandemic or during Ebola outbreaks [Citations, links to ARTIC], but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
+It is frequently utilized for the sequencing of viral genomes and has seen extensive use during the [SARS-CoV2](https://artic.network/ncov-2019) pandemic or during [Zika and Ebola outbreaks](https://artic.network/quick-guide-to-tiling-amplicon-sequencing-bioinformatics.html), but is also very useful for exploration of specific genomic loci at high resolution in bacteria or eukaryotes.  
 
 Amplicon-tiling protocols include amplification of the target sequences in separate multiplex PCRs build on (typically) two complementary primer pools.
 The performance of individual amplicons in these multiplex PCRs can be vastly different, resulting in large variations of read counts for different regions of the target sequence.
@@ -39,24 +39,59 @@ NoTrAmp addresses these issues by limiting the read depth at each amplicon to a 
 NoTrAmp is suitable for use with both long (e.g. ONT/PacBio) and short reads (e.g Illumina). However, when using reads that are significantly shorter than amplicon sizes, you should adjust the minimum required alignment length using the --set_min_len argument (see below).
 
 ## <a name="install"></a>Installation
-install with pip:
+### install with pip:
 ```sh
 pip install notramp
 ```
-install with conda:
+When installing with pip you have to install minimap2 separetly.
+If you already have minimap2, make sure it is in your PATH variable.
+
+### install with mamba/conda:
+Use conda or mamba (latter recommended) depending on your preference.
+
+Preferred way (this will install all dependencies incl. python):
+
+```sh
+mamba create -n notramp -c bioconda -c conda-forge notramp
+mamba activate notramp
+```
+
+or first create env and then install (will use system python if available):
 ```sh
 conda create -n notramp
 conda activate notramp
-conda install -c simakro notramp
+conda install -c bioconda -c conda-forge notramp
 ```
 
-or
+Alternatively notramp is also available from channel simakro:
 
-```
-conda create -n notramp -c simakro notramp
-conda activate notramp
+```sh
+mamba create -n notramp -c simakro -c conda-forge notramp
+mamba activate notramp
 ```
 
+### test installation
+To show notramp version:
+```sh
+notramp --version
+```
+
+To test that notramp and all required dependecies are installed and fully functional:
+```sh
+notramp --selftest
+```
+This will perform a testrun with some example data and print all logging information to stdout.
+
+### latest python versions
+Sometimes it can take a while till all required packages catch up to the newest python version.
+At the time of writing, if you enforce (pin) installation of python 3.13.0 (the current latest version) conda/mamba
+ will install an outdated version of minimap2 (e.g. v2.1.1), because of a perceived conflict between libzlib, minimap2>=2.16 and python 3.13.0.
+However, they actually work fine together. If you insist to use the very latest python release the issue can be easily resolved by installing a 
+correct minimap2 version into the activated environment.
+```sh
+mamba install minimap2=2.28
+```
+To avoid such inconvenience, just follow the preferred installation method above.
 
 ## <a name="usage"></a>Usage
 install notramp package and run:
@@ -126,6 +161,8 @@ A visual representation (see below) of input and output reads can also be reques
 </p>
 Upper plot: Input reads (before)  
 Lower plot: Capped output reads (after)
+In this example the capping limit was set (-m argument) to 200 reads per amplicon. 
+The dashed red line is a visual help that can be set to indicate a threshold value (here 30 provided togehter with --figures), e.g. for min. required coverage.
 
 ## <a name="namescheme"></a>Primer naming schemes
 NoTramp requires primers in multiplex amplicon tiling panels to follow a consistent scheme.
@@ -218,7 +255,7 @@ Target-Gene_3_REV
 ```
 
 <!-- use v5 scheme here instead show scheme and examples (excerpt from artic-ncov2019 v5 primer panel)-->
-If no custom scheme is supplied, the current default is the Artic SARS-CoV2 v5.3.2 primer scheme:
+If no custom scheme is supplied, the current default is the [Artic](https://artic.network/) SARS-CoV2 [v5.3.2](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V5.3.2) primer scheme:
 Generic primer scheme (see also "notramp/resources/artic_nCoV_scheme_v5.json"):
 ```sh
 {
@@ -240,7 +277,7 @@ Generic primer scheme (see also "notramp/resources/artic_nCoV_scheme_v5.json"):
 ## <a name="depend"></a>Requirements/Dependencies
 required:   
 - Python >= 3.7
-- minimap2  
+- minimap2 (>= 2.16 recommended)
 
 recommended:   
 - psutil  

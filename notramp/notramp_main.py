@@ -509,8 +509,8 @@ def create_primer_objs(primer_bed, name_scheme):
             unexpected_bed_vals[k].extend(v)
     for k, l in dict(unexpected_bed_vals).items():
         logger.info(
-            f"Expected value of type {k[1]} for optional column {k[0]}. Got"
-            f" the following values instead in {len(l)} cases:\n\t\t\t\t{l}"
+            f"Expected value of type {k[1]} for optional column {k[0]}. Got val"
+            f"ues of the following kind instead in {len(l)} cases:\n{l[:10]}."
         )
         logger.info(
             "Values in optional columns do not affect the functionality of"
@@ -653,8 +653,7 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
     chk_reference(reference)
     try:
         seq_tech = "map-" + seq_tech
-        subprocess.run(
-            [
+        cmd = [
                 "minimap2",
                 "-x",
                 seq_tech,
@@ -663,15 +662,19 @@ def map_reads(reads, reference, out_paf, seq_tech="ont"):
                 "-o",
                 out_paf,
                 "--secondary=no"
-            ],
+            ]
+        mm2_stdout = subprocess.run(
+            cmd,
             check=True,
             capture_output=True
         )
+        logger.info(f"minimap2 command: {(' ').join(cmd)}")
+        logger.info(mm2_stdout)
     except subprocess.CalledProcessError as err:
         aux.log_sp_error(err, "Mapping of reads to reference failed")
     except FileNotFoundError:
         logger.error(
-            "The minimap2 executable could is not available. Please install min"
+            "The minimap2 executable is not available. Please install min"
             "imap2 or add it to your path if you've already installed it."
             )
     return out_paf
@@ -821,6 +824,7 @@ def run_notramp():
     logger = get_main_logger(kwargs["out_dir"])
     logger.info("notramp version %s", __version__)
     logger.info("python version %s", sys.version)
+    aux.NonPyDepChecker()
     logger.info("notramp started with: %s", kwargs)
     pkg_dir = path.split(path.abspath(__file__))[0]
     if kwargs["name_scheme"] == DEFAULTS["name_scheme"]:

@@ -20,11 +20,11 @@ build:
 requirements:
   host:
     - pip
-    - python
+    - python >=3.7
   run:
-    - psutil
-    - python
-    - minimap2
+    - psutil 
+    - python >=3.7
+    - minimap2 >=2.16
 
 test:
   imports:
