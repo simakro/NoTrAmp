@@ -162,7 +162,7 @@ A visual representation (see below) of input and output reads can also be reques
 Upper plot: Input reads (before)  
 Lower plot: Capped output reads (after)
 In this example the capping limit was set (-m argument) to 200 reads per amplicon. 
-The dashed red line is a visual help that can be set to indicate a threshold value, e.g. min. required coverage (can be provided with --figures flag).
+The dashed red line is a visual help that can be set to indicate a threshold value (here 30 provided togehter with --figures), e.g. for min. required coverage.
 
 ## <a name="namescheme"></a>Primer naming schemes
 NoTramp requires primers in multiplex amplicon tiling panels to follow a consistent scheme.
