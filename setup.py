@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as desc:
 
 setup(name='notramp',
       version=__version__,
-      description='Normalization and Trimming of long-read (ONT, PB) amplicon sequencing data',
+      description='Super-fast Normalization and Trimming for Amplicon Sequencing Data (Long- and Short-read)',
       long_description=long_description,
       long_description_content_type='text/markdown',
       url='https://github.com/simakro/NoTrAmp.git',
