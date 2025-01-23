@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   get-python-versions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # ubuntu-latest
     outputs: 
       python-versions: ${{ steps.set-python-versions.outputs.versions }}
     steps:
