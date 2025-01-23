@@ -15,18 +15,11 @@ import os
 from os import path
 from collections import defaultdict
 
-if __name__ == "__main__":
-    import nta_aux as aux
-    import amp_cov as amp_cov
-    import map_trim as map_trim
-    from defaults import DEFAULTS
-    from version import __version__
-else:
-    import notramp.nta_aux as aux
-    import notramp.amp_cov as amp_cov
-    import notramp.map_trim as map_trim
-    from notramp.defaults import DEFAULTS
-    from notramp.version import __version__
+import notramp.nta_aux as aux
+import notramp.amp_cov as amp_cov
+import notramp.map_trim as map_trim
+from notramp.defaults import DEFAULTS
+from notramp.version import __version__
 
 
 logger = logging.getLogger(__name__)

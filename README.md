@@ -56,9 +56,9 @@ mamba create -n notramp -c bioconda -c conda-forge notramp
 mamba activate notramp
 ```
 
-or first create env and then install (will use system python if available):
+or first create env (best specify a python version >3.6 else system python will be used) and then install notramp:
 ```sh
-conda create -n notramp
+conda create -n notramp python==3.12
 conda activate notramp
 conda install -c bioconda -c conda-forge notramp
 ```
