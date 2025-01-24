@@ -1,4 +1,4 @@
-import notramp_main
+import notramp.notramp_main
 
 if __name__ == "__main__":
-    notramp_main.run_notramp()
+    notramp.notramp_main.run_notramp()
