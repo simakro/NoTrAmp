@@ -82,6 +82,7 @@ notramp --selftest
 ```
 This will perform a testrun with some example data and print all logging information to stdout.
 
+
 ### latest python versions
 Sometimes it can take a while till all required packages catch up to the newest python version.
 At the time of writing, if you enforce (pin) installation of python 3.13.0 (the current latest version) conda/mamba
@@ -99,9 +100,9 @@ install notramp package and run:
 notramp (-a | -c | -t) -p PRIMERS -r  READS -g REFERENCE [optional arguments]
 ```
 
-or download source from github and run from package dir:
+or download source from github, depocmpress, cd into the unpacked directory and run with:
 ```sh
-notramp_main.py (-a | -c | -t) -p PRIMERS -r READS -g  REFERENCE [optional arguments]
+python -m notramp (-a | -c | -t) -p PRIMERS -r READS -g  REFERENCE [optional arguments]
 ```
 
 All arguments in detail:
