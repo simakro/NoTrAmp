@@ -100,7 +100,7 @@ install notramp package and run:
 notramp (-a | -c | -t) -p PRIMERS -r  READS -g REFERENCE [optional arguments]
 ```
 
-or download source from github, depocmpress, cd into the unpacked directory and run with:
+or download source from github, decompress, cd into the unpacked directory and run with:
 ```sh
 python -m notramp (-a | -c | -t) -p PRIMERS -r READS -g  REFERENCE [optional arguments]
 ```

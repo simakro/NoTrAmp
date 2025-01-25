@@ -18,7 +18,7 @@ setup(name='notramp',
       license='BSD-2',
       packages=['notramp'],
       include_package_data=True,
-      scripts=['bin/notramp'],
+      # scripts=['bin/notramp'],
       entry_points={
                     "console_scripts":
                     ['notramp = notramp.notramp_main:run_notramp']
