@@ -11,7 +11,7 @@ on:
 jobs:
       
   build:
-    runs-on: ubuntu-22.04 # ubuntu-latest
+    runs-on: ubuntu-latest # ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
@@ -19,13 +19,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.12'
 
     - name: setup conda
       uses: conda-incubator/setup-miniconda@v3
       with:
         miniforge-version: latest
-        python-version: 3.9
+        python-version: 3.12
         auto-activate-base: true
         use-mamba: true
         channels: defaults, bioconda, conda-forge
@@ -79,7 +79,6 @@ jobs:
       run: |
         cat meta.yaml
         conda build . -c bioconda
-        # conda-verify path/to/your/package.tar.bz2
 
     - name: Show cwd and files
       run: |
@@ -90,7 +89,6 @@ jobs:
       run: |
         BUILD_NO=$(grep '^  number:' meta.yaml | awk '{print $2}')
         echo "BUILD_NO is $BUILD_NO"
-        # PKG_PATH=/home/runner/miniconda3/conda-bld/noarch/notramp-${{ env.VERSION_NO }}-py_$BUILD_NO.tar.bz2
         PKG_PATH=$(conda build . --output)
         echo "PKG_PATH is $PKG_PATH"
         echo "Owner is ${{ env.OWNER }}"
