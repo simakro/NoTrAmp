@@ -85,14 +85,16 @@ This will perform a testrun with some example data and print all logging informa
 
 ### latest python versions
 Sometimes it can take a while till all required packages catch up to the newest python version.
-At the time of writing, if you enforce (pin) installation of python 3.13.0 (the current latest version) conda/mamba
- will install an outdated version of minimap2 (e.g. v2.1.1), because of a perceived conflict between libzlib, minimap2>=2.16 and python 3.13.0.
-However, they actually work fine together. If you insist to use the very latest python release the issue can be easily resolved by installing a 
-correct minimap2 version into the activated environment.
+E.g. when python 3.13.0 was newly released conda/mamba would install an outdated version of minimap2 (e.g. v2.1.1),
+because of a perceived conflict between libzlib, minimap2>=2.16 and python 3.13.0. However, they did actually work fine together.
+In the meantime this problem has been resolved, but similar problems may arise with other fresh releases initially.
+If you insist to use the very latest python release the issue can typically easily resolved by installing a
+correct minimap2 version into the activated environment e.g.:
 ```sh
 mamba install minimap2=2.28
 ```
-To avoid such inconvenience, just follow the preferred installation method above.
+Otherwise you should always be fine using the penultimate python version.
+To entirely avoid any such inconveniences, just follow the preferred installation method above.
 
 ## <a name="usage"></a>Usage
 install notramp package and run:
